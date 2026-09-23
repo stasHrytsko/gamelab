@@ -1,0 +1,71 @@
+@font-face {
+  font-family: "Poppins";
+  src: url("./fonts/Poppins-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("./fonts/Poppins-Medium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("./fonts/Poppins-SemiBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("./fonts/Poppins-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --ui-blue: #4f7eff;
+  --ui-coral: #ff7b6b;
+  --ui-yellow: #ffc542;
+  --ui-green: #34d399;
+  --ui-purple: #a78bfa;
+
+  --ui-background: #f6f8fc;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #eef2f8;
+  --ui-border: #e3e8f2;
+  --ui-text: #1f2937;
+  --ui-text-muted: #6b7280;
+
+  --ui-success: #20c979;
+  --ui-warning: #ffc542;
+  --ui-danger: #ff646b;
+  --ui-disabled: #cbd5e1;
+
+  --ui-font: "Poppins", "Inter", "Manrope", "Segoe UI", sans-serif;
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 24px;
+  --ui-space-6: 32px;
+  --ui-space-7: 48px;
+
+  --ui-radius-small: 8px;
+  --ui-radius-medium: 12px;
+  --ui-radius-large: 16px;
+  --ui-radius-card: 20px;
+  --ui-radius-pill: 999px;
+
+  --ui-shadow-soft: 0 6px 18px rgba(31, 41, 55, 0.08);
+  --ui-shadow-card: 0 10px 30px rgba(79, 126, 255, 0.1);
+  --ui-shadow-tile: 0 7px 14px rgba(31, 41, 55, 0.14);
+}
+

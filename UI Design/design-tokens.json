@@ -1,0 +1,93 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "meta": {
+    "name": "PuzzleKit UI",
+    "version": "1.0.0",
+    "source": "UI Design reference boards",
+    "rule": "These tokens override values inferred from screenshots."
+  },
+  "color": {
+    "brand": {
+      "blue": "#4F7EFF",
+      "coral": "#FF7B6B",
+      "yellow": "#FFC542",
+      "green": "#34D399",
+      "purple": "#A78BFA"
+    },
+    "neutral": {
+      "background": "#F6F8FC",
+      "surface": "#FFFFFF",
+      "surfaceMuted": "#EEF2F8",
+      "border": "#E3E8F2",
+      "text": "#1F2937",
+      "textMuted": "#6B7280"
+    },
+    "semantic": {
+      "primary": "#4F7EFF",
+      "success": "#20C979",
+      "warning": "#FFC542",
+      "danger": "#FF646B",
+      "disabled": "#CBD5E1"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "primary": "Poppins",
+      "fallback": "Inter, Manrope, Segoe UI, sans-serif"
+    },
+    "fontWeight": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "fontSizePx": {
+      "caption": 11,
+      "small": 12,
+      "body": 14,
+      "button": 16,
+      "heading3": 18,
+      "heading2": 24,
+      "heading1": 32
+    },
+    "lineHeight": {
+      "tight": 1.2,
+      "normal": 1.4,
+      "relaxed": 1.6
+    }
+  },
+  "spacingPx": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 24,
+    "6": 32,
+    "7": 48
+  },
+  "radiusPx": {
+    "small": 8,
+    "medium": 12,
+    "large": 16,
+    "card": 20,
+    "pill": 999
+  },
+  "shadow": {
+    "soft": "0 6px 18px rgba(31, 41, 55, 0.08)",
+    "card": "0 10px 30px rgba(79, 126, 255, 0.10)",
+    "tile": "0 7px 14px rgba(31, 41, 55, 0.14)"
+  },
+  "component": {
+    "buttonHeightPx": 48,
+    "tileSizePx": 64,
+    "iconSizePx": 24,
+    "cardPaddingPx": 20,
+    "minimumTouchTargetPx": 44,
+    "motionDurationMs": {
+      "fast": 120,
+      "normal": 220,
+      "slow": 360
+    }
+  }
+}
+

@@ -1,5 +1,5 @@
 import { LEVEL_COUNT, LEVELS } from '../levels/loadLevels.ts';
-import { icon, taxiCar } from './icons.ts';
+import { icon, taxiTile } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
@@ -10,9 +10,9 @@ export function homeScreen(go: Go): HTMLElement {
   el.dataset['testid'] = 'home';
   el.innerHTML = `
     <div class="home-logo" aria-hidden="true">
-      <div class="bob">${taxiCar('red')}</div><div class="hole"></div><div class="bob">${taxiCar('blue', '', 90)}</div>
-      <div class="hole"></div><div class="bob">${taxiCar('yellow')}</div><div class="hole"></div>
-      <div class="bob">${taxiCar('blue', '', 270)}</div><div class="hole"></div><div class="bob">${taxiCar('red', '', 180)}</div>
+      ${taxiTile('red')}<div class="hole"></div>${taxiTile('blue')}
+      <div class="hole"></div>${taxiTile('yellow')}<div class="hole"></div>
+      ${taxiTile('blue')}<div class="hole"></div>${taxiTile('red')}
     </div>
     <h1>Такси-<br>пятнашки</h1>
     <div style="flex:1"></div>

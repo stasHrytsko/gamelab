@@ -6,13 +6,12 @@
 <style>
   * { box-sizing: border-box; margin: 0; }
   body { font-family: var(--ui-font); background: transparent; }
-  .cab { --rot: 0deg; position: relative; color: var(--c); transform: rotate(var(--rot)); filter: drop-shadow(0 8px 10px rgba(31,41,55,.18)); }
-  .cab svg.car-svg { width: 100%; height: 100%; display: block; }
-  .cab .sign { position: absolute; left: 50%; top: 51.5%; width: 21%; height: 21%; transform: translate(-50%, -50%) rotate(calc(-1 * var(--rot))); color: color-mix(in srgb, var(--c) 80%, #1f2937); }
-  .cab .sign svg { width: 100%; height: 100%; display: block; }
+  .tile { --c: var(--ui-blue); position: relative; border-radius: 28%; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937) 100%); box-shadow: 0 7px 14px rgba(31,41,55,.14), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 3px 0 rgba(255,255,255,.45); display: grid; place-items: center; }
+  .tile::after { content: ""; position: absolute; left: 14%; top: 8%; width: 42%; height: 18%; border-radius: 999px; background: rgba(255,255,255,.35); }
+  .tile svg { width: 42%; height: 42%; color: #fff; position: relative; z-index: 1; }
   .hole { border-radius: 28%; background: var(--ui-surface-muted); display: grid; place-items: center; }
   .hole::before { content: ""; width: 14%; height: 14%; border-radius: 50%; background: var(--ui-disabled); }
-  .c-red { --c: var(--ui-coral); } .c-blue { --c: var(--ui-blue); } .c-yellow { --c: var(--ui-yellow); }
+  .c-red { --c: var(--ui-coral); } .c-yellow { --c: var(--ui-yellow); }
 
   #icon { width: 512px; height: 512px; background: radial-gradient(90% 90% at 30% 20%, #fff, var(--ui-background)); display: grid; place-items: center; }
   #icon .grid { display: grid; grid-template-columns: repeat(2, 150px); gap: 20px; }
@@ -35,17 +34,17 @@
 </defs></svg>
 
 <div id="icon"><div class="grid">
-  <div class="cab c-red" style="--rot:0deg"><span class="sign"><svg><use href="#g-red"/></svg></span></div>
-  <div class="cab c-blue" style="--rot:90deg"><span class="sign"><svg><use href="#g-blue"/></svg></span></div>
+  <div class="tile c-red"><svg><use href="#g-red"/></svg></div>
+  <div class="tile"><svg><use href="#g-blue"/></svg></div>
   <div class="hole"></div>
-  <div class="cab c-yellow" style="--rot:0deg"><span class="sign"><svg><use href="#g-yellow"/></svg></span></div>
+  <div class="tile c-yellow"><svg><use href="#g-yellow"/></svg></div>
 </div></div>
 
 <div id="og">
   <div class="grid">
-    <div class="cab c-red" style="--rot:0deg"><span class="sign"><svg><use href="#g-red"/></svg></span></div><div class="hole"></div><div class="cab c-blue" style="--rot:90deg"><span class="sign"><svg><use href="#g-blue"/></svg></span></div>
-    <div class="hole"></div><div class="cab c-yellow" style="--rot:0deg"><span class="sign"><svg><use href="#g-yellow"/></svg></span></div><div class="hole"></div>
-    <div class="cab c-blue" style="--rot:270deg"><span class="sign"><svg><use href="#g-blue"/></svg></span></div><div class="hole"></div><div class="cab c-red" style="--rot:180deg"><span class="sign"><svg><use href="#g-red"/></svg></span></div>
+    <div class="tile c-red"><svg><use href="#g-red"/></svg></div><div class="hole"></div><div class="tile"><svg><use href="#g-blue"/></svg></div>
+    <div class="hole"></div><div class="tile c-yellow"><svg><use href="#g-yellow"/></svg></div><div class="hole"></div>
+    <div class="tile"><svg><use href="#g-blue"/></svg></div><div class="hole"></div><div class="tile c-red"><svg><use href="#g-red"/></svg></div>
   </div>
   <div>
     <h1>Такси-<br>пятнашки</h1>

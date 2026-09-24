@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Такси-пятнашки — экраны</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--ui-font); color: var(--ui-text); background: var(--ui-surface-muted); }
+
+  .sheet { padding: var(--ui-space-6); display: grid; grid-template-columns: repeat(4, 360px); gap: var(--ui-space-6) var(--ui-space-5); width: max-content; }
+  .sheet-title { grid-column: 1 / -1; display: flex; align-items: baseline; gap: var(--ui-space-4); }
+  .sheet-title h1 { font-size: 32px; font-weight: 700; }
+  .sheet-title p { font-size: 14px; color: var(--ui-text-muted); }
+  figure { display: flex; flex-direction: column; gap: var(--ui-space-3); }
+  figcaption { font-size: 14px; font-weight: 600; color: var(--ui-text-muted); padding-left: var(--ui-space-2); }
+
+  .phone { position: relative; width: 360px; height: 740px; border-radius: 36px; background: var(--ui-background); box-shadow: var(--ui-shadow-card); overflow: hidden; display: flex; flex-direction: column; padding: var(--ui-space-5) var(--ui-space-3) var(--ui-space-4); }
+
+  /* buttons */
+  .btn { height: 48px; border: 0; border-radius: var(--ui-radius-large); font: 600 16px var(--ui-font); display: flex; align-items: center; justify-content: center; gap: var(--ui-space-2); width: 100%; }
+  .btn-primary { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 8px 18px rgba(79, 126, 255, 0.35); }
+  .btn-success { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-success) 80%, #fff), var(--ui-success)); box-shadow: 0 8px 18px rgba(32, 201, 121, 0.35); }
+  .btn-secondary { color: var(--ui-text); background: var(--ui-surface); border: 1px solid var(--ui-border); box-shadow: var(--ui-shadow-soft); }
+  .btn-ghost { color: var(--ui-text-muted); background: transparent; height: 40px; font-weight: 500; }
+  .btn-large { height: 60px; font-size: 20px; border-radius: var(--ui-radius-card); }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .btn-large svg { width: 24px; height: 24px; }
+
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; color: var(--ui-text); flex: none; }
+  .icon-btn svg { width: 22px; height: 22px; }
+
+  /* top bar */
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); height: 44px; }
+  .topbar h2 { font-size: 18px; font-weight: 600; }
+  .counter { height: 44px; padding: 0 var(--ui-space-4) 0 var(--ui-space-3); border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: flex; align-items: center; gap: var(--ui-space-2); font-size: 18px; font-weight: 600; }
+  .counter svg { width: 22px; height: 22px; color: var(--ui-blue); }
+
+  /* tiles */
+  .tile { --c: var(--ui-blue); position: relative; border-radius: 14px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937) 100%); box-shadow: var(--ui-shadow-tile), inset 0 -3px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,0.45); display: grid; place-items: center; }
+  .tile::after { content: ""; position: absolute; left: 14%; top: 8%; width: 42%; height: 18%; border-radius: 999px; background: rgba(255,255,255,0.35); }
+  .c-red { --c: var(--ui-coral); }
+  .c-blue { --c: var(--ui-blue); }
+  .c-yellow { --c: var(--ui-yellow); }
+  .c-green { --c: var(--ui-success); }
+  .glyph { width: 44%; height: 44%; color: #fff; filter: drop-shadow(0 1px 1px rgba(31,41,55,0.18)); position: relative; z-index: 1; }
+
+  /* board */
+  .board-wrap { position: relative; margin: 0 auto; }
+  .board { position: absolute; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 8px; display: grid; gap: 5px; }
+  .cell { position: relative; border-radius: 12px; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .cell.empty::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ui-disabled); }
+  .cell > .tile { position: absolute; inset: 1px; }
+  .cell.target { box-shadow: 0 0 0 3px var(--tc); }
+  .cell.target.empty { background: color-mix(in srgb, var(--tc) 12%, var(--ui-surface-muted)); }
+  .cell .cell-badge { position: absolute; top: -8px; right: -8px; z-index: 3; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--tc); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; border: 2px solid #fff; }
+
+  .pax { position: absolute; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; border: 3px solid #fff; box-shadow: var(--ui-shadow-tile); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c)); }
+  .pax .glyph { width: 50%; height: 50%; }
+  .pax .patience { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--ui-surface); color: var(--ui-text); font-size: 12px; font-weight: 700; display: grid; place-items: center; box-shadow: var(--ui-shadow-soft); }
+  .pax.critical { box-shadow: 0 0 0 4px rgba(255,100,107,0.25), 0 0 0 9px rgba(255,100,107,0.12), var(--ui-shadow-tile); }
+  .pax.critical .patience { background: var(--ui-danger); color: #fff; }
+
+  .help-fab { position: absolute; right: var(--ui-space-4); bottom: var(--ui-space-5); width: 52px; height: 52px; border-radius: 50%; background: var(--ui-surface); box-shadow: var(--ui-shadow-card); display: grid; place-items: center; font-size: 22px; font-weight: 700; color: var(--ui-blue); }
+
+  /* home */
+  .home { justify-content: space-between; align-items: center; text-align: center; padding: var(--ui-space-7) var(--ui-space-5) var(--ui-space-7); background: radial-gradient(120% 60% at 50% 0%, #fff 0%, var(--ui-background) 70%); }
+  .logo { display: grid; grid-template-columns: repeat(3, 64px); gap: 8px; margin-top: var(--ui-space-7); }
+  .logo .tile, .logo .ghost { width: 64px; height: 64px; }
+  .logo .ghost { border-radius: 14px; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .logo .ghost::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ui-disabled); }
+  .home h1 { font-size: 34px; font-weight: 700; line-height: 1.15; margin-top: var(--ui-space-6); }
+
+  /* levels */
+  .levels { display: flex; flex-direction: column; gap: var(--ui-space-3); margin-top: var(--ui-space-5); }
+  .level { display: flex; align-items: center; gap: var(--ui-space-4); padding: var(--ui-space-3) var(--ui-space-4) var(--ui-space-3) var(--ui-space-3); border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); }
+  .level .tile, .level .lock { width: 64px; height: 64px; flex: none; font-size: 28px; font-weight: 700; color: #fff; }
+  .level .tile span { position: relative; z-index: 1; text-shadow: 0 1px 2px rgba(31,41,55,0.2); }
+  .level .lock { border-radius: 14px; background: linear-gradient(160deg, #e2e8f0, var(--ui-disabled)); display: grid; place-items: center; box-shadow: inset 0 -3px 0 #b6c2d2; }
+  .level .lock svg { width: 26px; height: 26px; color: #fff; }
+  .level h3 { font-size: 16px; font-weight: 600; }
+  .level p { font-size: 12px; color: var(--ui-text-muted); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+  .level p svg { width: 14px; height: 14px; }
+  .level .state { margin-left: auto; }
+  .level.current { box-shadow: 0 0 0 3px var(--ui-blue), var(--ui-shadow-card); }
+  .level.locked h3, .level.locked p { color: var(--ui-disabled); }
+  .check { width: 28px; height: 28px; border-radius: 50%; background: var(--ui-success); display: grid; place-items: center; }
+  .check svg { width: 16px; height: 16px; color: #fff; }
+  .play-mini { width: 36px; height: 36px; border-radius: 50%; background: var(--ui-blue); display: grid; place-items: center; box-shadow: 0 6px 12px rgba(79,126,255,.35); }
+  .play-mini svg { width: 14px; height: 14px; color: #fff; margin-left: 2px; }
+
+  /* modal */
+  .scrim { position: absolute; inset: 0; background: rgba(31, 41, 55, 0.5); display: grid; place-items: center; padding: var(--ui-space-5); z-index: 10; }
+  .modal { width: 100%; background: var(--ui-surface); border-radius: 24px; padding: var(--ui-space-6) var(--ui-space-5) var(--ui-space-4); text-align: center; box-shadow: 0 20px 50px rgba(31,41,55,0.25); display: flex; flex-direction: column; gap: var(--ui-space-3); }
+  .modal h2 { font-size: 24px; font-weight: 700; }
+  .modal .sub { font-size: 14px; color: var(--ui-text-muted); margin-top: -4px; }
+  .modal .actions { display: flex; flex-direction: column; gap: var(--ui-space-2); margin-top: var(--ui-space-3); }
+  .badge-big { width: 88px; height: 88px; margin: 0 auto var(--ui-space-2); border-radius: 50%; display: grid; place-items: center; }
+  .badge-big svg { width: 44px; height: 44px; color: #fff; }
+  .badge-win { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-success) 65%, #fff), var(--ui-success)); box-shadow: 0 0 0 10px rgba(32,201,121,0.14), 0 10px 24px rgba(32,201,121,0.35); }
+  .badge-lose { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-danger) 65%, #fff), var(--ui-danger)); box-shadow: 0 0 0 10px rgba(255,100,107,0.14), 0 10px 24px rgba(255,100,107,0.35); }
+  .badge-cup { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-yellow) 60%, #fff), var(--ui-yellow)); box-shadow: 0 0 0 10px rgba(255,197,66,0.18), 0 10px 24px rgba(255,197,66,0.4); }
+
+  .rules { list-style: none; text-align: left; display: flex; flex-direction: column; gap: var(--ui-space-3); margin-top: var(--ui-space-2); }
+  .rules li { display: flex; gap: var(--ui-space-3); font-size: 14px; line-height: 1.4; }
+  .rules li b { flex: none; width: 24px; height: 24px; border-radius: 8px; background: #e8efff; color: var(--ui-blue); font-size: 12px; display: grid; place-items: center; }
+  .demo { display: flex; justify-content: center; align-items: center; gap: 6px; margin: var(--ui-space-2) 0; }
+  .demo .tile, .demo .dcell { width: 44px; height: 44px; }
+  .demo .dcell { border-radius: 12px; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .demo .dcell::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ui-disabled); }
+  .demo .arrow { color: var(--ui-blue); width: 22px; height: 22px; }
+  .demo .pax { position: relative; }
+
+  .stars { display: flex; justify-content: center; gap: var(--ui-space-2); margin: var(--ui-space-1) 0; }
+  .stars svg { width: 42px; height: 42px; }
+  .rate-label { font-size: 14px; font-weight: 600; margin-top: var(--ui-space-2); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="g-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/></symbol>
+    <symbol id="g-square" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="currentColor"/></symbol>
+    <symbol id="g-triangle" viewBox="0 0 24 24"><path d="M12 3.2c.7 0 1.3.4 1.7 1l8 14c.8 1.4-.2 3-1.7 3H4c-1.5 0-2.5-1.6-1.7-3l8-14c.4-.6 1-1 1.7-1z" fill="currentColor"/></symbol>
+    <symbol id="i-levels" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></g></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="4" fill="currentColor"/><path d="M4 20.5c0-4.4 3.6-7 8-7s8 2.6 8 7z" fill="currentColor"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15c0 .8.9 1.3 1.6.8l11-7.5c.6-.4.6-1.2 0-1.6l-11-7.5C7.9 3.2 7 3.7 7 4.5z" fill="currentColor"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10.5" rx="3" fill="currentColor"/><path d="M8 10.5V8a4 4 0 018 0v2.5" fill="none" stroke="currentColor" stroke-width="2.6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-cup" viewBox="0 0 24 24"><path d="M7 3.5h10v6.5a5 5 0 01-10 0z" fill="currentColor"/><path d="M7 5.5H4.5a3 3 0 003 4.5M17 5.5h2.5a3 3 0 01-3 4.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="10.8" y="14.5" width="2.4" height="3.5" fill="currentColor"/><rect x="7.5" y="18" width="9" height="2.8" rx="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h14m-5-5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-replay" viewBox="0 0 24 24"><path d="M5 12a7 7 0 107-7H8.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M10.5 2.5L8 5l2.5 2.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.6 6.1.9c.8.1 1.1 1.1.5 1.6l-4.4 4.3 1 6.1c.1.8-.7 1.4-1.4 1l-5.5-2.9-5.5 2.9c-.7.4-1.6-.2-1.4-1l1-6.1-4.4-4.3c-.6-.5-.3-1.5.5-1.6l6.1-.9z"/></symbol>
+  </defs>
+</svg>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-title"><h1>Такси-пятнашки</h1><p>Экраны прототипа · PuzzleKit UI · 360×740</p></div>
+</div>
+
+<script>
+const GLYPH = { red: 'g-circle', blue: 'g-square', yellow: 'g-triangle' };
+const use = (id, cls = '') => `<svg class="${cls}"><use href="#${id}"/></svg>`;
+const taxi = (color) => `<div class="tile c-${color}">${use(GLYPH[color], 'glyph')}</div>`;
+const paxEl = (color, patience, critical, style = '') =>
+  `<div class="pax c-${color}${critical ? ' critical' : ''}" style="${style}">${use(GLYPH[color], 'glyph')}${patience != null ? `<span class="patience">${patience}</span>` : ''}</div>`;
+const colorVar = { red: 'var(--ui-coral)', blue: 'var(--ui-blue)', yellow: 'var(--ui-yellow)' };
+
+// Уровень 4 из прототипа play; ждут двое, у кораллового последний ход.
+const LEVEL4 = [
+  'b y . b r',
+  'b r . y y',
+  'b y r r b',
+  'r y y r y',
+  'r b b . .',
+].map(r => r.split(' '));
+const NAME = { b: 'blue', y: 'yellow', r: 'red' };
+
+function boardHtml(grid, passengers, { cell = 44, gap = 5, pad = 8, lane = 40 } = {}) {
+  const inner = cell * 5 + gap * 4 + pad * 2;
+  const size = inner + lane * 2;
+  const targets = {};
+  passengers.forEach(p => {
+    const [r, c] = p.side === 'top' ? [0, p.index] : p.side === 'bottom' ? [4, p.index] : p.side === 'left' ? [p.index, 0] : [p.index, 4];
+    targets[`${r},${c}`] = p;
+  });
+  let cells = '';
+  grid.forEach((row, r) => row.forEach((v, c) => {
+    const t = targets[`${r},${c}`];
+    const cls = ['cell', v === '.' ? 'empty' : '', t ? 'target' : ''].join(' ');
+    const style = t ? `--tc:${colorVar[t.color]}` : '';
+    cells += `<div class="${cls}" style="${style}">${v !== '.' ? taxi(NAME[v]) : ''}${t ? `<span class="cell-badge">${t.patience}</span>` : ''}</div>`;
+  }));
+  const pax = passengers.map(p => {
+    const center = lane + pad + p.index * (cell + gap) + cell / 2 - 18;
+    const edge = (lane - 36) / 2 - 3;
+    const pos = p.side === 'left' ? `left:${edge}px;top:${center}px` : p.side === 'right' ? `right:${edge}px;top:${center}px`
+      : p.side === 'top' ? `top:${edge}px;left:${center}px` : `bottom:${edge}px;left:${center}px`;
+    return paxEl(p.color, p.patience, p.patience === 1, pos);
+  }).join('');
+  return `<div class="board-wrap" style="width:${size}px;height:${size}px">
+    <div class="board" style="left:${lane}px;top:${lane}px;width:${inner}px;height:${inner}px;padding:${pad}px;gap:${gap}px;grid-template-columns:repeat(5,${cell}px);grid-template-rows:repeat(5,${cell}px)">${cells}</div>${pax}</div>`;
+}
+
+function gameScreen({ level, left, grid, passengers }) {
+  return `<div class="topbar">
+      <div class="icon-btn" title="К уровням">${use('i-levels')}</div>
+      <h2>Уровень ${level}</h2>
+      <div class="counter" title="Осталось развезти">${use('i-person')}${left}</div>
+    </div>
+    <div style="flex:1;display:grid;place-items:center">${boardHtml(grid, passengers)}</div>
+    <div class="help-fab">?</div>`;
+}
+
+const game4 = gameScreen({
+  level: 4, left: 6, grid: LEVEL4,
+  passengers: [
+    { color: 'blue', side: 'right', index: 3, patience: 4 },
+    { color: 'red', side: 'right', index: 4, patience: 1 },
+  ],
+});
+
+const LEVEL1 = [
+  'b y r y .',
+  'y b y b b',
+  'b . r . .',
+  'r . y b .',
+  'r r . r .',
+].map(r => r.split(' '));
+const game1 = gameScreen({ level: 1, left: 3, grid: LEVEL1, passengers: [{ color: 'blue', side: 'bottom', index: 1, patience: 9 }] });
+
+const screens = [
+  ['1. Главный', `<div class="phone home">
+      <div class="logo">
+        ${taxi('red')}<div class="ghost"></div>${taxi('blue')}
+        <div class="ghost"></div>${taxi('yellow')}<div class="ghost"></div>
+        ${taxi('blue')}<div class="ghost"></div>${taxi('red')}
+      </div>
+      <h1>Такси-<br>пятнашки</h1>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary btn-large">${use('i-play')}Играть</button>
+    </div>`],
+  ['2. Уровни', `<div class="phone">
+      <div class="topbar"><div class="icon-btn" title="На главный">${use('i-back')}</div><h2>Уровни</h2><div style="width:44px"></div></div>
+      <div class="levels">
+        ${[[1, 3, 'done'], [2, 4, 'current'], [3, 5, 'locked'], [4, 7, 'locked'], [5, 8, 'locked']].map(([n, p, s]) => `
+        <div class="level ${s}">
+          ${s === 'locked' ? `<div class="lock">${use('i-lock')}</div>` : `<div class="tile ${s === 'done' ? 'c-green' : 'c-blue'}"><span>${n}</span></div>`}
+          <div><h3>Уровень ${n}</h3><p>${use('i-person')}${p} пассажир${p < 5 ? (p === 1 ? '' : 'а') : 'ов'}</p></div>
+          <div class="state">${s === 'done' ? `<div class="check">${use('i-check')}</div>` : s === 'current' ? `<div class="play-mini">${use('i-play')}</div>` : ''}</div>
+        </div>`).join('')}
+      </div>
+    </div>`],
+  ['3. Игровой экран', `<div class="phone" id="game-screen">${game4}</div>`],
+  ['4. «Как играть» — сам на уровне 1 и по «?»', `<div class="phone">${game1}
+      <div class="scrim"><div class="modal">
+        <h2>Как играть?</h2>
+        <div class="demo">${taxi('blue')}${use('i-arrow', 'arrow')}<div class="dcell"></div>${use('i-arrow', 'arrow')}${paxEl('blue', 3, false)}</div>
+        <ol class="rules">
+          <li><b>1</b><span>Сдвигай такси в соседнюю пустую клетку.</span></li>
+          <li><b>2</b><span>Подай такси того же цвета и знака к пассажиру, пока его число не стало нулём.</span></li>
+          <li><b>3</b><span>Каждый сдвиг отнимает у всех ждущих по одному.</span></li>
+          <li><b>4</b><span>Такси с пассажиром сразу уезжает и оставляет пустую клетку.</span></li>
+        </ol>
+        <div class="actions"><button class="btn btn-primary">Понятно!</button></div>
+      </div></div>
+    </div>`],
+  ['5. Победа', `<div class="phone">${game4}
+      <div class="scrim"><div class="modal">
+        <div class="badge-big badge-win">${use('i-check')}</div>
+        <h2>Уровень пройден!</h2>
+        <p class="sub">Все пассажиры развезены</p>
+        <div class="actions">
+          <button class="btn btn-success">Следующий уровень ${use('i-arrow')}</button>
+          <button class="btn btn-secondary">${use('i-replay')}Переиграть</button>
+          <button class="btn btn-ghost">К уровням</button>
+        </div>
+      </div></div>
+    </div>`],
+  ['6. Проигрыш', `<div class="phone">${game4}
+      <div class="scrim"><div class="modal">
+        <div class="badge-big badge-lose">${use('i-x')}</div>
+        <h2>Неудача</h2>
+        <p class="sub">Пассажир не дождался</p>
+        <div class="actions">
+          <button class="btn btn-primary">${use('i-replay')}Переиграть</button>
+          <button class="btn btn-ghost">К уровням</button>
+        </div>
+      </div></div>
+    </div>`],
+  ['7. После уровня 5', `<div class="phone">${game4}
+      <div class="scrim"><div class="modal">
+        <div class="badge-big badge-cup">${use('i-cup')}</div>
+        <h2>Все уровни пройдены!</h2>
+        <p class="rate-label">Поставь оценку</p>
+        <div class="stars">${[1, 2, 3, 4, 5].map(i => `<svg style="color:${i <= 4 ? 'var(--ui-yellow)' : 'var(--ui-border)'}" fill="currentColor"><use href="#i-star"/></svg>`).join('')}</div>
+        <div class="actions">
+          <button class="btn btn-secondary">${use('i-replay')}Переиграть</button>
+          <button class="btn btn-ghost">К уровням</button>
+        </div>
+      </div></div>
+    </div>`],
+];
+
+document.getElementById('sheet').insertAdjacentHTML('beforeend',
+  screens.map(([cap, html]) => `<figure><figcaption>${cap}</figcaption>${html}</figure>`).join(''));
+</script>
+</body>
+</html>

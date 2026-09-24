@@ -11,9 +11,18 @@ if (root === null) throw new Error('#app missing');
 
 let current: Screen | null = null;
 
-function go(route: string): void {
-  if (location.hash === route || (route === '#/' && location.hash === '')) render();
-  else location.hash = route;
+// Во встроенном превью (артефакт claude.ai) адрес страницы менять нельзя —
+// там маршрут живёт в памяти. Сборка: VITE_ROUTER=memory.
+const inMemory = import.meta.env['VITE_ROUTER'] === 'memory';
+let memoryRoute = '#/';
+const route = (): string => (inMemory ? memoryRoute : location.hash);
+
+function go(next: string): void {
+  if (inMemory) {
+    memoryRoute = next;
+    render();
+  } else if (location.hash === next || (next === '#/' && location.hash === '')) render();
+  else location.hash = next;
 }
 
 function screenFor(hash: string): Screen {
@@ -21,7 +30,8 @@ function screenFor(hash: string): Screen {
   if (match !== null) {
     const n = Number(match[1]);
     if (n >= 1 && n <= LEVEL_COUNT && isUnlocked(n)) return gameScreen(n, go);
-    history.replaceState(null, '', '#/levels');
+    if (inMemory) memoryRoute = '#/levels';
+    else history.replaceState(null, '', '#/levels');
     return { el: levelsScreen(go), destroy: () => undefined };
   }
   if (hash === '#/levels') return { el: levelsScreen(go), destroy: () => undefined };
@@ -30,11 +40,11 @@ function screenFor(hash: string): Screen {
 
 function render(): void {
   current?.destroy();
-  current = screenFor(location.hash);
+  current = screenFor(route());
   root?.replaceChildren(current.el);
 }
 
-window.addEventListener('hashchange', render);
+if (!inMemory) window.addEventListener('hashchange', render);
 // iOS: щипок и двойной тап не должны масштабировать игру.
 document.addEventListener('gesturestart', (event) => event.preventDefault());
 document.addEventListener('dblclick', (event) => event.preventDefault());

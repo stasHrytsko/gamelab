@@ -60,14 +60,14 @@
   .pax.critical { box-shadow: 0 0 0 4px rgba(255,100,107,0.25), 0 0 0 9px rgba(255,100,107,0.12), var(--ui-shadow-tile); }
 
   /* очередь пассажиров под заголовком */
-  .queue { margin-top: var(--ui-space-3); height: 48px; padding: 0 var(--ui-space-4); border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: flex; align-items: center; gap: 6px; }
+  .queue { margin-top: var(--ui-space-3); height: 48px; padding: 0 var(--ui-space-4); border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: flex; align-items: center; justify-content: center; gap: 6px; }
   .queue .q { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; }
   .queue .q.served { border: 2px solid var(--ui-border); background: var(--ui-surface); }
   .queue .q.served svg { width: 12px; height: 12px; color: var(--ui-disabled); }
   .queue .q.waiting { background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent); }
   .queue .q.waiting svg { width: 10px; height: 10px; color: #fff; }
   .queue .q.queued { background: var(--ui-text-muted); }
-  .queue .left { margin-left: auto; padding-left: var(--ui-space-3); border-left: 2px solid var(--ui-border); font-size: 20px; font-weight: 700; }
+  .queue .left { margin-left: var(--ui-space-2); padding-left: var(--ui-space-3); border-left: 2px solid var(--ui-border); font-size: 20px; font-weight: 700; }
 
   .help-fab { position: absolute; right: var(--ui-space-4); bottom: var(--ui-space-5); width: 52px; height: 52px; border-radius: 50%; background: var(--ui-surface); box-shadow: var(--ui-shadow-card); display: grid; place-items: center; font-size: 22px; font-weight: 700; color: var(--ui-blue); }
 

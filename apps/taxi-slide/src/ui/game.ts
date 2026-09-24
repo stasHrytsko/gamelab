@@ -3,7 +3,7 @@ import type { Direction, LevelState, PassengerState } from '../engine/types.ts';
 import { getLevel, LEVEL_COUNT } from '../levels/loadLevels.ts';
 import { Board } from './board.ts';
 import { wait } from './feedback.ts';
-import { arrowIcon, glyph, icon, taxiTile } from './icons.ts';
+import { arrowIcon, glyph, icon, taxiCar } from './icons.ts';
 import { log } from './log.ts';
 import { openPopup } from './popup.ts';
 import type { Go } from './screens.ts';
@@ -23,7 +23,7 @@ function mostUrgent(passengers: readonly PassengerState[]): PassengerState | und
 const HOW_TO_PLAY = `
   <h2>Как играть?</h2>
   <div class="demo" aria-hidden="true">
-    ${taxiTile('blue', 'slide')}${arrowIcon('arrow')}<div class="hole"></div>${arrowIcon('arrow')}
+    <div class="slide">${taxiCar('blue', '', 90)}</div>${arrowIcon('arrow')}<div class="hole"></div>${arrowIcon('arrow')}
     <div class="pax" style="--c:var(--ui-blue)"><span class="num">3</span><span class="mark">${glyph('blue', '')}</span></div>
   </div>
   <ol class="rules">

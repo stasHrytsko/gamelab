@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="car-svg" aria-hidden="true">
+  <!-- Такси сверху, нос вверх. Цвет кузова — currentColor (коралловый, синий или жёлтый из токенов). -->
+  <!-- Знак цвета на табличке на крыше накладывается поверх, в центре (32, 33). -->
+  <g fill="#1f2937">
+    <rect x="9" y="13" width="7" height="12" rx="3"/>
+    <rect x="48" y="13" width="7" height="12" rx="3"/>
+    <rect x="9" y="40" width="7" height="12" rx="3"/>
+    <rect x="48" y="40" width="7" height="12" rx="3"/>
+  </g>
+  <rect x="12" y="6" width="40" height="55" rx="13" fill="#1f2937" opacity=".22"/>
+  <rect x="12" y="4" width="40" height="55" rx="13" fill="currentColor"/>
+  <rect x="12" y="4" width="40" height="55" rx="13" fill="url(#car-shade)"/>
+  <path d="M19 17.5c0-2 1.6-3.5 3.6-3.5h18.8c2 0 3.6 1.5 3.6 3.5l-1.6 5.5H20.6z" fill="#e8efff"/>
+  <path d="M20.6 47h22.8l1 4.2c.3 1.6-.9 2.8-2.5 2.8H22.1c-1.6 0-2.8-1.2-2.5-2.8z" fill="#e8efff" opacity=".85"/>
+  <rect x="17" y="23" width="30" height="23" rx="6.5" fill="#ffffff" opacity=".16"/>
+  <rect x="19" y="24.5" width="26" height="17" rx="5" fill="#ffffff"/>
+  <ellipse cx="19.5" cy="7.6" rx="3.4" ry="1.8" fill="#ffffff" opacity=".95"/>
+  <ellipse cx="44.5" cy="7.6" rx="3.4" ry="1.8" fill="#ffffff" opacity=".95"/>
+  <path d="M16 12c0-3 2.5-5.5 5.5-5.5h3" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>
+  <defs>
+    <linearGradient id="car-shade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".35"/>
+      <stop offset=".55" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#1f2937" stop-opacity=".18"/>
+    </linearGradient>
+  </defs>
+</svg>

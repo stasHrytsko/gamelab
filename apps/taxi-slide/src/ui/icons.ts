@@ -1,3 +1,4 @@
+import carSvg from '@ui/prototypes/taxi-slide/assets/taxi-car.svg?raw';
 import type { TaxiColor } from '../engine/types.ts';
 
 const svg = (body: string, cls = ''): string =>
@@ -26,6 +27,8 @@ export const icon = {
 
 export const arrowIcon = (cls: string): string => icon.arrow.replace('class=""', `class="${cls}"`);
 
-export function taxiTile(color: TaxiColor, extra = ''): string {
-  return `<div class="tile c-${color} ${extra}">${glyph(color)}</div>`;
+/** Машинка такси сверху, нос вверх; на табличке на крыше — знак цвета. */
+export function taxiCar(color: TaxiColor, extra = '', rotation = 0): string {
+  const style = rotation === 0 ? '' : ` style="--rot:${String(rotation)}deg"`;
+  return `<div class="car c-${color} ${extra}"${style}>${carSvg}<span class="sign">${glyph(color, '')}</span></div>`;
 }

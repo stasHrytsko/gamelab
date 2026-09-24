@@ -49,7 +49,11 @@
   .board { position: absolute; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 8px; display: grid; gap: 5px; }
   .cell { position: relative; border-radius: 12px; background: var(--ui-surface-muted); display: grid; place-items: center; }
   .cell.empty::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ui-disabled); }
-  .cell > .tile { position: absolute; inset: 1px; }
+  .cell > .cab { position: absolute; inset: 1px; }
+  .cab { --rot: 0deg; position: relative; color: var(--c); transform: rotate(var(--rot)); filter: drop-shadow(0 4px 5px rgba(31,41,55,.16)); }
+  .cab svg.car-svg { width: 100%; height: 100%; display: block; }
+  .cab .sign { position: absolute; left: 50%; top: 51.5%; width: 21%; height: 21%; transform: translate(-50%, -50%) rotate(calc(-1 * var(--rot))); color: color-mix(in srgb, var(--c) 80%, #1f2937); }
+  .cab .sign svg { width: 100%; height: 100%; display: block; }
   .cell.target { box-shadow: 0 0 0 3px var(--tc); }
   .cell.target.empty { background: color-mix(in srgb, var(--tc) 12%, var(--ui-surface-muted)); }
 
@@ -74,7 +78,7 @@
   /* home */
   .home { justify-content: space-between; align-items: center; text-align: center; padding: var(--ui-space-7) var(--ui-space-5) var(--ui-space-7); background: radial-gradient(120% 60% at 50% 0%, #fff 0%, var(--ui-background) 70%); }
   .logo { display: grid; grid-template-columns: repeat(3, 64px); gap: 8px; margin-top: var(--ui-space-7); }
-  .logo .tile, .logo .ghost { width: 64px; height: 64px; }
+  .logo .cab, .logo .ghost { width: 64px; height: 64px; }
   .logo .ghost { border-radius: 14px; background: var(--ui-surface-muted); display: grid; place-items: center; }
   .logo .ghost::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ui-disabled); }
   .home h1 { font-size: 34px; font-weight: 700; line-height: 1.15; margin-top: var(--ui-space-6); }
@@ -113,7 +117,7 @@
   .rules li { display: flex; gap: var(--ui-space-3); font-size: 14px; line-height: 1.4; }
   .rules li b { flex: none; width: 24px; height: 24px; border-radius: 8px; background: #e8efff; color: var(--ui-blue); font-size: 12px; display: grid; place-items: center; }
   .demo { display: flex; justify-content: center; align-items: center; gap: 6px; margin: var(--ui-space-2) 0; }
-  .demo .tile, .demo .dcell { width: 44px; height: 44px; }
+  .demo .cab, .demo .dcell { width: 44px; height: 44px; }
   .demo .dcell { border-radius: 12px; background: var(--ui-surface-muted); display: grid; place-items: center; }
   .demo .dcell::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ui-disabled); }
   .demo .arrow { color: var(--ui-blue); width: 22px; height: 22px; }
@@ -148,7 +152,8 @@
 <script>
 const GLYPH = { red: 'g-circle', blue: 'g-square', yellow: 'g-triangle' };
 const use = (id, cls = '') => `<svg class="${cls}"><use href="#${id}"/></svg>`;
-const taxi = (color) => `<div class="tile c-${color}">${use(GLYPH[color], 'glyph')}</div>`;
+// Машинка — assets/taxi-car.svg; render.mjs кладёт её текст в window.TAXI_CAR.
+const taxi = (color, rot = 0) => `<div class="cab c-${color}" style="--rot:${rot}deg">${window.TAXI_CAR ?? ''}<span class="sign">${use(GLYPH[color])}</span></div>`;
 const paxEl = (color, patience, critical, style = '') =>
   `<div class="pax c-${color}${critical ? ' critical' : ''}" style="${style}"><span class="num">${patience}</span><span class="mark">${use(GLYPH[color])}</span></div>`;
 const colorVar = { red: 'var(--ui-coral)', blue: 'var(--ui-blue)', yellow: 'var(--ui-yellow)' };
@@ -229,9 +234,9 @@ const game1 = gameScreen({ level: 1, served: 0, total: 3, grid: LEVEL1, passenge
 const screens = [
   ['1. Главный', `<div class="phone home">
       <div class="logo">
-        ${taxi('red')}<div class="ghost"></div>${taxi('blue')}
+        ${taxi('red')}<div class="ghost"></div>${taxi('blue', 90)}
         <div class="ghost"></div>${taxi('yellow')}<div class="ghost"></div>
-        ${taxi('blue')}<div class="ghost"></div>${taxi('red')}
+        ${taxi('blue', 270)}<div class="ghost"></div>${taxi('red', 180)}
       </div>
       <h1>Такси-<br>пятнашки</h1>
       <div style="flex:1"></div>
@@ -252,7 +257,7 @@ const screens = [
   ['4. «Как играть» — сам на уровне 1 и по «?»', `<div class="phone">${game1}
       <div class="scrim"><div class="modal">
         <h2>Как играть?</h2>
-        <div class="demo">${taxi('blue')}${use('i-arrow', 'arrow')}<div class="dcell"></div>${use('i-arrow', 'arrow')}${paxEl('blue', 3, false)}</div>
+        <div class="demo">${taxi('blue', 90)}${use('i-arrow', 'arrow')}<div class="dcell"></div>${use('i-arrow', 'arrow')}${paxEl('blue', 3, false)}</div>
         <ol class="rules">
           <li><b>1</b><span>Сдвигай такси в соседнюю пустую клетку.</span></li>
           <li><b>2</b><span>Подай такси того же цвета и знака к пассажиру, пока его число не стало нулём.</span></li>

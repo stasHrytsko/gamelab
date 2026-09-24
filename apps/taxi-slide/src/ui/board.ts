@@ -1,7 +1,7 @@
 import { targetCell } from '../engine/taxiEngine.ts';
 import type { Cell, Direction, LevelState, PassengerState, Side, Taxi } from '../engine/types.ts';
 import { vibrate, wait } from './feedback.ts';
-import { glyph } from './icons.ts';
+import { glyph, taxiCar } from './icons.ts';
 
 export interface BoardHandlers {
   /** Можно ли сдвинуть такси — спрашивает движок, доска не знает правил. */
@@ -49,7 +49,7 @@ export class Board {
   readonly el: HTMLElement;
   private readonly boardEl: HTMLElement;
   private readonly slots: HTMLElement[] = [];
-  private readonly taxis = new Map<string, { el: HTMLElement; taxi: Taxi }>();
+  private readonly taxis = new Map<string, { el: HTMLElement; taxi: Taxi; angle: number }>();
   private readonly passengers = new Map<string, HTMLElement>();
   private geo: Geometry = { cell: 48, gap: 5, pad: 8, lane: 40, pax: 36, size: 360 };
   private drag: Drag | null = null;
@@ -140,9 +140,19 @@ export class Board {
     el.className = 'taxi';
     el.dataset['taxi'] = taxi.id;
     el.dataset['color'] = taxi.color;
-    el.innerHTML = `<div class="tile c-${taxi.color}">${glyph(taxi.color)}</div>`;
+    el.innerHTML = `<div class="lift">${taxiCar(taxi.color)}</div>`;
     this.el.append(el);
-    this.taxis.set(taxi.id, { el, taxi });
+    this.taxis.set(taxi.id, { el, taxi, angle: 0 });
+  }
+
+  /** Поворачивает машинку носом по направлению — кратчайшим путём. */
+  private turn(entry: { el: HTMLElement; angle: number }, direction: Direction): void {
+    const target = { up: 0, right: 90, down: 180, left: 270 }[direction];
+    const current = ((entry.angle % 360) + 360) % 360;
+    const delta = ((target - current + 540) % 360) - 180;
+    if (delta === 0) return;
+    entry.angle += delta;
+    entry.el.querySelector<HTMLElement>('.car')?.style.setProperty('--rot', `${String(entry.angle)}deg`);
   }
 
   async moveTaxi(taxiId: string, to: Cell): Promise<void> {
@@ -163,6 +173,7 @@ export class Board {
     if (entry === undefined) return;
     const cell = { row: entry.taxi.row, col: entry.taxi.col };
     const out = SIDE_VECTOR[passenger.target.side];
+    const exit = { top: 'up', right: 'right', bottom: 'down', left: 'left' } as const;
     const distance = this.geo.cell + this.geo.lane + 24;
 
     if (paxEl !== undefined) {
@@ -179,6 +190,8 @@ export class Board {
     paxEl?.remove();
     this.passengers.delete(passenger.id);
 
+    this.turn(entry, exit[passenger.target.side]);
+    await wait(90);
     entry.el.style.transition = 'transform 240ms cubic-bezier(.5,0,.8,.4), opacity 240ms ease-in';
     this.place(entry.el, cell, out.col * distance, out.row * distance);
     entry.el.style.opacity = '0';
@@ -216,8 +229,8 @@ export class Board {
   /** Победа: оставшиеся такси подпрыгивают волной из угла. */
   async celebrate(): Promise<void> {
     for (const { el, taxi } of this.taxis.values()) {
-      const tile = el.firstElementChild as HTMLElement | null;
-      if (tile !== null) tile.style.animationDelay = `${String((taxi.row + taxi.col) * 50)}ms`;
+      const lift = el.firstElementChild as HTMLElement | null;
+      if (lift !== null) lift.style.animationDelay = `${String((taxi.row + taxi.col) * 50)}ms`;
       el.classList.add('hop');
     }
     vibrate([20, 40, 20, 40, 40]);
@@ -345,6 +358,8 @@ export class Board {
     if (direction !== drag.direction) {
       drag.direction = direction;
       drag.movable = this.handlers.canMove(drag.taxiId, direction);
+      const turning = this.taxis.get(drag.taxiId);
+      if (drag.movable && turning !== undefined) this.turn(turning, direction);
     }
     drag.delta = delta;
 

@@ -40,7 +40,7 @@ const BANDS: readonly Band[] = [
   { passengers: 4, empties: 4, waves: [0, 1, 2, 2], slack: 4, minWait: 2, maxWait: 5, minSupportMoves: 1, needsSupport: true, casual: [0.35, 0.8] },
   { passengers: 5, empties: 5, waves: [0, 1, 1, 3, 3], slack: 3, minWait: 2, maxWait: 6, minSupportMoves: 2, needsSupport: true, casual: [0.15, 0.6] },
   { passengers: 7, empties: 4, waves: [0, 1, 1, 3, 3, 5, 5], slack: 3, minWait: 2, maxWait: 7, minSupportMoves: 3, needsSupport: true, casual: [0.05, 0.4] },
-  { passengers: 8, empties: 4, waves: [0, 1, 1, 3, 3, 5, 5, 5], slack: 3, minWait: 2, maxWait: 8, minSupportMoves: 4, needsSupport: true, casual: [0.03, 0.15] },
+  { passengers: 8, empties: 4, waves: [0, 1, 1, 3, 3, 5, 5, 5], slack: 2, minWait: 2, maxWait: 9, minSupportMoves: 10, needsSupport: true, casual: [0, 0.03] },
 ];
 
 const COLORS: readonly TaxiColor[] = ['red', 'blue', 'yellow'];
@@ -148,7 +148,7 @@ function build(id: number, band: Band, seed: number): Built | null {
  * Seeds that produced the shipped pack. `search <level> <from> <count>` looks
  * for a new one; running with no arguments rebuilds the files from these.
  */
-const SEEDS: readonly number[] = [1528, 2367, 2382, 4082, 5045];
+const SEEDS: readonly number[] = [1528, 2367, 2382, 4082, 30030];
 
 const [mode, levelArg, fromArg, countArg] = process.argv.slice(2);
 if (mode === 'search') {

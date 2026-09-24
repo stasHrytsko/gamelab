@@ -34,8 +34,6 @@
   /* top bar */
   .topbar { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); height: 44px; }
   .topbar h2 { font-size: 18px; font-weight: 600; }
-  .counter { height: 44px; padding: 0 var(--ui-space-4) 0 var(--ui-space-3); border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: flex; align-items: center; gap: var(--ui-space-2); font-size: 18px; font-weight: 600; }
-  .counter svg { width: 22px; height: 22px; color: var(--ui-blue); }
 
   /* tiles */
   .tile { --c: var(--ui-blue); position: relative; border-radius: 14px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937) 100%); box-shadow: var(--ui-shadow-tile), inset 0 -3px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,0.45); display: grid; place-items: center; }
@@ -54,13 +52,22 @@
   .cell > .tile { position: absolute; inset: 1px; }
   .cell.target { box-shadow: 0 0 0 3px var(--tc); }
   .cell.target.empty { background: color-mix(in srgb, var(--tc) 12%, var(--ui-surface-muted)); }
-  .cell .cell-badge { position: absolute; top: -8px; right: -8px; z-index: 3; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--tc); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; border: 2px solid #fff; }
 
   .pax { position: absolute; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; border: 3px solid #fff; box-shadow: var(--ui-shadow-tile); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c)); }
-  .pax .glyph { width: 50%; height: 50%; }
-  .pax .patience { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--ui-surface); color: var(--ui-text); font-size: 12px; font-weight: 700; display: grid; place-items: center; box-shadow: var(--ui-shadow-soft); }
+  .pax .num { color: #fff; font-size: 16px; font-weight: 700; line-height: 1; text-shadow: 0 1px 2px rgba(31,41,55,0.25); }
+  .pax .mark { position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; color: var(--c); }
+  .pax .mark svg { width: 10px; height: 10px; }
   .pax.critical { box-shadow: 0 0 0 4px rgba(255,100,107,0.25), 0 0 0 9px rgba(255,100,107,0.12), var(--ui-shadow-tile); }
-  .pax.critical .patience { background: var(--ui-danger); color: #fff; }
+
+  /* очередь пассажиров под заголовком */
+  .queue { margin-top: var(--ui-space-3); height: 48px; padding: 0 var(--ui-space-4); border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: flex; align-items: center; gap: 6px; }
+  .queue .q { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; }
+  .queue .q.served { border: 2px solid var(--ui-border); background: var(--ui-surface); }
+  .queue .q.served svg { width: 12px; height: 12px; color: var(--ui-disabled); }
+  .queue .q.waiting { background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent); }
+  .queue .q.waiting svg { width: 10px; height: 10px; color: #fff; }
+  .queue .q.queued { background: var(--ui-text-muted); }
+  .queue .left { margin-left: auto; padding-left: var(--ui-space-3); border-left: 2px solid var(--ui-border); font-size: 20px; font-weight: 700; }
 
   .help-fab { position: absolute; right: var(--ui-space-4); bottom: var(--ui-space-5); width: 52px; height: 52px; border-radius: 50%; background: var(--ui-surface); box-shadow: var(--ui-shadow-card); display: grid; place-items: center; font-size: 22px; font-weight: 700; color: var(--ui-blue); }
 
@@ -146,7 +153,7 @@ const GLYPH = { red: 'g-circle', blue: 'g-square', yellow: 'g-triangle' };
 const use = (id, cls = '') => `<svg class="${cls}"><use href="#${id}"/></svg>`;
 const taxi = (color) => `<div class="tile c-${color}">${use(GLYPH[color], 'glyph')}</div>`;
 const paxEl = (color, patience, critical, style = '') =>
-  `<div class="pax c-${color}${critical ? ' critical' : ''}" style="${style}">${use(GLYPH[color], 'glyph')}${patience != null ? `<span class="patience">${patience}</span>` : ''}</div>`;
+  `<div class="pax c-${color}${critical ? ' critical' : ''}" style="${style}"><span class="num">${patience}</span><span class="mark">${use(GLYPH[color])}</span></div>`;
 const colorVar = { red: 'var(--ui-coral)', blue: 'var(--ui-blue)', yellow: 'var(--ui-yellow)' };
 
 // Уровень 4 из прототипа play; ждут двое, у кораллового последний ход.
@@ -172,7 +179,7 @@ function boardHtml(grid, passengers, { cell = 44, gap = 5, pad = 8, lane = 40 } 
     const t = targets[`${r},${c}`];
     const cls = ['cell', v === '.' ? 'empty' : '', t ? 'target' : ''].join(' ');
     const style = t ? `--tc:${colorVar[t.color]}` : '';
-    cells += `<div class="${cls}" style="${style}">${v !== '.' ? taxi(NAME[v]) : ''}${t ? `<span class="cell-badge">${t.patience}</span>` : ''}</div>`;
+    cells += `<div class="${cls}" style="${style}">${v !== '.' ? taxi(NAME[v]) : ''}</div>`;
   }));
   const pax = passengers.map(p => {
     const center = lane + pad + p.index * (cell + gap) + cell / 2 - 18;
@@ -185,18 +192,28 @@ function boardHtml(grid, passengers, { cell = 44, gap = 5, pad = 8, lane = 40 } 
     <div class="board" style="left:${lane}px;top:${lane}px;width:${inner}px;height:${inner}px;padding:${pad}px;gap:${gap}px;grid-template-columns:repeat(5,${cell}px);grid-template-rows:repeat(5,${cell}px)">${cells}</div>${pax}</div>`;
 }
 
-function gameScreen({ level, left, grid, passengers }) {
+// Строка пассажиров: обслуженные — пустые кружки, ждущие — в своём цвете,
+// ещё не пришедшие — серые, цвет не раскрывается. Справа — сколько осталось.
+function queueHtml({ served, total, passengers }) {
+  const waiting = passengers.map(p => `<span class="q waiting c-${p.color}">${use(GLYPH[p.color])}</span>`).join('');
+  const queued = total - served - passengers.length;
+  const done = `<span class="q served">${use('i-check')}</span>`.repeat(served);
+  return `<div class="queue">${done}${waiting}${'<span class="q queued"></span>'.repeat(queued)}<span class="left">${total - served}</span></div>`;
+}
+
+function gameScreen({ level, served, total, grid, passengers }) {
   return `<div class="topbar">
       <div class="icon-btn" title="К уровням">${use('i-levels')}</div>
       <h2>Уровень ${level}</h2>
-      <div class="counter" title="Осталось развезти">${use('i-person')}${left}</div>
+      <div style="width:44px"></div>
     </div>
+    ${queueHtml({ served, total, passengers })}
     <div style="flex:1;display:grid;place-items:center">${boardHtml(grid, passengers)}</div>
     <div class="help-fab">?</div>`;
 }
 
 const game4 = gameScreen({
-  level: 4, left: 6, grid: LEVEL4,
+  level: 4, served: 1, total: 7, grid: LEVEL4,
   passengers: [
     { color: 'blue', side: 'right', index: 3, patience: 4 },
     { color: 'red', side: 'right', index: 4, patience: 1 },
@@ -210,7 +227,7 @@ const LEVEL1 = [
   'r . y b .',
   'r r . r .',
 ].map(r => r.split(' '));
-const game1 = gameScreen({ level: 1, left: 3, grid: LEVEL1, passengers: [{ color: 'blue', side: 'bottom', index: 1, patience: 9 }] });
+const game1 = gameScreen({ level: 1, served: 0, total: 3, grid: LEVEL1, passengers: [{ color: 'blue', side: 'bottom', index: 1, patience: 9 }] });
 
 const screens = [
   ['1. Главный', `<div class="phone home">

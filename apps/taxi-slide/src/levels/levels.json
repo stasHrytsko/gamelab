@@ -1,0 +1,915 @@
+{
+  "schemaVersion": 1,
+  "levels": [
+    {
+      "id": 1,
+      "gridSize": 5,
+      "taxis": [
+        {
+          "id": "taxi-1",
+          "color": "red",
+          "row": 4,
+          "col": 1
+        },
+        {
+          "id": "taxi-2",
+          "color": "red",
+          "row": 4,
+          "col": 3
+        },
+        {
+          "id": "taxi-3",
+          "color": "yellow",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "taxi-4",
+          "color": "red",
+          "row": 0,
+          "col": 2
+        },
+        {
+          "id": "taxi-5",
+          "color": "yellow",
+          "row": 3,
+          "col": 2
+        },
+        {
+          "id": "taxi-6",
+          "color": "red",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "taxi-7",
+          "color": "blue",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "taxi-8",
+          "color": "yellow",
+          "row": 1,
+          "col": 2
+        },
+        {
+          "id": "taxi-9",
+          "color": "blue",
+          "row": 3,
+          "col": 3
+        },
+        {
+          "id": "taxi-10",
+          "color": "blue",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "taxi-11",
+          "color": "blue",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "taxi-12",
+          "color": "red",
+          "row": 2,
+          "col": 2
+        },
+        {
+          "id": "taxi-13",
+          "color": "blue",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "taxi-14",
+          "color": "yellow",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "id": "taxi-15",
+          "color": "yellow",
+          "row": 0,
+          "col": 3
+        },
+        {
+          "id": "taxi-16",
+          "color": "red",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "taxi-17",
+          "color": "blue",
+          "row": 1,
+          "col": 3
+        }
+      ],
+      "passengers": [
+        {
+          "id": "passenger-1",
+          "color": "blue",
+          "target": {
+            "side": "bottom",
+            "index": 1
+          },
+          "initialPatience": 9,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "passenger-2",
+          "color": "red",
+          "target": {
+            "side": "right",
+            "index": 3
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "passenger-3",
+          "color": "red",
+          "target": {
+            "side": "bottom",
+            "index": 4
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "gridSize": 5,
+      "taxis": [
+        {
+          "id": "taxi-1",
+          "color": "blue",
+          "row": 3,
+          "col": 4
+        },
+        {
+          "id": "taxi-2",
+          "color": "blue",
+          "row": 2,
+          "col": 4
+        },
+        {
+          "id": "taxi-3",
+          "color": "blue",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "taxi-4",
+          "color": "yellow",
+          "row": 4,
+          "col": 1
+        },
+        {
+          "id": "taxi-5",
+          "color": "red",
+          "row": 2,
+          "col": 1
+        },
+        {
+          "id": "taxi-6",
+          "color": "red",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "taxi-7",
+          "color": "red",
+          "row": 4,
+          "col": 3
+        },
+        {
+          "id": "taxi-8",
+          "color": "blue",
+          "row": 4,
+          "col": 2
+        },
+        {
+          "id": "taxi-9",
+          "color": "red",
+          "row": 2,
+          "col": 2
+        },
+        {
+          "id": "taxi-10",
+          "color": "yellow",
+          "row": 4,
+          "col": 4
+        },
+        {
+          "id": "taxi-11",
+          "color": "red",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "taxi-12",
+          "color": "red",
+          "row": 1,
+          "col": 2
+        },
+        {
+          "id": "taxi-13",
+          "color": "yellow",
+          "row": 0,
+          "col": 4
+        },
+        {
+          "id": "taxi-14",
+          "color": "yellow",
+          "row": 0,
+          "col": 2
+        },
+        {
+          "id": "taxi-15",
+          "color": "red",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "taxi-16",
+          "color": "yellow",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "taxi-17",
+          "color": "yellow",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "taxi-18",
+          "color": "blue",
+          "row": 1,
+          "col": 3
+        },
+        {
+          "id": "taxi-19",
+          "color": "yellow",
+          "row": 3,
+          "col": 1
+        },
+        {
+          "id": "taxi-20",
+          "color": "blue",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "taxi-21",
+          "color": "blue",
+          "row": 2,
+          "col": 3
+        }
+      ],
+      "passengers": [
+        {
+          "id": "passenger-1",
+          "color": "blue",
+          "target": {
+            "side": "top",
+            "index": 2
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "passenger-2",
+          "color": "blue",
+          "target": {
+            "side": "top",
+            "index": 1
+          },
+          "initialPatience": 8,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "passenger-3",
+          "color": "red",
+          "target": {
+            "side": "bottom",
+            "index": 1
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 2
+        },
+        {
+          "id": "passenger-4",
+          "color": "yellow",
+          "target": {
+            "side": "left",
+            "index": 4
+          },
+          "initialPatience": 9,
+          "unlockAfterServed": 2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "gridSize": 5,
+      "taxis": [
+        {
+          "id": "taxi-1",
+          "color": "blue",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "id": "taxi-2",
+          "color": "blue",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "taxi-3",
+          "color": "yellow",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "taxi-4",
+          "color": "yellow",
+          "row": 0,
+          "col": 3
+        },
+        {
+          "id": "taxi-5",
+          "color": "red",
+          "row": 4,
+          "col": 3
+        },
+        {
+          "id": "taxi-6",
+          "color": "red",
+          "row": 0,
+          "col": 2
+        },
+        {
+          "id": "taxi-7",
+          "color": "blue",
+          "row": 3,
+          "col": 3
+        },
+        {
+          "id": "taxi-8",
+          "color": "blue",
+          "row": 2,
+          "col": 3
+        },
+        {
+          "id": "taxi-9",
+          "color": "yellow",
+          "row": 2,
+          "col": 1
+        },
+        {
+          "id": "taxi-10",
+          "color": "red",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "taxi-11",
+          "color": "red",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "taxi-12",
+          "color": "blue",
+          "row": 1,
+          "col": 2
+        },
+        {
+          "id": "taxi-13",
+          "color": "blue",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "taxi-14",
+          "color": "red",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "taxi-15",
+          "color": "red",
+          "row": 3,
+          "col": 4
+        },
+        {
+          "id": "taxi-16",
+          "color": "red",
+          "row": 3,
+          "col": 1
+        },
+        {
+          "id": "taxi-17",
+          "color": "blue",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "taxi-18",
+          "color": "yellow",
+          "row": 2,
+          "col": 4
+        },
+        {
+          "id": "taxi-19",
+          "color": "yellow",
+          "row": 4,
+          "col": 2
+        },
+        {
+          "id": "taxi-20",
+          "color": "yellow",
+          "row": 0,
+          "col": 4
+        }
+      ],
+      "passengers": [
+        {
+          "id": "passenger-1",
+          "color": "red",
+          "target": {
+            "side": "right",
+            "index": 2
+          },
+          "initialPatience": 6,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "passenger-2",
+          "color": "red",
+          "target": {
+            "side": "left",
+            "index": 3
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "passenger-3",
+          "color": "blue",
+          "target": {
+            "side": "left",
+            "index": 2
+          },
+          "initialPatience": 6,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "passenger-4",
+          "color": "yellow",
+          "target": {
+            "side": "right",
+            "index": 3
+          },
+          "initialPatience": 8,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "passenger-5",
+          "color": "blue",
+          "target": {
+            "side": "bottom",
+            "index": 4
+          },
+          "initialPatience": 6,
+          "unlockAfterServed": 3
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "gridSize": 5,
+      "taxis": [
+        {
+          "id": "taxi-1",
+          "color": "blue",
+          "row": 4,
+          "col": 2
+        },
+        {
+          "id": "taxi-2",
+          "color": "red",
+          "row": 3,
+          "col": 3
+        },
+        {
+          "id": "taxi-3",
+          "color": "blue",
+          "row": 2,
+          "col": 4
+        },
+        {
+          "id": "taxi-4",
+          "color": "blue",
+          "row": 4,
+          "col": 1
+        },
+        {
+          "id": "taxi-5",
+          "color": "yellow",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "taxi-6",
+          "color": "blue",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "taxi-7",
+          "color": "red",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "taxi-8",
+          "color": "yellow",
+          "row": 3,
+          "col": 1
+        },
+        {
+          "id": "taxi-9",
+          "color": "red",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "taxi-10",
+          "color": "red",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "taxi-11",
+          "color": "yellow",
+          "row": 3,
+          "col": 2
+        },
+        {
+          "id": "taxi-12",
+          "color": "yellow",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "id": "taxi-13",
+          "color": "yellow",
+          "row": 1,
+          "col": 3
+        },
+        {
+          "id": "taxi-14",
+          "color": "blue",
+          "row": 0,
+          "col": 3
+        },
+        {
+          "id": "taxi-15",
+          "color": "yellow",
+          "row": 2,
+          "col": 1
+        },
+        {
+          "id": "taxi-16",
+          "color": "blue",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "taxi-17",
+          "color": "yellow",
+          "row": 3,
+          "col": 4
+        },
+        {
+          "id": "taxi-18",
+          "color": "blue",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "taxi-19",
+          "color": "red",
+          "row": 2,
+          "col": 2
+        },
+        {
+          "id": "taxi-20",
+          "color": "red",
+          "row": 0,
+          "col": 4
+        },
+        {
+          "id": "taxi-21",
+          "color": "red",
+          "row": 2,
+          "col": 3
+        }
+      ],
+      "passengers": [
+        {
+          "id": "passenger-1",
+          "color": "red",
+          "target": {
+            "side": "left",
+            "index": 2
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "passenger-2",
+          "color": "blue",
+          "target": {
+            "side": "right",
+            "index": 3
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "passenger-3",
+          "color": "red",
+          "target": {
+            "side": "right",
+            "index": 4
+          },
+          "initialPatience": 5,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "passenger-4",
+          "color": "yellow",
+          "target": {
+            "side": "left",
+            "index": 1
+          },
+          "initialPatience": 10,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "passenger-5",
+          "color": "yellow",
+          "target": {
+            "side": "left",
+            "index": 0
+          },
+          "initialPatience": 6,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "passenger-6",
+          "color": "red",
+          "target": {
+            "side": "bottom",
+            "index": 1
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 5
+        },
+        {
+          "id": "passenger-7",
+          "color": "blue",
+          "target": {
+            "side": "left",
+            "index": 4
+          },
+          "initialPatience": 5,
+          "unlockAfterServed": 5
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "gridSize": 5,
+      "taxis": [
+        {
+          "id": "taxi-1",
+          "color": "red",
+          "row": 0,
+          "col": 4
+        },
+        {
+          "id": "taxi-2",
+          "color": "blue",
+          "row": 4,
+          "col": 3
+        },
+        {
+          "id": "taxi-3",
+          "color": "red",
+          "row": 0,
+          "col": 2
+        },
+        {
+          "id": "taxi-4",
+          "color": "yellow",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "taxi-5",
+          "color": "yellow",
+          "row": 2,
+          "col": 3
+        },
+        {
+          "id": "taxi-6",
+          "color": "yellow",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "taxi-7",
+          "color": "blue",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "id": "taxi-8",
+          "color": "blue",
+          "row": 1,
+          "col": 3
+        },
+        {
+          "id": "taxi-9",
+          "color": "red",
+          "row": 3,
+          "col": 3
+        },
+        {
+          "id": "taxi-10",
+          "color": "yellow",
+          "row": 2,
+          "col": 4
+        },
+        {
+          "id": "taxi-11",
+          "color": "blue",
+          "row": 1,
+          "col": 2
+        },
+        {
+          "id": "taxi-12",
+          "color": "blue",
+          "row": 4,
+          "col": 4
+        },
+        {
+          "id": "taxi-13",
+          "color": "yellow",
+          "row": 0,
+          "col": 3
+        },
+        {
+          "id": "taxi-14",
+          "color": "yellow",
+          "row": 4,
+          "col": 2
+        },
+        {
+          "id": "taxi-15",
+          "color": "red",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "taxi-16",
+          "color": "red",
+          "row": 2,
+          "col": 1
+        },
+        {
+          "id": "taxi-17",
+          "color": "yellow",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "taxi-18",
+          "color": "blue",
+          "row": 3,
+          "col": 2
+        },
+        {
+          "id": "taxi-19",
+          "color": "blue",
+          "row": 2,
+          "col": 2
+        },
+        {
+          "id": "taxi-20",
+          "color": "red",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "taxi-21",
+          "color": "red",
+          "row": 3,
+          "col": 4
+        }
+      ],
+      "passengers": [
+        {
+          "id": "passenger-1",
+          "color": "red",
+          "target": {
+            "side": "bottom",
+            "index": 4
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "passenger-2",
+          "color": "blue",
+          "target": {
+            "side": "left",
+            "index": 2
+          },
+          "initialPatience": 10,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "passenger-3",
+          "color": "blue",
+          "target": {
+            "side": "left",
+            "index": 3
+          },
+          "initialPatience": 6,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "passenger-4",
+          "color": "blue",
+          "target": {
+            "side": "left",
+            "index": 1
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "passenger-5",
+          "color": "red",
+          "target": {
+            "side": "bottom",
+            "index": 1
+          },
+          "initialPatience": 11,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "passenger-6",
+          "color": "red",
+          "target": {
+            "side": "top",
+            "index": 3
+          },
+          "initialPatience": 10,
+          "unlockAfterServed": 5
+        },
+        {
+          "id": "passenger-7",
+          "color": "red",
+          "target": {
+            "side": "right",
+            "index": 2
+          },
+          "initialPatience": 5,
+          "unlockAfterServed": 5
+        },
+        {
+          "id": "passenger-8",
+          "color": "yellow",
+          "target": {
+            "side": "right",
+            "index": 1
+          },
+          "initialPatience": 7,
+          "unlockAfterServed": 5
+        }
+      ]
+    }
+  ]
+}

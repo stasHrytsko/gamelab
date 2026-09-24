@@ -119,9 +119,6 @@
   .demo .arrow { color: var(--ui-blue); width: 22px; height: 22px; }
   .demo .pax { position: relative; }
 
-  .stars { display: flex; justify-content: center; gap: var(--ui-space-2); margin: var(--ui-space-1) 0; }
-  .stars svg { width: 42px; height: 42px; }
-  .rate-label { font-size: 14px; font-weight: 600; margin-top: var(--ui-space-2); }
 </style>
 </head>
 <body>
@@ -292,8 +289,7 @@ const screens = [
       <div class="scrim"><div class="modal">
         <div class="badge-big badge-cup">${use('i-cup')}</div>
         <h2>Все уровни пройдены!</h2>
-        <p class="rate-label">Поставь оценку</p>
-        <div class="stars">${[1, 2, 3, 4, 5].map(i => `<svg style="color:${i <= 4 ? 'var(--ui-yellow)' : 'var(--ui-border)'}" fill="currentColor"><use href="#i-star"/></svg>`).join('')}</div>
+        <p class="sub">Все пассажиры развезены</p>
         <div class="actions">
           <button class="btn btn-secondary">${use('i-replay')}Переиграть</button>
           <button class="btn btn-ghost">К уровням</button>

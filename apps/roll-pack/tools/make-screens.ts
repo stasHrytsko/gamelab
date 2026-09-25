@@ -1,63 +1,63 @@
 /**
  * Снимает экраны прототипа для §7.1 спеки в UI Design/prototypes/roll-pack/:
  *   npm run build && npx tsx tools/make-screens.ts
- * Броски подменяются генератором с зерном — только для съёмки.
  */
-import { chromium, devices, type Page } from '@playwright/test';
+import { chromium, type Page } from '@playwright/test';
 import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Solver } from './solver.ts';
+import { normalize, parseMap, solve } from '../src/engine/packEngine.ts';
+import type { Point } from '../src/engine/types.ts';
+import { LEVELS } from '../src/levels/levels.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const out = join(here, '../../../UI Design/prototypes/roll-pack');
-mkdirSync(out, { recursive: true });
-
-const server = spawn('npx', ['vite', 'preview', '--port', '4176', '--strictPort'], { cwd: join(here, '..'), stdio: 'ignore' });
+const server = spawn('npx', ['vite', 'preview', '--port', '4177', '--strictPort'], { cwd: join(here, '..'), stdio: 'ignore' });
 await new Promise((resolve) => setTimeout(resolve, 2500));
-const base = 'http://localhost:4176';
-
+const base = 'http://localhost:4177';
 const browser = await chromium.launch();
-async function phone(seed: number): Promise<Page> {
-  const ctx = await browser.newContext({ ...devices['iPhone 13'] });
-  const page = await ctx.newPage();
-  await page.addInitScript((initial) => {
-    let s = initial;
-    Math.random = () => {
-      s = (s * 16807) % 2147483647;
-      return (s - 1) / 2147483646;
-    };
-    localStorage.setItem('roll-pack:progress:v1', JSON.stringify({ passed: [1, 2], howToPlaySeen: true }));
-  }, seed);
+
+async function phone(width = 390, height = 664, progress = { passed: [1, 2], howToPlaySeen: true }): Promise<Page> {
+  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  await page.addInitScript((p) => localStorage.setItem('build-pack:progress:v1', JSON.stringify(p)), progress);
   return page;
 }
-const nums = async (page: Page, attr: string): Promise<number[]> =>
-  ((await page.getByTestId('game').getAttribute(attr)) ?? '').split(',').map(Number);
-const settle = (page: Page): Promise<void> => page.waitForTimeout(700);
+const settle = (page: Page): Promise<void> => page.waitForTimeout(600);
 
-async function move(page: Page, solver: Solver): Promise<void> {
-  const { move: best } = solver.best(await nums(page, 'data-heights'), await nums(page, 'data-dice'));
-  if (best === null) return;
-  const dice = await nums(page, 'data-dice');
-  await page.getByTestId(`die-${String(dice.indexOf(best.length))}`).click();
-  const hand = page.getByTestId('hand');
-  const from = Number(await hand.getAttribute('data-x'));
-  const box = await hand.boundingBox();
-  const a = await page.locator('.slot[data-row="0"][data-col="0"]').boundingBox();
-  const b = await page.locator('.slot[data-row="0"][data-col="1"]').boundingBox();
-  if (box === null || a === null || b === null) return;
-  const cx = box.x + box.width / 2;
-  const cy = box.y + box.height / 2;
-  await page.mouse.move(cx, cy);
+async function put(page: Page, cells: readonly Point[], index: number, drop = true): Promise<void> {
+  await page.getByTestId(`num-${String(index)}`).click();
+  const shape = normalize(cells);
+  for (const [r, c] of shape) await page.getByTestId(`b-${String(r)}-${String(c)}`).click();
+  if (!drop) return;
+  const grab = shape[0] as Point;
+  const r0 = Math.min(...cells.map((p) => p[0]));
+  const c0 = Math.min(...cells.map((p) => p[1]));
+  const from = await page.getByTestId(`b-${String(grab[0])}-${String(grab[1])}`).boundingBox();
+  const to = await page.locator(`.cell[data-r="${String(r0 + grab[0])}"][data-c="${String(c0 + grab[1])}"]`).boundingBox();
+  const a = await page.locator('.cell[data-r="0"][data-c="0"]').boundingBox();
+  const b = await page.locator('.cell[data-r="0"][data-c="1"]').boundingBox();
+  if (from === null || to === null || a === null || b === null) return;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
   await page.mouse.down();
-  await page.mouse.move(cx + (best.x - from) * (b.x - a.x), cy, { steps: 6 });
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2 + (b.x - a.x) * 1.2, { steps: 8 });
   await page.mouse.up();
   await settle(page);
 }
 
-// 1. Главный и уровни.
-let page = await phone(1);
+function plan(id: number): { pieces: Point[][]; index: number[] } {
+  const level = LEVELS[id - 1];
+  if (level === undefined) throw new Error('level');
+  const pieces = solve(parseMap(level.map), level.numbers) ?? [];
+  const used = level.numbers.map(() => false);
+  const index = pieces.map((p) => {
+    const i = level.numbers.findIndex((n, j) => n === p.length && !used[j]);
+    used[i] = true;
+    return i;
+  });
+  return { pieces, index };
+}
+
+let page = await phone();
 await page.goto(`${base}/`);
 await settle(page);
 await page.screenshot({ path: join(out, '1-home.png') });
@@ -65,60 +65,52 @@ await page.goto(`${base}/#/levels`);
 await settle(page);
 await page.screenshot({ path: join(out, '2-levels.png') });
 
-// 2. Игровой экран уровня 3 посреди партии, кубик выбран.
-page = await phone(4);
-await page.goto(`${base}/#/level/3`);
+// Игровой экран: уровень 2, две фигуры уложены, третья собирается.
+page = await phone();
+await page.goto(`${base}/#/level/2`);
 await settle(page);
-const solver = new Solver(4);
-for (let i = 0; i < 4; i += 1) await move(page, solver);
-const dice = await nums(page, 'data-dice');
-const heights = await nums(page, 'data-heights');
-const pick = solver.best(heights, dice).move;
-if (pick !== null) await page.getByTestId(`die-${String(dice.indexOf(pick.length))}`).click();
-await page.waitForTimeout(300);
+{
+  const { pieces, index } = plan(2);
+  for (let i = 0; i < 2; i += 1) await put(page, pieces[i] ?? [], index[i] ?? 0);
+  const next = pieces[2] ?? [];
+  await page.getByTestId(`num-${String(index[2] ?? 0)}`).click();
+  for (const [r, c] of normalize(next).slice(0, next.length - 2)) await page.getByTestId(`b-${String(r)}-${String(c)}`).click();
+}
+await settle(page);
 await page.screenshot({ path: join(out, 'game-screen.png') });
+await page.getByTestId('help').click({ force: true });
+await page.getByTestId('clear').click().catch(() => undefined);
+await settle(page);
 
-// 3. Как играть.
-await page.locator('.die.selected').click();
+page = await phone();
+await page.goto(`${base}/#/level/2`);
+await settle(page);
 await page.getByTestId('help').click();
 await settle(page);
 await page.screenshot({ path: join(out, '3-help.png') });
 
-// 4. Поражение: жадно кладём самое длинное число.
-page = await phone(3);
-await page.goto(`${base}/?unlock=all#/level/5`);
+// Маленький экран, уровень 5 — самое узкое место по высоте.
+page = await phone(360, 560, { passed: [1, 2, 3, 4], howToPlaySeen: true });
+await page.goto(`${base}/#/level/5`);
 await settle(page);
-for (let turn = 0; turn < 40 && (await page.getByTestId('game').getAttribute('data-status')) === 'playing'; turn += 1) {
-  const values = await nums(page, 'data-dice');
-  const order = values.map((v, i) => ({ v, i })).sort((x, y) => y.v - x.v);
-  for (const { i } of order) {
-    const die = page.getByTestId(`die-${String(i)}`);
-    if (await die.evaluate((el) => el.classList.contains('dead'))) continue;
-    await die.click();
-    const hand = page.getByTestId('hand');
-    const box = await hand.boundingBox();
-    if (box === null) break;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.down();
-    await page.mouse.up();
-    await settle(page);
-    break;
-  }
-}
-await page.waitForTimeout(1400);
+await page.getByTestId('num-0').click();
+await page.screenshot({ path: join(out, 'game-small.png') });
+
+// Проигрыш.
+page = await phone();
+await page.goto(`${base}/#/level/2`);
+await settle(page);
+await put(page, [[0, 1], [1, 0], [1, 1], [1, 2]], 5);
+await page.waitForTimeout(1500);
 await page.screenshot({ path: join(out, '4-lose.png') });
 
-// 5. Победа на уровне 1.
-page = await phone(11);
-await page.goto(`${base}/?unlock=all#/level/1`);
+// Победа.
+page = await phone();
+await page.goto(`${base}/#/level/1`);
 await settle(page);
-const small = new Solver(2);
-for (let attempt = 0; attempt < 10; attempt += 1) {
-  while ((await page.getByTestId('game').getAttribute('data-status')) === 'playing') await move(page, small);
-  if ((await page.getByTestId('game').getAttribute('data-status')) === 'won') break;
-  await page.waitForTimeout(1400);
-  await page.locator('[data-action="replay"]').click();
-  await settle(page);
+{
+  const { pieces, index } = plan(1);
+  for (let i = 0; i < pieces.length; i += 1) await put(page, pieces[i] ?? [], index[i] ?? 0);
 }
 await page.waitForTimeout(1600);
 await page.screenshot({ path: join(out, '5-win.png') });

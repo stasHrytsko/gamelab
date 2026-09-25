@@ -1,5 +1,6 @@
+import type { Level } from '../engine/types.ts';
 import { LEVELS } from '../levels/levels.ts';
-import { icon, plankTile } from './icons.ts';
+import { icon, sq } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
@@ -8,18 +9,24 @@ export function homeScreen(go: Go): HTMLElement {
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
+  // Поле 4×4: препятствие и три уложенные фигуры — сразу видно, во что играем.
+  const logo = [
+    sq(4), sq(4), sq(5), sq(5),
+    sq(4), '<div class="wall-tile"></div>', sq(6), sq(5),
+    sq(4), sq(6), sq(6), sq(5),
+    '<div class="hole"></div>', '<div class="hole"></div>', sq(6), sq(5),
+  ];
   el.innerHTML = `
-    <div class="home-logo" aria-hidden="true">
-      <div class="logo-row">${plankTile(2)}${plankTile(4)}</div>
-      <div class="logo-row">${plankTile(3)}${plankTile(1)}${plankTile(2)}</div>
-      <div class="logo-row">${plankTile(6)}</div>
-    </div>
-    <h1>Брось<br>и уложи</h1>
+    <div class="home-logo" aria-hidden="true">${logo.join('')}</div>
+    <h1>Build<br>&amp; Pack</h1>
     <div style="flex:1"></div>
     <button class="btn btn-primary btn-large" data-testid="play">${icon.play}Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;
 }
+
+const cellsOf = (level: Level): number => level.map.join('').split('').filter((ch) => ch === '.').length;
+const piecesWord = (n: number): string => (n % 10 === 1 && n % 100 !== 11 ? 'фигура' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'фигуры' : 'фигур');
 
 export function levelsScreen(go: Go): HTMLElement {
   const { passed } = loadProgress();
@@ -38,7 +45,7 @@ export function levelsScreen(go: Go): HTMLElement {
     const badge = done ? `<div class="check">${icon.check}</div>` : state === 'current' ? `<div class="play-mini">${icon.play}</div>` : '';
     return `<button class="level-card ${state === 'open' ? '' : state}" data-level="${String(n)}" data-testid="level-${String(n)}" style="animation-delay:${String(n * 50)}ms">
         ${tile}
-        <div><h3>Уровень ${String(n)}</h3><p>${icon.grid}Поле 6×${String(level.cap)}</p></div>
+        <div><h3>Уровень ${String(n)}</h3><p>${icon.grid}${String(cellsOf(level))} клеток · ${String(level.numbers.length)} ${piecesWord(level.numbers.length)}</p></div>
         <div class="state">${badge}</div>
       </button>`;
   });

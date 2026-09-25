@@ -1,27 +1,28 @@
-export type DieValue = 1 | 2 | 3 | 4 | 5 | 6;
-export type Dice = readonly [DieValue, DieValue, DieValue];
-export type DieIndex = 0 | 1 | 2;
-
-/** Поле: 6 столбцов, у всех одна высота силуэта `cap` (§1, §3). */
-export const WIDTH = 6;
+/** Поле до 6×6 (§3). `#` — препятствие или клетка вне формы поля, `.` — пустая. */
+export const MAX_SIZE = 6;
+/** Конструктор фигуры — сетка 4×4, фигура без поворота (§3). */
+export const BUILDER = 4;
+export const MIN_PIECE = 4;
+export const MAX_PIECE = 7;
 
 export interface Level {
   readonly id: number;
-  readonly cap: number;
+  readonly map: readonly string[];
+  /** Числа 4–7, по убыванию; сумма = числу пустых клеток. */
+  readonly numbers: readonly number[];
 }
+
+/** 'wall' — препятствие, null — пусто, число — размер фигуры, занявшей клетку. */
+export type Cell = 'wall' | null | number;
+export type Board = readonly (readonly Cell[])[];
+export type Point = readonly [row: number, col: number];
 
 export type Status = 'playing' | 'won' | 'failed';
 
 export interface GameState {
   readonly level: number;
-  readonly cap: number;
-  /** Длина 6, значения 0..cap. */
-  readonly heights: readonly number[];
-  readonly rollsMade: number;
-  readonly dice: Dice;
-  readonly planksPlaced: number;
+  readonly board: Board;
+  readonly numbers: readonly number[];
+  readonly used: readonly boolean[];
   readonly status: Status;
 }
-
-/** Источник случайности: число в [0, 1). В игре — Math.random. */
-export type Random = () => number;

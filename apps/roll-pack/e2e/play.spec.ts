@@ -1,98 +1,66 @@
 import { expect, test, type Page } from '@playwright/test';
-import { Solver } from '../tools/solver.ts';
-
-// В игре кубики — Math.random (§5). В тесте его подменяем генератором с
-// зерном, чтобы прогон был воспроизводимым; сама игра об этом не знает.
-async function seedRandom(page: Page, seed: number): Promise<void> {
-  await page.addInitScript((initial) => {
-    let s = initial;
-    Math.random = () => {
-      s = (s * 16807) % 2147483647;
-      return (s - 1) / 2147483646;
-    };
-  }, seed);
-}
-
-const solvers = new Map<number, Solver>();
-const solverFor = (cap: number): Solver => {
-  const found = solvers.get(cap);
-  if (found !== undefined) return found;
-  const created = new Solver(cap);
-  solvers.set(cap, created);
-  return created;
-};
+import { normalize, parseMap, solve } from '../src/engine/packEngine.ts';
+import type { Point } from '../src/engine/types.ts';
+import { LEVELS } from '../src/levels/levels.ts';
 
 async function idle(page: Page): Promise<void> {
   await expect(page.locator('[data-testid="game"]:not([data-busy]), [data-testid="game"][data-status="won"], [data-testid="game"][data-status="failed"]')).toHaveCount(1);
 }
 
-const numbers = (raw: string | null): number[] => (raw ?? '').split(',').map(Number);
-
-async function cellWidth(page: Page): Promise<number> {
-  const a = await page.locator('.slot[data-row="0"][data-col="0"]').boundingBox();
-  const b = await page.locator('.slot[data-row="0"][data-col="1"]').boundingBox();
-  if (a === null || b === null) throw new Error('no slots');
+async function step(page: Page): Promise<number> {
+  const a = await page.locator('.cell[data-r="0"][data-c="0"]').boundingBox();
+  const b = await page.locator('.cell[data-r="0"][data-c="1"]').boundingBox();
+  if (a === null || b === null) throw new Error('no board');
   return b.x - a.x;
 }
 
-/** Перетаскивает планку в руке так, чтобы её левый край встал в столбец x. */
-async function dragHandTo(page: Page, x: number): Promise<void> {
-  const hand = page.getByTestId('hand');
-  const from = Number(await hand.getAttribute('data-x'));
-  const box = await hand.boundingBox();
-  if (box === null) throw new Error('no hand');
-  const cell = await cellWidth(page);
-  const sx = box.x + box.width / 2;
-  const sy = box.y + box.height / 2;
-  await page.mouse.move(sx, sy);
+/** Собрать фигуру в конструкторе и перетащить её так, чтобы она заняла клетки cells. */
+async function placePiece(page: Page, cells: readonly Point[], numberIndex: number): Promise<void> {
+  await page.getByTestId(`num-${String(numberIndex)}`).click();
+  const shape = normalize(cells);
+  for (const [r, c] of shape) await page.getByTestId(`b-${String(r)}-${String(c)}`).click();
+  await expect(page.locator('.tray.ready')).toHaveCount(1);
+  const grab = shape[0] as Point;
+  const r0 = Math.min(...cells.map((p) => p[0]));
+  const c0 = Math.min(...cells.map((p) => p[1]));
+  const from = await page.getByTestId(`b-${String(grab[0])}-${String(grab[1])}`).boundingBox();
+  const to = await page.locator(`.cell[data-r="${String(r0 + grab[0])}"][data-c="${String(c0 + grab[1])}"]`).boundingBox();
+  if (from === null || to === null) throw new Error('no drag points');
+  const lift = (await step(page)) * 1.2;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
   await page.mouse.down();
-  await page.mouse.move(sx + (x - from) * cell, sy, { steps: 8 });
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2 + lift, { steps: 10 });
   await page.mouse.up();
-}
-
-/** Один ход идеального игрока через интерфейс: тап по кубику, перетаскивание. */
-async function bestMove(page: Page, cap: number): Promise<void> {
-  const game = page.getByTestId('game');
-  const heights = numbers(await game.getAttribute('data-heights'));
-  const dice = numbers(await game.getAttribute('data-dice'));
-  const { move } = solverFor(cap).best(heights, dice);
-  if (move === null) throw new Error('no move but game is playing');
-  await page.getByTestId(`die-${String(dice.indexOf(move.length))}`).click();
-  await dragHandTo(page, move.x);
   await idle(page);
 }
 
-/** Играет попытки подряд, пока уровень не пройден. Возвращает число попыток. */
-async function playUntilWin(page: Page, cap: number, finalLevel = false): Promise<number> {
-  const game = page.getByTestId('game');
-  for (let attempt = 1; attempt <= 12; attempt += 1) {
-    await idle(page);
-    while ((await game.getAttribute('data-status')) === 'playing') await bestMove(page, cap);
-    if ((await game.getAttribute('data-status')) === 'won') {
-      await expect(page.getByTestId(finalLevel ? 'popup-final' : 'popup-win')).toBeVisible();
-      return attempt;
-    }
-    await expect(page.getByTestId('popup-lose')).toBeVisible();
-    await page.locator('[data-action="replay"]').click();
-    await expect(page.getByTestId('popup-lose')).toHaveCount(0);
+/** Проходит уровень решением солвера. */
+async function solveLevel(page: Page, id: number): Promise<void> {
+  const level = LEVELS[id - 1];
+  if (level === undefined) throw new Error(`no level ${String(id)}`);
+  const pieces = solve(parseMap(level.map), level.numbers);
+  if (pieces === null) throw new Error(`level ${String(id)} unsolvable`);
+  const used = level.numbers.map(() => false);
+  for (const piece of pieces) {
+    const i = level.numbers.findIndex((n, j) => n === piece.length && !used[j]);
+    used[i] = true;
+    await placePiece(page, piece, i);
   }
-  throw new Error('no win in 12 attempts');
 }
 
 test('с главного до победы на уровне 1 и открытия уровня 2', async ({ page }) => {
-  await seedRandom(page, 11);
   await page.goto('/');
+  await expect(page.getByTestId('home')).toContainText('Build');
   await page.getByTestId('play').click({ force: true });
   await expect(page.getByTestId('level-2')).toHaveClass(/locked/);
   await page.getByTestId('level-1').click();
-
   await expect(page.getByTestId('popup-help')).toBeVisible();
   await page.locator('[data-action="ok"]').click();
 
-  await playUntilWin(page, 2);
+  await solveLevel(page, 1);
+  await expect(page.getByTestId('popup-win')).toBeVisible();
   await page.locator('[data-action="next"]').click();
   await expect(page.getByTestId('game')).toHaveAttribute('data-level', '2');
-  // «Как играть» сам открывается только один раз.
   await expect(page.getByTestId('popup-help')).toHaveCount(0);
 
   await page.getByTestId('to-levels').click();
@@ -100,106 +68,99 @@ test('с главного до победы на уровне 1 и открыт�
   await expect(page.getByTestId('level-2')).toHaveClass(/current/);
 });
 
-test('все пять уровней проходятся ходами солвера', async ({ page }) => {
-  test.setTimeout(300_000);
-  await seedRandom(page, 5);
+test('все пять уровней проходятся, после пятого — финальный попап', async ({ page }) => {
+  test.setTimeout(180_000);
   for (const id of [1, 2, 3, 4, 5]) {
     await page.goto(`/?unlock=all#/level/${String(id)}`);
     if (id === 1) await page.locator('[data-action="ok"]').click();
     await expect(page.getByTestId('game')).toHaveAttribute('data-level', String(id));
-    await playUntilWin(page, id + 1, id === 5);
+    await solveLevel(page, id);
+    await expect(page.getByTestId(id === 5 ? 'popup-final' : 'popup-win')).toBeVisible();
   }
-  await expect(page.getByTestId('popup-final')).toContainText('Все уровни пройдены');
 });
 
-test('поражение no_fit и переигровка с новым броском', async ({ page }) => {
-  await seedRandom(page, 3);
-  await page.goto('/?unlock=all#/level/5');
-  const game = page.getByTestId('game');
-  // Жадно кладём самое длинное число в самую левую позицию — быстро ломает поверхность.
-  for (let turn = 0; turn < 40 && (await game.getAttribute('data-status')) === 'playing'; turn += 1) {
-    await idle(page);
-    const dice = numbers(await game.getAttribute('data-dice'));
-    const order = dice.map((v, i) => ({ v, i })).sort((a, b) => b.v - a.v);
-    let placed = false;
-    for (const { i } of order) {
-      const die = page.getByTestId(`die-${String(i)}`);
-      if (await die.evaluate((el) => el.classList.contains('dead'))) continue;
-      await die.click();
-      await dragHandTo(page, Number(await page.getByTestId('hand').getAttribute('data-x')));
-      placed = true;
-      break;
-    }
-    if (!placed) break;
-  }
-  await expect(game).toHaveAttribute('data-status', 'failed');
-  await expect(page.getByTestId('no-fit')).toBeVisible();
-  await expect(page.getByTestId('popup-lose')).toContainText('Ни одно число не легло');
+test('счётчик клеток в подсказке и «Очистить»', async ({ page }) => {
+  await page.goto('/?unlock=all#/level/2');
+  await page.getByTestId('num-5').click();
+  await expect(page.getByTestId('count')).toHaveText('0/4');
+  await page.getByTestId('b-0-0').click();
+  await page.getByTestId('b-0-1').click();
+  await expect(page.getByTestId('count')).toHaveText('2/4');
+  await page.getByTestId('b-2-2').click();
+  await page.getByTestId('b-3-3').click();
+  await expect(page.getByTestId('hint')).toContainText('касаться сторонами');
+  await expect(page.getByTestId('count')).toHaveText('4/4');
+  // Пятую клетку не поставить.
+  await page.getByTestId('b-1-0').click();
+  await expect(page.getByTestId('count')).toHaveText('4/4');
+  await page.getByTestId('clear').click();
+  await expect(page.getByTestId('count')).toHaveText('0/4');
+});
+
+test('фигура на препятствие не встаёт и ход не тратится', async ({ page }) => {
+  await page.goto('/?unlock=all#/level/2');
+  // Квадрат 2×2 в левый верхний угол препятствия (2,2).
+  await page.getByTestId('num-5').click();
+  for (const [r, c] of [[0, 0], [0, 1], [1, 0], [1, 1]] as const) await page.getByTestId(`b-${String(r)}-${String(c)}`).click();
+  const from = await page.getByTestId('b-0-0').boundingBox();
+  const to = await page.locator('.cell[data-r="2"][data-c="2"]').boundingBox();
+  if (from === null || to === null) throw new Error('no points');
+  const lift = (await step(page)) * 1.2;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2 + lift, { steps: 8 });
+  await expect(page.locator('.cell.aim-bad').first()).toBeVisible();
+  await page.mouse.up();
+  await expect(page.getByTestId('hint')).toContainText('Сюда не встаёт');
+  await expect(page.getByTestId('game')).toHaveAttribute('data-used', '0');
+});
+
+test('поражение: кусок, который не закрыть, и переигровка', async ({ page }) => {
+  await page.goto('/?unlock=all#/level/2');
+  // Т-фигура из 4 клеток отрезает угловую клетку (0,0): одну клетку не закрыть ничем.
+  await placePiece(page, [[0, 1], [1, 0], [1, 1], [1, 2]], 5);
+  await expect(page.getByTestId('popup-lose')).toBeVisible();
+  await expect(page.locator('.cell.dead').first()).toBeVisible();
   await page.locator('[data-action="replay"]').click();
   await expect(page.getByTestId('popup-lose')).toHaveCount(0);
-  await expect(game).toHaveAttribute('data-heights', '0,0,0,0,0,0');
-  await expect(game).toHaveAttribute('data-status', 'playing');
+  await expect(page.getByTestId('game')).toHaveAttribute('data-used', '0');
 });
 
-test('невалидная позиция ничего не тратит, повторный тап снимает выбор', async ({ page }) => {
-  await seedRandom(page, 21);
-  await page.goto('/?unlock=all#/level/3');
-  const game = page.getByTestId('game');
-  await idle(page);
-  // Первый ход: кладём самое короткое число в столбец 0, чтобы появилась ступенька.
-  const dice = numbers(await game.getAttribute('data-dice'));
-  const shortest = dice.indexOf(Math.min(...dice));
-  await page.getByTestId(`die-${String(shortest)}`).click();
-  await dragHandTo(page, 0);
-  await idle(page);
-  const before = await game.getAttribute('data-heights');
-  const planks = await game.getAttribute('data-planks');
-
-  // Планку длиной ≥ 2 тянем на ступеньку (столбцы 0..): позиция невалидна.
-  const next = numbers(await game.getAttribute('data-dice'));
-  const long = next.findIndex((v) => v >= 2);
-  expect(long).toBeGreaterThanOrEqual(0);
-  {
-    await page.getByTestId(`die-${String(long)}`).click();
-    const hand = page.getByTestId('hand');
-    const from = Number(await hand.getAttribute('data-x'));
-    const cell = await cellWidth(page);
-    const box = await hand.boundingBox();
-    if (box === null) throw new Error('no hand');
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width / 2 - (from + 1) * cell, box.y + box.height / 2, { steps: 6 });
-    await expect(hand).toHaveClass(/invalid/);
-    await page.mouse.up();
-    await idle(page);
-    await expect(game).toHaveAttribute('data-heights', before ?? '');
-    await expect(game).toHaveAttribute('data-planks', planks ?? '');
-    await expect(hand).not.toHaveClass(/invalid/);
+test('экран помещается без прокрутки (§7.1)', async ({ browser }) => {
+  for (const [width, height] of [[360, 560], [375, 560], [390, 664], [430, 932]] as const) {
+    const page = await browser.newPage({ viewport: { width, height }, isMobile: true, hasTouch: true });
+    for (const id of [1, 3, 5]) {
+      await page.goto(`/?unlock=all#/level/${String(id)}`);
+      const ok = page.locator('[data-action="ok"]');
+      if (await ok.count()) await ok.click();
+      await page.getByTestId('num-0').click();
+      const overflow = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+      expect(overflow, `${String(width)}×${String(height)}, уровень ${String(id)}`).toBeLessThanOrEqual(0);
+      const tray = await page.locator('.tray').boundingBox();
+      expect((tray?.y ?? 0) + (tray?.height ?? 0)).toBeLessThanOrEqual(height);
+    }
+    await page.close();
   }
-
-  // Повторный тап по выбранному кубику убирает планку из руки.
-  const sel = page.locator('.die.selected');
-  await expect(sel).toHaveCount(1);
-  await sel.click();
-  await expect(page.getByTestId('hand')).toHaveCount(0);
 });
 
-test('перетаскивание пальцем (touch) кладёт планку', async ({ page }) => {
-  await seedRandom(page, 8);
+test('перетаскивание пальцем (touch)', async ({ page }) => {
   await page.goto('/?unlock=all#/level/2');
-  await idle(page);
-  await page.getByTestId('die-0').click();
-  const hand = page.getByTestId('hand');
-  const box = await hand.boundingBox();
-  if (box === null) throw new Error('no hand');
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
+  await page.getByTestId('num-5').click();
+  for (const [r, c] of [[0, 0], [0, 1], [0, 2], [0, 3]] as const) await page.getByTestId(`b-${String(r)}-${String(c)}`).click();
+  const from = await page.getByTestId('b-0-0').boundingBox();
+  const to = await page.locator('.cell[data-r="0"][data-c="0"]').boundingBox();
+  if (from === null || to === null) throw new Error('no points');
+  const lift = (await step(page)) * 1.2;
   const cdp = await page.context().newCDPSession(page);
-  const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', px: number, py: number) =>
-    cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: px, y: py }] });
-  await touch('touchStart', x, y);
-  for (let i = 1; i <= 4; i += 1) await touch('touchMove', x + i, y);
-  await touch('touchEnd', x + 4, y);
+  const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', x: number, y: number) =>
+    cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+  const sx = from.x + from.width / 2;
+  const sy = from.y + from.height / 2;
+  const tx = to.x + to.width / 2;
+  const ty = to.y + to.height / 2 + lift;
+  await touch('touchStart', sx, sy);
+  for (let i = 1; i <= 8; i += 1) await touch('touchMove', sx + ((tx - sx) * i) / 8, sy + ((ty - sy) * i) / 8);
+  await touch('touchEnd', tx, ty);
   await idle(page);
-  await expect(page.getByTestId('game')).toHaveAttribute('data-planks', '1');
+  await expect(page.getByTestId('game')).toHaveAttribute('data-used', '1');
 });

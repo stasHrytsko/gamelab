@@ -1,28 +1,31 @@
 // Лог для §8 спеки: пишется только на устройство. Посмотреть — в консоли
-// браузера `JSON.parse(localStorage['roll-pack:log'])`.
-const KEY = 'roll-pack:log';
+// браузера `JSON.parse(localStorage['build-pack:log'])`.
+const KEY = 'build-pack:log';
 const LIMIT = 3000;
 
 export type LogEvent =
   | { type: 'level_start'; level: number }
   | {
-      type: 'move';
+      type: 'place';
       level: number;
-      dice: number[];
-      chosen: number;
-      x: number;
-      heights: number[];
-      dieSwitches: number;
-      decisionMs: number;
+      size: number;
+      /** Клетки фигуры относительно её левого верхнего угла. */
+      shape: number[][];
+      /** Левый верхний угол фигуры на поле: [row, col]. */
+      at: number[];
+      /** Сколько раз игрок нажал «Очистить», собирая эту фигуру. */
+      clears: number;
+      /** От выбора числа до укладки. */
+      ms: number;
     }
   | { type: 'help_open'; level: number }
-  | { type: 'level_win'; level: number; planks: number }
-  | { type: 'level_fail'; level: number; planks: number; reason: 'no_fit'; heights: number[]; dice: number[] };
+  | { type: 'level_win'; level: number }
+  | { type: 'level_fail'; level: number; reason: 'unsolvable'; left: number[] };
 
 export function log(event: LogEvent): void {
   try {
     const list = JSON.parse(localStorage.getItem(KEY) ?? '[]') as unknown[];
-    list.push({ ...event, at: Date.now() });
+    list.push({ ...event, t: Date.now() });
     localStorage.setItem(KEY, JSON.stringify(list.slice(-LIMIT)));
   } catch {
     // лог не критичен

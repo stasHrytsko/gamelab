@@ -1,7 +1,7 @@
 {
-  "name": "Брось и уложи",
-  "short_name": "Брось и уложи",
-  "description": "Брось три кубика и уложи планку без ступенек.",
+  "name": "Build & Pack",
+  "short_name": "Build & Pack",
+  "description": "Собери фигуру и уложи её на поле.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

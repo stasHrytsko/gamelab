@@ -30,10 +30,10 @@ const css = find('.css').replace(/url\(\.?\/?(?:assets\/)?([^)]+\.ttf)\)/g, (_ma
 });
 const js = find('.js').replaceAll('</script', '<\\/script');
 
-const page = `<title>Брось и уложи</title>
+const page = `<title>Build & Pack</title>
 <style>${css}</style>
 <div id="app"></div>
 <script type="module">${js}</script>
 `;
-writeFileSync(join(out, 'roll-pack.html'), page);
-process.stdout.write(`dist-artifact/roll-pack.html: ${String(Math.round(page.length / 1024))} KB\n`);
+writeFileSync(join(out, 'build-pack.html'), page);
+process.stdout.write(`dist-artifact/build-pack.html: ${String(Math.round(page.length / 1024))} KB\n`);

@@ -11,25 +11,9 @@ export const icon = {
   cup: svg('<path d="M7 3.5h10v6.5a5 5 0 01-10 0z" fill="currentColor"/><path d="M7 5.5H4.5a3 3 0 003 4.5M17 5.5h2.5a3 3 0 01-3 4.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="10.8" y="14.5" width="2.4" height="3.5" fill="currentColor"/><rect x="7.5" y="18" width="9" height="2.8" rx="1.2" fill="currentColor"/>'),
   arrow: svg('<path d="M4 12h14m-5-5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'),
   replay: svg('<path d="M5 12a7 7 0 107-7H8.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M10.5 2.5L8 5l2.5 2.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'),
+  clear: svg('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>'),
   grid: svg('<g fill="currentColor"><rect x="3" y="3" width="5" height="5" rx="1.5"/><rect x="9.5" y="3" width="5" height="5" rx="1.5"/><rect x="16" y="3" width="5" height="5" rx="1.5"/><rect x="3" y="9.5" width="5" height="5" rx="1.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.5"/><rect x="16" y="9.5" width="5" height="5" rx="1.5"/></g>'),
 };
 
-/** Цвет планки по длине — только подсказка глазу; длина читается по клеткам и точкам. */
-export const PLANK_COLOR: Readonly<Record<number, string>> = {
-  1: 'purple', 2: 'coral', 3: 'yellow', 4: 'green', 5: 'blue', 6: 'coral',
-};
-
-// Раскладка точек на грани кубика, сетка 3×3: индексы клеток 0..8.
-const PIPS: Readonly<Record<number, readonly number[]>> = {
-  1: [4], 2: [2, 6], 3: [2, 4, 6], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8],
-};
-
-export function dieFace(value: number): string {
-  const on = new Set(PIPS[value] ?? []);
-  return `<span class="pips">${Array.from({ length: 9 }, (_, i) => `<i${on.has(i) ? ' class="on"' : ''}></i>`).join('')}</span>`;
-}
-
-/** Планка длины `length`: сплошной тайл кита, по белой «таблетке» на каждую клетку. */
-export function plankTile(length: number, extra = ''): string {
-  return `<div class="plank-tile c-${PLANK_COLOR[length] ?? 'blue'} ${extra}" style="--n:${String(length)}">${'<i></i>'.repeat(length)}</div>`;
-}
+/** Клетка фигуры размера n: тайл кита с белой «таблеткой». Цвет — только подсказка. */
+export const sq = (n: number, extra = ''): string => `<div class="sq c${String(n)} ${extra}"></div>`;

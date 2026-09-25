@@ -5,7 +5,7 @@ export interface Progress {
   readonly howToPlaySeen: boolean;
 }
 
-const KEY = 'roll-pack:progress:v1';
+const KEY = 'build-pack:progress:v1';
 const EMPTY: Progress = { passed: [], howToPlaySeen: false };
 
 // Приватный режим и встроенные браузеры мессенджеров могут запрещать

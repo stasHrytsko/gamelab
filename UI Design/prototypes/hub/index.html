@@ -9,76 +9,82 @@
 <style>
   /*
    * Не PuzzleKit. Тема хаба — своя, по образцу личного сайта автора
-   * (play-mocha-chi.vercel.app), решение от 2026-09-25. Источник истины —
-   * apps/hub/src/styles.css; этот файл — только для истории мокапа.
+   * (play-mocha-chi.vercel.app), решение от 2026-09-25. Десктопная
+   * веб-страница, не телефонный мокап. Источник истины —
+   * apps/hub/src/{styles.css,main.ts}; этот файл — только для истории.
    */
   :root {
     --bg: #eeece7; --surface: #f5f4f0; --text: #17160f; --text-muted: #8a8778;
-    --border: #d9d6cc; --accent: #f0522d;
+    --border: #d9d6cc; --accent: #f0522d; --radius: 10px;
     --font-sans: "Inter", system-ui, sans-serif;
     --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font-sans); background: #dedcd5; }
+  html, body { min-height: 100%; }
+  body { font-family: var(--font-sans); color: var(--text); background: var(--bg); }
+  button { font: inherit; color: inherit; border: 0; background: none; }
+  a { color: inherit; text-decoration: none; }
 
-  .sheet { padding: 32px; display: flex; gap: 32px; align-items: flex-start; }
-  figure { display: flex; flex-direction: column; gap: 12px; }
-  figcaption { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #6b6a63; padding-left: 8px; }
+  .page { max-width: 1120px; margin: 0 auto; padding: 64px 40px 96px; display: flex; flex-direction: column; gap: 56px; }
+  .head { display: flex; flex-direction: column; gap: 14px; max-width: 720px; }
+  .head h1 { font-size: 42px; font-weight: 700; line-height: 1.15; letter-spacing: -.015em; }
+  .head p { font-size: 17px; line-height: 1.6; color: var(--text-muted); }
 
-  .phone { position: relative; width: 390px; min-height: 844px; border-radius: 20px; background: var(--bg); border: 1px solid #cfccc2; box-shadow: 0 16px 40px rgba(23,22,15,.12); overflow: hidden; padding: 32px 16px 24px; display: flex; flex-direction: column; gap: 32px; color: var(--text); }
+  .section { display: flex; flex-direction: column; gap: 18px; }
+  .section-label { font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
 
-  .head { display: flex; flex-direction: column; gap: 12px; }
-  .head h1 { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; }
-  .head p { font-size: 14px; line-height: 1.6; color: var(--text-muted); max-width: 46ch; }
+  .hero { position: relative; min-height: 480px; border-radius: var(--radius); border: 1px solid var(--border); background-color: var(--surface); background-size: cover; background-position: center; overflow: hidden; display: flex; align-items: flex-end; }
+  .hero-scrim { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(15,14,9,.92) 0%, rgba(15,14,9,.74) 30%, rgba(15,14,9,.28) 56%, rgba(15,14,9,0) 78%); }
+  .hero-content { position: relative; max-width: 460px; padding: 48px; display: flex; flex-direction: column; gap: 14px; color: #fff; }
+  .tag-new { align-self: flex-start; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: #fff; border-radius: 4px; padding: 4px 9px; }
+  .hero-content h2 { font-size: 34px; font-weight: 700; letter-spacing: -.01em; }
+  .hero-content .meta { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.7); }
+  .hero-content .pitch { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.92); }
 
-  .section { display: flex; flex-direction: column; gap: 12px; }
-  .section-label { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+  .btn { height: 46px; padding: 0 22px; border-radius: 6px; font: 600 14px var(--font-sans); align-self: flex-start; margin-top: 6px; }
+  .btn-hero-soon { border: 1px dashed rgba(255,255,255,.5); color: rgba(255,255,255,.85); background: transparent; font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase; font-size: 11px; }
 
-  .featured { border: 1px solid var(--border); border-radius: 6px; background: var(--surface); padding: 24px; display: flex; flex-direction: column; gap: 12px; position: relative; }
-  .tag-new { position: absolute; top: 16px; right: 16px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 3px 7px; }
-  .featured h2 { font-size: 19px; font-weight: 700; padding-right: 90px; }
-  .featured .cover { display: block; width: auto; max-width: 100%; height: 260px; margin: 0 auto; object-fit: cover; object-position: top; border: 1px solid var(--border); border-radius: 4px; }
-  .featured .meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
-  .featured .pitch { font-size: 14px; line-height: 1.6; }
-
-  .btn-soon { height: 46px; border-radius: 6px; border: 1px dashed var(--border); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-top: 8px; }
-
-  .queue { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .queue-slot { border: 1px solid var(--border); border-radius: 6px; padding: 12px; min-height: 76px; display: flex; align-items: flex-end; }
-  .queue-slot .status { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); opacity: .55; }
+  .queue { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .queue-card { position: relative; aspect-ratio: 4/3; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;
+    background: radial-gradient(120% 140% at 15% 15%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 55%),
+                radial-gradient(120% 140% at 85% 90%, color-mix(in srgb, #4f7eff 26%, transparent), transparent 55%),
+                linear-gradient(160deg, var(--surface), var(--bg));
+    display: flex; align-items: flex-end; }
+  .queue-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(15,14,9,.16) 0%, rgba(15,14,9,0) 45%); }
+  .queue-card .status { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); padding: 12px 14px; }
 </style>
 </head>
 <body>
-<div class="sheet" id="sheet">
-  <figure>
-    <figcaption>Hub — home (mockup, 390×844)</figcaption>
-    <div class="phone">
-      <div class="head">
-        <h1>Prototype Validation Project</h1>
-        <p>Playable game prototypes, one link away on your phone. Each one tests a single idea, not a finished game.</p>
+<div class="page" id="sheet">
+  <div class="head">
+    <h1>Prototype Validation Project</h1>
+    <p>Playable game prototypes, one link away on your phone. Each one tests a single idea, not a finished game.</p>
+  </div>
+
+  <div class="section">
+    <span class="section-label">Prototype log</span>
+    <article class="hero" style="background-image:url('../../../apps/hub/public/games/taxi-slide-banner.jpg')">
+      <div class="hero-scrim"></div>
+      <div class="hero-content">
+        <span class="tag-new">New game</span>
+        <h2>Taxi Slide</h2>
+        <div class="meta">Sep 25 · Puzzle</div>
+        <p class="pitch">Slide colored taxis around a 5×5 grid like a sliding puzzle and reach each passenger before they leave; every completed ride opens another empty cell.</p>
+        <button class="btn btn-hero-soon">Soon</button>
       </div>
-      <div class="section">
-        <span class="section-label">Prototype log</span>
-        <div class="featured">
-          <span class="tag-new">New game</span>
-          <div>
-            <h2>Taxi Slide</h2>
-            <div class="meta">Sep 25 · Puzzle</div>
-          </div>
-          <img class="cover" src="../../../specs/screens/02-two-moves-later.png" alt="Taxi Slide screenshot">
-          <p class="pitch">Slide colored taxis around a 5×5 grid like a sliding puzzle and reach each passenger before they leave; every completed ride opens another empty cell.</p>
-          <div class="btn-soon">Soon</div>
-        </div>
-        <div class="queue" aria-hidden="true">
-          <div class="queue-slot"><span class="status">Soon</span></div>
-          <div class="queue-slot"><span class="status">Soon</span></div>
-          <div class="queue-slot"><span class="status">Soon</span></div>
-          <div class="queue-slot"><span class="status">Soon</span></div>
-          <div class="queue-slot"><span class="status">Soon</span></div>
-        </div>
-      </div>
+    </article>
+  </div>
+
+  <div class="section">
+    <span class="section-label">Coming up</span>
+    <div class="queue">
+      <div class="queue-card"><span class="status">Soon</span></div>
+      <div class="queue-card"><span class="status">Soon</span></div>
+      <div class="queue-card"><span class="status">Soon</span></div>
+      <div class="queue-card"><span class="status">Soon</span></div>
+      <div class="queue-card"><span class="status">Soon</span></div>
     </div>
-  </figure>
+  </div>
 </div>
 </body>
 </html>

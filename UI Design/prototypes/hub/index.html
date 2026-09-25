@@ -12,7 +12,7 @@
   figure { display: flex; flex-direction: column; gap: var(--ui-space-3); }
   figcaption { font-size: 14px; font-weight: 600; color: var(--ui-text-muted); padding-left: var(--ui-space-2); }
 
-  .phone { position: relative; width: 390px; min-height: 844px; border-radius: 36px; background: var(--ui-background); box-shadow: var(--ui-shadow-card); overflow: hidden; padding: var(--ui-space-6) var(--ui-space-4) var(--ui-space-5); display: flex; flex-direction: column; gap: var(--ui-space-6); }
+  .phone { position: relative; width: 390px; min-height: 844px; border-radius: 36px; background: var(--ui-background); border: 1px solid var(--ui-border); box-shadow: var(--ui-shadow-card); overflow: hidden; padding: var(--ui-space-6) var(--ui-space-4) var(--ui-space-5); display: flex; flex-direction: column; gap: var(--ui-space-6); }
 
   /* header */
   .head { display: flex; flex-direction: column; gap: var(--ui-space-2); }
@@ -42,12 +42,12 @@
   .btn svg { width: 18px; height: 18px; }
   .btn-primary { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 8px 18px rgba(79, 126, 255, 0.35); }
 
-  /* log list */
-  .log { display: flex; flex-direction: column; gap: var(--ui-space-3); }
-  .empty-log { border: 1.5px dashed var(--ui-border); border-radius: var(--ui-radius-card); padding: var(--ui-space-4); text-align: center; }
-  .empty-log p { font-size: 13px; color: var(--ui-text-muted); line-height: 1.5; }
+  /* очередь — пустые слоты под будущие прототипы */
+  .queue { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--ui-space-3); }
+  .queue-slot { border: 1.5px dashed var(--ui-border); border-radius: var(--ui-radius-card); padding: var(--ui-space-3); min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; }
+  .queue-slot .mark { width: 26px; height: 26px; border-radius: 26%; border: 1.5px dashed var(--ui-disabled); }
+  .queue-slot .status { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ui-disabled); }
 
-  .foot { margin-top: auto; text-align: center; font-size: 12px; color: var(--ui-disabled); }
 </style>
 </head>
 <body>
@@ -89,12 +89,15 @@
           <button class="btn btn-primary"><svg><use href="#i-play"/></svg>Играть</button>
         </div>
 
-        <div class="empty-log">
-          <p>Здесь по порядку появятся остальные прототипы — самый новый всегда сверху, отдельной большой плашкой.</p>
+        <div class="queue" aria-hidden="true">
+          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
+          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
+          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
+          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
+          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
         </div>
       </div>
 
-      <div class="foot">play.gamelab</div>
     </div>
   </figure>
 </div>

@@ -1,103 +1,80 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Prototype Validation Project — хаб</title>
-<link rel="stylesheet" href="../../design-tokens.css">
+<title>Prototype Validation Project — hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /*
+   * Не PuzzleKit. Тема хаба — своя, по образцу личного сайта автора
+   * (play-mocha-chi.vercel.app), решение от 2026-09-25. Источник истины —
+   * apps/hub/src/styles.css; этот файл — только для истории мокапа.
+   */
+  :root {
+    --bg: #eeece7; --surface: #f5f4f0; --text: #17160f; --text-muted: #8a8778;
+    --border: #d9d6cc; --accent: #f0522d;
+    --font-sans: "Inter", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--ui-font); color: var(--ui-text); background: var(--ui-surface-muted); }
+  body { font-family: var(--font-sans); background: #dedcd5; }
 
-  .sheet { padding: var(--ui-space-6); display: flex; gap: var(--ui-space-6); align-items: flex-start; }
-  figure { display: flex; flex-direction: column; gap: var(--ui-space-3); }
-  figcaption { font-size: 14px; font-weight: 600; color: var(--ui-text-muted); padding-left: var(--ui-space-2); }
+  .sheet { padding: 32px; display: flex; gap: 32px; align-items: flex-start; }
+  figure { display: flex; flex-direction: column; gap: 12px; }
+  figcaption { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #6b6a63; padding-left: 8px; }
 
-  .phone { position: relative; width: 390px; min-height: 844px; border-radius: 36px; background: var(--ui-background); border: 1px solid var(--ui-border); box-shadow: var(--ui-shadow-card); overflow: hidden; padding: var(--ui-space-6) var(--ui-space-4) var(--ui-space-5); display: flex; flex-direction: column; gap: var(--ui-space-6); }
+  .phone { position: relative; width: 390px; min-height: 844px; border-radius: 20px; background: var(--bg); border: 1px solid #cfccc2; box-shadow: 0 16px 40px rgba(23,22,15,.12); overflow: hidden; padding: 32px 16px 24px; display: flex; flex-direction: column; gap: 32px; color: var(--text); }
 
-  /* header */
-  .head { display: flex; flex-direction: column; gap: var(--ui-space-2); }
-  .head h1 { font-size: 26px; font-weight: 700; line-height: 1.2; }
-  .head p { font-size: 14px; line-height: 1.5; color: var(--ui-text-muted); }
+  .head { display: flex; flex-direction: column; gap: 12px; }
+  .head h1 { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; }
+  .head p { font-size: 14px; line-height: 1.6; color: var(--text-muted); max-width: 46ch; }
 
-  .section-label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ui-text-muted); padding-left: 2px; }
+  .section { display: flex; flex-direction: column; gap: 12px; }
+  .section-label { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
 
-  /* featured card */
-  .featured { border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-card); padding: var(--ui-space-5); display: flex; flex-direction: column; gap: var(--ui-space-4); position: relative; }
-  .badge-new { position: absolute; top: var(--ui-space-4); right: var(--ui-space-4); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #fff; background: var(--ui-blue); padding: 5px 10px; border-radius: var(--ui-radius-pill); }
+  .featured { border: 1px solid var(--border); border-radius: 6px; background: var(--surface); padding: 24px; display: flex; flex-direction: column; gap: 12px; position: relative; }
+  .tag-new { position: absolute; top: 16px; right: 16px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 3px 7px; }
+  .featured h2 { font-size: 19px; font-weight: 700; padding-right: 64px; }
+  .featured .meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
+  .featured .pitch { font-size: 14px; line-height: 1.6; }
 
-  .cover { align-self: flex-start; display: grid; grid-template-columns: repeat(3, 34px); gap: 6px; }
-  .cover > * { width: 34px; height: 34px; }
-  .cover .hole { border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
-  .cover .hole::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--ui-disabled); }
-  .tile { --c: var(--ui-blue); position: relative; border-radius: 26%; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937) 100%); box-shadow: 0 4px 8px rgba(31,41,55,.14), inset 0 -2px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 1.5px 0 rgba(255,255,255,.45); display: grid; place-items: center; }
-  .tile svg { width: 42%; height: 42%; color: #fff; }
-  .c-red { --c: var(--ui-coral); } .c-blue { --c: var(--ui-blue); } .c-yellow { --c: var(--ui-yellow); }
+  .btn-soon { height: 46px; border-radius: 6px; border: 1px dashed var(--border); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-top: 8px; }
 
-  .featured h2 { font-size: 20px; font-weight: 700; }
-  .featured .meta { font-size: 12px; color: var(--ui-text-muted); display: flex; align-items: center; gap: 6px; }
-  .featured .meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--ui-disabled); }
-  .featured .pitch { font-size: 14px; line-height: 1.5; color: var(--ui-text); }
-
-  .btn { height: 50px; border: 0; border-radius: var(--ui-radius-large); font: 600 16px var(--ui-font); display: flex; align-items: center; justify-content: center; gap: var(--ui-space-2); width: 100%; }
-  .btn svg { width: 18px; height: 18px; }
-  .btn-primary { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 8px 18px rgba(79, 126, 255, 0.35); }
-
-  /* очередь — пустые слоты под будущие прототипы */
-  .queue { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--ui-space-3); }
-  .queue-slot { border: 1.5px dashed var(--ui-border); border-radius: var(--ui-radius-card); padding: var(--ui-space-3); min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; }
-  .queue-slot .mark { width: 26px; height: 26px; border-radius: 26%; border: 1.5px dashed var(--ui-disabled); }
-  .queue-slot .status { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ui-disabled); }
-
+  .queue { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .queue-slot { border: 1px solid var(--border); border-radius: 6px; padding: 12px; min-height: 76px; display: flex; align-items: flex-end; }
+  .queue-slot .status { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); opacity: .55; }
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute"><defs>
-  <symbol id="g-red" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/></symbol>
-  <symbol id="g-blue" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="currentColor"/></symbol>
-  <symbol id="g-yellow" viewBox="0 0 24 24"><path d="M12 3.2c.7 0 1.3.4 1.7 1l8 14c.8 1.4-.2 3-1.7 3H4c-1.5 0-2.5-1.6-1.7-3l8-14c.4-.6 1-1 1.7-1z" fill="currentColor"/></symbol>
-  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15c0 .8.9 1.3 1.6.8l11-7.5c.6-.4.6-1.2 0-1.6l-11-7.5C7.9 3.2 7 3.7 7 4.5z" fill="currentColor"/></symbol>
-</defs></svg>
-
 <div class="sheet" id="sheet">
   <figure>
-    <figcaption>Хаб — главная (мокап, 390×844)</figcaption>
-    <div class="phone" id="hub-screen">
-
+    <figcaption>Hub — home (mockup, 390×844)</figcaption>
+    <div class="phone">
       <div class="head">
         <h1>Prototype Validation Project</h1>
-        <p>Короткие игровые прототипы, которые можно сразу открыть на телефоне и сыграть. Каждый проверяет одну идею, а не готовая игра.</p>
+        <p>Playable game prototypes, one link away on your phone. Each one tests a single idea, not a finished game.</p>
       </div>
-
-      <div style="display:flex;flex-direction:column;gap:var(--ui-space-3)">
+      <div class="section">
         <span class="section-label">Prototype log</span>
-
         <div class="featured">
-          <span class="badge-new">Новое</span>
-          <div class="cover" aria-hidden="true">
-            <div class="tile c-red"><svg><use href="#g-red"/></svg></div>
-            <div class="hole"></div>
-            <div class="tile c-blue"><svg><use href="#g-blue"/></svg></div>
-            <div class="hole"></div>
-            <div class="tile c-yellow"><svg><use href="#g-yellow"/></svg></div>
-            <div class="hole"></div>
-          </div>
+          <span class="tag-new">New</span>
           <div>
-            <h2>Такси-пятнашки</h2>
-            <div class="meta"><span>25 сент.</span><span class="dot"></span><span>5 уровней</span><span class="dot"></span><span>головоломка</span></div>
+            <h2>Taxi Slide</h2>
+            <div class="meta">Sep 25 · 5 levels · puzzle</div>
           </div>
-          <p class="pitch">Сдвигай цветные такси на поле 5×5 как пятнашки и подавай нужный цвет к пассажиру, пока он не ушёл; каждая поездка освобождает новую клетку.</p>
-          <button class="btn btn-primary"><svg><use href="#i-play"/></svg>Играть</button>
+          <p class="pitch">Slide colored taxis around a 5×5 grid like a sliding puzzle and reach each passenger before they leave; every completed ride opens another empty cell.</p>
+          <div class="btn-soon">Soon</div>
         </div>
-
         <div class="queue" aria-hidden="true">
-          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
-          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
-          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
-          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
-          <div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>
+          <div class="queue-slot"><span class="status">Soon</span></div>
+          <div class="queue-slot"><span class="status">Soon</span></div>
+          <div class="queue-slot"><span class="status">Soon</span></div>
+          <div class="queue-slot"><span class="status">Soon</span></div>
+          <div class="queue-slot"><span class="status">Soon</span></div>
         </div>
       </div>
-
     </div>
   </figure>
 </div>

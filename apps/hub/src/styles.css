@@ -1,89 +1,115 @@
-@import "@ui/design-tokens.css";
+/*
+ * Собственная тема хаба — не PuzzleKit из UI Design/design-tokens.css.
+ * По просьбе автора 2026-09-25: визуал, фон и шрифт — с его личного сайта
+ * (play-mocha-chi.vercel.app). Игры внутри своих апп остаются на PuzzleKit;
+ * этот файл — единственное место, где живёт палитра хаба.
+ */
+:root {
+  --bg: #eeece7;
+  --surface: #f5f4f0;
+  --text: #17160f;
+  --text-muted: #8a8778;
+  --border: #d9d6cc;
+  --accent: #f0522d;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius: 6px;
+}
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body { min-height: 100%; }
 body {
-  font-family: var(--ui-font);
-  color: var(--ui-text);
-  background: var(--ui-surface-muted);
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
 a { color: inherit; }
-svg { display: block; }
 
 .page {
-  max-width: 480px;
+  max-width: 520px;
   margin: 0 auto;
   min-height: 100vh;
   padding:
-    calc(env(safe-area-inset-top, 0px) + var(--ui-space-6))
-    calc(env(safe-area-inset-right, 0px) + var(--ui-space-4))
-    calc(env(safe-area-inset-bottom, 0px) + var(--ui-space-6))
-    calc(env(safe-area-inset-left, 0px) + var(--ui-space-4));
+    calc(env(safe-area-inset-top, 0px) + var(--space-6))
+    calc(env(safe-area-inset-right, 0px) + var(--space-4))
+    calc(env(safe-area-inset-bottom, 0px) + var(--space-6))
+    calc(env(safe-area-inset-left, 0px) + var(--space-4));
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-6);
+  gap: var(--space-6);
 }
 
-.head { display: flex; flex-direction: column; gap: var(--ui-space-2); }
-.head h1 { font-size: 26px; font-weight: 700; line-height: 1.2; }
-.head p { font-size: 14px; line-height: 1.5; color: var(--ui-text-muted); }
+.head { display: flex; flex-direction: column; gap: var(--space-3); }
+.head h1 { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
+.head p { font-size: 14px; line-height: 1.6; color: var(--text-muted); max-width: 46ch; }
 
-.section { display: flex; flex-direction: column; gap: var(--ui-space-3); }
-.section-label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ui-text-muted); padding-left: 2px; }
+.section { display: flex; flex-direction: column; gap: var(--space-3); }
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted);
+}
 
 /* карточка последнего прототипа */
 .featured {
-  border-radius: var(--ui-radius-card);
-  background: var(--ui-surface);
-  box-shadow: var(--ui-shadow-card);
-  padding: var(--ui-space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-4);
+  gap: var(--space-3);
   position: relative;
 }
-.badge-new {
-  position: absolute; top: var(--ui-space-4); right: var(--ui-space-4);
-  font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
-  color: #fff; background: var(--ui-blue); padding: 5px 10px; border-radius: var(--ui-radius-pill);
+.tag-new {
+  position: absolute; top: var(--space-4); right: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent); border: 1px solid var(--accent); border-radius: 3px;
+  padding: 3px 7px;
 }
 
-.cover { align-self: flex-start; display: grid; grid-template-columns: repeat(3, 34px); gap: 6px; }
-.cover > * { width: 34px; height: 34px; }
-.cover .hole { border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
-.cover .hole::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--ui-disabled); }
-.tile {
-  --c: var(--ui-blue); position: relative; border-radius: 26%;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937) 100%);
-  box-shadow: 0 4px 8px rgba(31,41,55,.14), inset 0 -2px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 1.5px 0 rgba(255,255,255,.45);
-  display: grid; place-items: center;
+.featured h2 { font-size: 19px; font-weight: 700; padding-right: 64px; }
+.featured .meta {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-muted);
 }
-.tile svg { width: 42%; height: 42%; color: #fff; }
-.c-red { --c: var(--ui-coral); }
-.c-blue { --c: var(--ui-blue); }
-.c-yellow { --c: var(--ui-yellow); }
-
-.featured h2 { font-size: 20px; font-weight: 700; }
-.featured .meta { font-size: 12px; color: var(--ui-text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.featured .meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--ui-disabled); flex: none; }
-.featured .pitch { font-size: 14px; line-height: 1.5; color: var(--ui-text); }
+.featured .pitch { font-size: 14px; line-height: 1.6; color: var(--text); }
 
 .btn {
-  height: 52px; border-radius: var(--ui-radius-large); font: 600 16px var(--ui-font);
-  display: flex; align-items: center; justify-content: center; gap: var(--ui-space-2); width: 100%;
-  transition: transform 120ms ease, filter 120ms ease;
+  height: 46px; border-radius: var(--radius); font: 600 14px var(--font-sans);
+  letter-spacing: .01em;
+  display: flex; align-items: center; justify-content: center; gap: var(--space-2); width: 100%;
+  margin-top: var(--space-2);
 }
-.btn:active { transform: scale(.97); }
-.btn svg { width: 18px; height: 18px; }
-.btn-primary { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 8px 18px rgba(79, 126, 255, 0.35); }
-.btn-soon { color: var(--ui-text-muted); background: var(--ui-surface-muted); cursor: default; }
-.btn-soon:active { transform: none; }
+.btn-primary { color: var(--surface); background: var(--text); }
+.btn-primary:hover { background: #000; }
+.btn-soon {
+  color: var(--text-muted); background: transparent; border: 1px dashed var(--border);
+  cursor: default;
+  font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase; font-size: 11px;
+}
 
 /* очередь — пустые слоты под будущие прототипы */
-.queue { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--ui-space-3); }
-.queue-slot { border: 1.5px dashed var(--ui-border); border-radius: var(--ui-radius-card); padding: var(--ui-space-3); min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; }
-.queue-slot .mark { width: 26px; height: 26px; border-radius: 26%; border: 1.5px dashed var(--ui-disabled); }
-.queue-slot .status { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ui-disabled); }
+.queue { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+.queue-slot {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: var(--space-3); min-height: 76px;
+  display: flex; align-items: flex-end;
+}
+.queue-slot .status {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted); opacity: .55;
+}

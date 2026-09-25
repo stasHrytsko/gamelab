@@ -2,30 +2,27 @@ export interface GameEntry {
   readonly slug: string;
   readonly title: string;
   readonly pitch: string;
-  /** Человеко-читаемая дата добавления, как в data/README.md. */
+  /** Human-readable add date, matches data/README.md. */
   readonly added: string;
   readonly levels: number;
   readonly family: string;
   /**
-   * Боевая ссылка на Vercel. Пусто, пока прототип не задеплоен — тогда
-   * карточка честно показывает «Скоро» вместо нерабочей кнопки «Играть».
+   * Live Vercel URL. Empty until the prototype is deployed — the card then
+   * honestly shows "Soon" instead of a dead "Play" button.
    */
   readonly url: string;
-  /** Цвета для декоративной обложки-тайлов карточки. */
-  readonly cover: readonly ('red' | 'blue' | 'yellow')[];
 }
 
-/** Самый новый — первым; так он и попадает в большую плашку наверху. */
+/** Newest first — that's the one that lands in the big featured card. */
 export const GAMES: readonly GameEntry[] = [
   {
     slug: 'two-moves-later',
-    title: 'Такси-пятнашки',
+    title: 'Taxi Slide',
     pitch:
-      'Сдвигай цветные такси на поле 5×5 как пятнашки и подавай нужный цвет к пассажиру, пока он не ушёл; каждая поездка освобождает новую клетку.',
-    added: '25 сент.',
+      'Slide colored taxis around a 5×5 grid like a sliding puzzle and reach each passenger before they leave; every completed ride opens another empty cell.',
+    added: 'Sep 25',
     levels: 5,
-    family: 'головоломка',
+    family: 'puzzle',
     url: '',
-    cover: ['red', 'blue', 'yellow'],
   },
 ];

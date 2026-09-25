@@ -1,5 +1,4 @@
 import { GAMES } from './games.ts';
-import { cover, icon } from './icons.ts';
 import './styles.css';
 
 const QUEUE_SLOTS = 5;
@@ -7,19 +6,14 @@ const QUEUE_SLOTS = 5;
 function featuredCard(game: (typeof GAMES)[number], isNewest: boolean): string {
   const cta =
     game.url === ''
-      ? `<button class="btn btn-soon" disabled>Скоро</button>`
-      : `<a class="btn btn-primary" href="${game.url}" target="_blank" rel="noopener">${icon.play}Играть</a>`;
+      ? `<button class="btn btn-soon" disabled>Soon</button>`
+      : `<a class="btn btn-primary" href="${game.url}" target="_blank" rel="noopener">Play</a>`;
   return `
     <div class="featured">
-      ${isNewest ? '<span class="badge-new">Новое</span>' : ''}
-      ${cover(game.cover)}
+      ${isNewest ? '<span class="tag-new">New</span>' : ''}
       <div>
         <h2>${game.title}</h2>
-        <div class="meta">
-          <span>${game.added}</span><span class="dot"></span>
-          <span>${String(game.levels)} уровней</span><span class="dot"></span>
-          <span>${game.family}</span>
-        </div>
+        <div class="meta">${game.added} · ${String(game.levels)} levels · ${game.family}</div>
       </div>
       <p class="pitch">${game.pitch}</p>
       ${cta}
@@ -27,7 +21,7 @@ function featuredCard(game: (typeof GAMES)[number], isNewest: boolean): string {
 }
 
 function queueSlots(count: number): string {
-  return `<div class="queue" aria-hidden="true">${'<div class="queue-slot"><span class="mark"></span><span class="status">Скоро</span></div>'.repeat(count)}</div>`;
+  return `<div class="queue" aria-hidden="true">${'<div class="queue-slot"><span class="status">Soon</span></div>'.repeat(count)}</div>`;
 }
 
 const root = document.getElementById('app');
@@ -37,7 +31,7 @@ root.innerHTML = `
   <div class="page">
     <div class="head">
       <h1>Prototype Validation Project</h1>
-      <p>Короткие игровые прототипы, которые можно сразу открыть на телефоне и сыграть. Каждый проверяет одну идею, а не готовая игра.</p>
+      <p>Playable game prototypes, one link away on your phone. Each one tests a single idea, not a finished game.</p>
     </div>
     <div class="section">
       <span class="section-label">Prototype log</span>

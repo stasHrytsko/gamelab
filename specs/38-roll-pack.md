@@ -304,8 +304,8 @@ type Action =
 ## 7.1. Экраны
 
 `OPEN` — картинки экрана ещё нет. Владелец: автор идеи. Нужен макет в
-`UI Design/prototypes/roll-pack/` по `UI Design/README.md` и копия
-`specs/screens/38-roll-pack.png`. Без неё спека не переводится в `approved`.
+`UI Design/prototypes/roll-pack/` по `UI Design/README.md`, игровой экран —
+`game-screen.png` там же. Без него спека не переводится в `approved`.
 
 Состав экранов (для макета):
 

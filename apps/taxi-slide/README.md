@@ -1,6 +1,6 @@
 # Такси-пятнашки — прототип
 
-Спека — `specs/02-two-moves-later.md`, макеты — `UI Design/prototypes/taxi-slide/`.
+Спека — `specs/done/02-two-moves-later.md`, макеты — `UI Design/prototypes/taxi-slide/`.
 Веб-игра под телефон: TypeScript + Vite, без фреймворка, экран на HTML/CSS,
 стиль — токены и шрифт из `UI Design/` (подключаются напрямую, не копией).
 

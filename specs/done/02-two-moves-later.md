@@ -318,7 +318,7 @@ type Action =
 
 ## 7.1. Экраны
 
-![Игровой экран](screens/02-two-moves-later.png)
+![Игровой экран](../../UI%20Design/prototypes/taxi-slide/game-screen.png)
 
 Все экраны на одном листе — `UI Design/prototypes/taxi-slide/preview.png`,
 исходник там же. Стиль — PuzzleKit UI из `UI Design/`, новых цветов, радиусов

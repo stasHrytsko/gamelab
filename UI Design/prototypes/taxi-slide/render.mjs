@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const specScreen = path.join(dir, '../../../specs/screens/02-two-moves-later.png');
+const specScreen = path.join(dir, 'game-screen.png');
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ deviceScaleFactor: 2, viewport: { width: 1700, height: 1000 } });

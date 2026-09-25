@@ -28,7 +28,13 @@ const css = find('.css').replace(/url\(\.?\/?(?:assets\/)?([^)]+\.ttf)\)/g, (_ma
   const data = readFileSync(join(assets, font)).toString('base64');
   return `url(data:font/ttf;base64,${data})`;
 });
-const js = find('.js').replaceAll('</script', '<\\/script');
+// Картинки (баннер главного экрана) встраиваются в JS как data: URI — у артефакта нет соседних файлов.
+let js = find('.js').replaceAll('</script', '<\\/script');
+for (const image of files.filter((file) => /\.(webp|png|jpe?g)$/.test(file))) {
+  const type = image.endsWith('.webp') ? 'image/webp' : image.endsWith('.png') ? 'image/png' : 'image/jpeg';
+  const data = `data:${type};base64,${readFileSync(join(assets, image)).toString('base64')}`;
+  js = js.replace(new RegExp(`(?:\\./|/)?assets/${image.replace(/\./g, '\\.')}`, 'g'), data).replaceAll(image, data);
+}
 
 const page = `<title>Build & Pack</title>
 <style>${css}</style>

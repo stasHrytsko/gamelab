@@ -36,7 +36,8 @@
 
   .featured { border: 1px solid var(--border); border-radius: 6px; background: var(--surface); padding: 24px; display: flex; flex-direction: column; gap: 12px; position: relative; }
   .tag-new { position: absolute; top: 16px; right: 16px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 3px 7px; }
-  .featured h2 { font-size: 19px; font-weight: 700; padding-right: 64px; }
+  .featured h2 { font-size: 19px; font-weight: 700; padding-right: 90px; }
+  .featured .cover { display: block; width: auto; max-width: 100%; height: 260px; margin: 0 auto; object-fit: cover; object-position: top; border: 1px solid var(--border); border-radius: 4px; }
   .featured .meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
   .featured .pitch { font-size: 14px; line-height: 1.6; }
 
@@ -59,11 +60,12 @@
       <div class="section">
         <span class="section-label">Prototype log</span>
         <div class="featured">
-          <span class="tag-new">New</span>
+          <span class="tag-new">New game</span>
           <div>
             <h2>Taxi Slide</h2>
-            <div class="meta">Sep 25 · 5 levels · puzzle</div>
+            <div class="meta">Sep 25 · Puzzle</div>
           </div>
+          <img class="cover" src="../../../specs/screens/02-two-moves-later.png" alt="Taxi Slide screenshot">
           <p class="pitch">Slide colored taxis around a 5×5 grid like a sliding puzzle and reach each passenger before they leave; every completed ride opens another empty cell.</p>
           <div class="btn-soon">Soon</div>
         </div>

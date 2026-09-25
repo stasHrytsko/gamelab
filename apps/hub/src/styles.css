@@ -79,11 +79,16 @@ a { color: inherit; }
   padding: 3px 7px;
 }
 
-.featured h2 { font-size: 19px; font-weight: 700; padding-right: 64px; }
+.featured h2 { font-size: 19px; font-weight: 700; padding-right: 90px; }
 .featured .meta {
   font-family: var(--font-mono);
   font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
   color: var(--text-muted);
+}
+.featured .cover {
+  display: block; width: auto; max-width: 100%; height: 260px;
+  margin: 0 auto; object-fit: cover; object-position: top;
+  border: 1px solid var(--border); border-radius: 4px;
 }
 .featured .pitch { font-size: 14px; line-height: 1.6; color: var(--text); }
 

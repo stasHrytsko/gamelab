@@ -10,11 +10,12 @@ function featuredCard(game: (typeof GAMES)[number], isNewest: boolean): string {
       : `<a class="btn btn-primary" href="${game.url}" target="_blank" rel="noopener">Play</a>`;
   return `
     <div class="featured">
-      ${isNewest ? '<span class="tag-new">New</span>' : ''}
+      ${isNewest ? '<span class="tag-new">New game</span>' : ''}
       <div>
         <h2>${game.title}</h2>
-        <div class="meta">${game.added} · ${String(game.levels)} levels · ${game.family}</div>
+        <div class="meta">${game.date} · ${game.genre}</div>
       </div>
+      <img class="cover" src="${game.image}" alt="${game.title} screenshot" width="720" height="1480" loading="lazy">
       <p class="pitch">${game.pitch}</p>
       ${cta}
     </div>`;

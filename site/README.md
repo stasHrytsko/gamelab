@@ -44,5 +44,5 @@ npm run build      # tsc --noEmit + vite build → dist/
 
 ## Vercel
 
-New Project → этот репозиторий → **Root Directory: `apps/hub`** — остальное
+New Project → этот репозиторий → **Root Directory: `site`** — остальное
 берётся из `vercel.json`.

@@ -18,10 +18,10 @@ and meta, flat bordered cards, no rounded playful shadows — from the
 author's personal site (play-mocha-chi.vercel.app). Games inside their own
 `apps/<slug>` keep using `UI Design/design-tokens.css`; this is the one
 place in the repo that doesn't. The tokens live inline in `index.html` here
-and in `apps/hub/src/styles.css` — that file is the source of truth, this
+and in `site/src/styles.css` — that file is the source of truth, this
 one is only a record of the agreed look.
 
 - `index.html` — mockup source, self-contained, references the real banner
-  at `apps/hub/public/games/taxi-slide-banner.jpg`.
+  at `site/public/games/taxi-slide-banner.jpg`.
 - `preview.png` — snapshot, 1440×900 desktop viewport.
 - `render.mjs` — rebuilds `preview.png`.

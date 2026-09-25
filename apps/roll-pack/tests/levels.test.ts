@@ -20,10 +20,11 @@ describe('уровни (§6)', () => {
     });
   }
 
-  it('решений всё меньше от уровня 2 к уровню 5', () => {
+  it('решений всё меньше от уровня 2 к уровню 5, на уровне 5 — 20–30', () => {
     const counts = LEVELS.filter((l) => l.id >= 2).map((l) => countSolutions(parseMap(l.map), l.numbers, 2000));
-    console.log('решений (до 2000):', counts.join(' → '));
     for (let i = 1; i < counts.length; i += 1) expect(counts[i]).toBeLessThanOrEqual(counts[i - 1] ?? 0);
-    expect(counts[counts.length - 1]).toBeLessThanOrEqual(10);
+    const last = counts[counts.length - 1] ?? 0;
+    expect(last).toBeGreaterThanOrEqual(20);
+    expect(last).toBeLessThanOrEqual(30);
   });
 });

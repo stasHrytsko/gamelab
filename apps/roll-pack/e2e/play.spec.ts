@@ -131,8 +131,12 @@ test('экран помещается без прокрутки (§7.1)', async 
     const page = await browser.newPage({ viewport: { width, height }, isMobile: true, hasTouch: true });
     for (const id of [1, 3, 5]) {
       await page.goto(`/?unlock=all#/level/${String(id)}`);
-      const ok = page.locator('[data-action="ok"]');
-      if (await ok.count()) await ok.click();
+      // На уровне 1 «Как играть» открывается сам через 350 мс — ждём его явно.
+      if (id === 1) {
+        await expect(page.getByTestId('popup-help')).toBeVisible();
+        await page.locator('[data-action="ok"]').click();
+        await expect(page.getByTestId('popup-help')).toHaveCount(0);
+      }
       await page.getByTestId('num-0').click();
       const overflow = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
       expect(overflow, `${String(width)}×${String(height)}, уровень ${String(id)}`).toBeLessThanOrEqual(0);

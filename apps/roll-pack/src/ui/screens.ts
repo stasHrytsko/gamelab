@@ -1,6 +1,7 @@
 import type { Level } from '../engine/types.ts';
 import { LEVELS } from '../levels/levels.ts';
-import { icon, sq } from './icons.ts';
+import banner from '@ui/prototypes/roll-pack/assets/home-banner.webp';
+import { icon } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
@@ -9,16 +10,13 @@ export function homeScreen(go: Go): HTMLElement {
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
-  // Поле 4×4: препятствие и три уложенные фигуры — сразу видно, во что играем.
-  const logo = [
-    sq(4), sq(4), sq(5), sq(5),
-    sq(4), '<div class="wall-tile"></div>', sq(6), sq(5),
-    sq(4), sq(6), sq(6), sq(5),
-    '<div class="hole"></div>', '<div class="hole"></div>', sq(6), sq(5),
-  ];
+  // Баннер — фон экрана (размытый, во весь экран) и чёткая карточка сверху (§7.1).
+  el.style.setProperty('--banner', `url("${banner}")`);
   el.innerHTML = `
-    <div class="home-logo" aria-hidden="true">${logo.join('')}</div>
-    <h1>Build<br>&amp; Pack</h1>
+    <div class="home-bg" aria-hidden="true"></div>
+    <img class="home-banner" src="${banner}" alt="" width="1672" height="941">
+    <h1 class="sr-only">Build &amp; Pack</h1>
+    <p class="home-tag">Собери фигуру — уложи на поле</p>
     <div style="flex:1"></div>
     <button class="btn btn-primary btn-large" data-testid="play">${icon.play}Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));

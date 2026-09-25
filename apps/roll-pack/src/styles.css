@@ -102,19 +102,16 @@ svg { display: block; }
 .c-yellow { --c: var(--ui-yellow); }
 .c-green { --c: var(--ui-success); }
 
-/* ---------- главный ---------- */
-.home { align-items: center; text-align: center; justify-content: space-between; background: radial-gradient(120% 60% at 50% 0%, #fff 0%, var(--ui-background) 70%); }
-.home-logo { margin-top: 10vh; display: grid; grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(4, 56px); gap: 6px; }
-.home-logo .sq, .home-logo .hole { width: 56px; height: 56px; }
-.home-logo .hole { border-radius: 26%; background: var(--ui-surface-muted); }
-.home-logo .wall-tile { border-radius: 26%; background: repeating-linear-gradient(135deg, var(--ui-disabled) 0 6px, color-mix(in srgb, var(--ui-disabled) 70%, var(--ui-text-muted)) 6px 12px); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--ui-disabled) 60%, var(--ui-text-muted)); }
-.home-logo .sq { animation: float 3.2s ease-in-out infinite; }
-.home-logo .sq.c5 { animation-delay: -1.1s; }
-.home-logo .sq.c6 { animation-delay: -2.2s; }
-@keyframes float { 50% { transform: translateY(-4px); } }
-.home h1 { font-size: 36px; font-weight: 700; line-height: 1.15; margin-top: var(--ui-space-6); }
+/* ---------- главный: баннер фоном и карточкой ---------- */
+.home { align-items: center; text-align: center; overflow: hidden; background: var(--ui-background); }
+.home > * { position: relative; z-index: 1; }
+.home .home-bg { position: absolute; inset: -48px; z-index: 0; background: var(--banner) center / cover no-repeat; filter: blur(28px) saturate(1.15); opacity: .5; transform: scale(1.15); }
+.home-banner { width: 100%; max-width: 440px; height: auto; margin-top: 8vh; border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); animation: banner-in 420ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes banner-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
+.home-tag { margin-top: var(--ui-space-4); font-size: 15px; font-weight: 500; color: var(--ui-text-muted); }
 .home .btn-large { max-width: 360px; margin-bottom: var(--ui-space-5); animation: breathe 2.4s ease-in-out infinite; }
 @keyframes breathe { 50% { transform: scale(1.03); } }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- уровни ---------- */
 .levels { display: flex; flex-direction: column; gap: var(--ui-space-3); margin: var(--ui-space-4) calc(-1 * var(--ui-space-2)) 0; overflow-y: auto; padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-4); }

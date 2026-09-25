@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../UI Design/design-tokens.css">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--ui-font); background: transparent; }
+  .plank { --c: var(--ui-blue); --cell: 100px; position: relative; height: var(--cell); width: calc(var(--n) * var(--cell) + (var(--n) - 1) * var(--cell) * .11); border-radius: calc(var(--cell) * .28); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937) 100%); box-shadow: 0 7px 14px rgba(31,41,55,.14), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 3px 0 rgba(255,255,255,.45); display: flex; align-items: center; justify-content: space-around; padding: 0 calc(var(--cell) * .18); }
+  .plank::after { content: ""; position: absolute; left: calc(var(--cell) * .2); top: 9%; width: calc(100% - var(--cell) * .4); height: 16%; border-radius: 999px; background: rgba(255,255,255,.3); }
+  .plank i { width: calc(var(--cell) * .34); height: calc(var(--cell) * .16); border-radius: 999px; background: rgba(255,255,255,.92); }
+  .c-coral { --c: var(--ui-coral); } .c-yellow { --c: var(--ui-yellow); } .c-green { --c: var(--ui-green); } .c-purple { --c: var(--ui-purple); }
+  .die { width: var(--s); height: var(--s); border-radius: 24%; background: linear-gradient(170deg, #fff, var(--ui-surface-muted)); box-shadow: 0 7px 14px rgba(31,41,55,.14), inset 0 -5px 0 var(--ui-border); display: grid; place-items: center; }
+  .pips { width: 64%; height: 64%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); place-items: center; }
+  .pips i { width: 62%; aspect-ratio: 1; border-radius: 50%; }
+  .pips i.on { background: var(--c); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--c) 75%, #1f2937); }
+  .row { display: flex; gap: 11px; }
+
+  #icon { width: 512px; height: 512px; background: radial-gradient(90% 90% at 30% 20%, #fff, var(--ui-background)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+  #icon .plank { --cell: 96px; }
+
+  #og { width: 1200px; height: 630px; background: radial-gradient(80% 90% at 20% 10%, #fff, var(--ui-background) 70%); display: flex; align-items: center; gap: 72px; padding: 0 96px; }
+  #og .art { display: flex; flex-direction: column; gap: 12px; flex: none; }
+  #og .plank { --cell: 64px; }
+  #og .dice { display: flex; gap: 16px; margin-top: 24px; }
+  #og .die { --s: 96px; }
+  #og h1 { font-size: 84px; font-weight: 700; line-height: 1.05; color: var(--ui-text); }
+  #og p { margin-top: 24px; font-size: 32px; color: var(--ui-text-muted); }
+  #og .cta { margin-top: 36px; display: inline-flex; align-items: center; gap: 14px; height: 76px; padding: 0 40px; border-radius: 22px; color: #fff; font-size: 32px; font-weight: 600; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 10px 24px rgba(79,126,255,.35); }
+  #og .cta svg { width: 30px; height: 30px; }
+</style>
+</head>
+<body>
+<div id="icon">
+  <div class="row"><div class="plank c-coral" style="--n:2"><i></i><i></i></div><div class="plank c-purple" style="--n:1"><i></i></div></div>
+  <div class="plank c-yellow" style="--n:3"><i></i><i></i><i></i></div>
+</div>
+
+<div id="og">
+  <div class="art">
+    <div class="row"><div class="plank c-coral" style="--n:2"><i></i><i></i></div><div class="plank c-green" style="--n:4"><i></i><i></i><i></i><i></i></div></div>
+    <div class="row"><div class="plank c-yellow" style="--n:3"><i></i><i></i><i></i></div><div class="plank c-purple" style="--n:1"><i></i></div><div class="plank c-coral" style="--n:2"><i></i><i></i></div></div>
+    <div class="dice">
+      <div class="die c-yellow"><span class="pips"><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i></i></span></div>
+      <div class="die c-green"><span class="pips"><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i></span></div>
+      <div class="die c-coral"><span class="pips"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+    </div>
+  </div>
+  <div>
+    <h1>Брось<br>и уложи</h1>
+    <p>Три кубика — одна планка</p>
+    <div class="cta"><svg viewBox="0 0 24 24"><path d="M7 4.5v15c0 .8.9 1.3 1.6.8l11-7.5c.6-.4.6-1.2 0-1.6l-11-7.5C7.9 3.2 7 3.7 7 4.5z" fill="currentColor"/></svg>Играть</div>
+  </div>
+</div>
+</body>
+</html>

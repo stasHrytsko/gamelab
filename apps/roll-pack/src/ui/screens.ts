@@ -14,11 +14,11 @@ export function homeScreen(go: Go): HTMLElement {
   el.style.setProperty('--banner', `url("${banner}")`);
   el.innerHTML = `
     <div class="home-bg" aria-hidden="true"></div>
-    <img class="home-banner" src="${banner}" alt="" width="1672" height="941">
-    <h1 class="sr-only">Build &amp; Pack</h1>
-    <p class="home-tag">Собери фигуру — уложи на поле</p>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary btn-large" data-testid="play">${icon.play}Играть</button>`;
+    <div class="home-center">
+      <img class="home-banner" src="${banner}" alt="" width="1672" height="941">
+      <h1 class="sr-only">Build &amp; Pack</h1>
+      <button class="btn btn-primary btn-large" data-testid="play">${icon.play}Играть</button>
+    </div>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;
 }

@@ -20,7 +20,7 @@ export type LogEvent =
     }
   | { type: 'help_open'; level: number }
   | { type: 'level_win'; level: number }
-  | { type: 'level_fail'; level: number; reason: 'unsolvable'; left: number[] };
+  | { type: 'level_fail'; level: number; reason: 'no_moves'; left: number[] };
 
 export function log(event: LogEvent): void {
   try {

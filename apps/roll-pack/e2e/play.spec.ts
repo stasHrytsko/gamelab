@@ -115,15 +115,45 @@ test('фигура на препятствие не встаёт и ход не 
   await expect(page.getByTestId('game')).toHaveAttribute('data-used', '0');
 });
 
-test('поражение: кусок, который не закрыть, и переигровка', async ({ page }) => {
+test('ошибку игра не подсказывает; проигрыш — только когда ходов нет, и переигровка', async ({ page }) => {
   await page.goto('/?unlock=all#/level/2');
-  // Т-фигура из 4 клеток отрезает угловую клетку (0,0): одну клетку не закрыть ничем.
-  await placePiece(page, [[0, 1], [1, 0], [1, 1], [1, 2]], 5);
-  await expect(page.getByTestId('popup-lose')).toBeVisible();
-  await expect(page.locator('.cell.dead').first()).toBeVisible();
+  const game = page.getByTestId('game');
+  // Т-фигура из 4 клеток отрезает угловую клетку (0,0): уровень уже не собрать, но игра молчит.
+  const tee: Point[] = [[0, 1], [1, 0], [1, 1], [1, 2]];
+  await placePiece(page, tee, 5);
+  await expect(game).toHaveAttribute('data-status', 'playing');
+  await expect(page.getByTestId('popup-lose')).toHaveCount(0);
+
+  // Раскладываем 7, 7, 6, 5 так, чтобы остались только куски меньше 4 клеток — четвёрке некуда.
+  const level = LEVELS[1];
+  if (level === undefined) throw new Error('no level 2');
+  const board = parseMap(level.map).map((row) => [...row]);
+  for (const [r, c] of [...tee, [0, 0] as const]) (board[r] as (typeof board)[number])[c] = 'wall';
+  const free: Point[] = [];
+  board.forEach((row, r) => row.forEach((cell, c) => { if (cell === null) free.push([r, c]); }));
+  let pieces: Point[][] | null = null;
+  outer: for (let i = 0; i < free.length; i += 1) {
+    for (let j = i + 1; j < free.length; j += 1) {
+      for (let k = j + 1; k < free.length; k += 1) {
+        const trial = board.map((row) => [...row]);
+        for (const [r, c] of [free[i], free[j], free[k]] as Point[]) (trial[r] as (typeof trial)[number])[c] = 'wall';
+        pieces = solve(trial, [7, 7, 6, 5]);
+        if (pieces !== null) break outer;
+      }
+    }
+  }
+  if (pieces === null) throw new Error('no packing');
+  const used = [false, false, false, false];
+  for (const piece of pieces) {
+    const i = [7, 7, 6, 5].findIndex((n, j) => n === piece.length && !used[j]);
+    used[i] = true;
+    await placePiece(page, piece, i);
+  }
+  await expect(game).toHaveAttribute('data-status', 'failed');
+  await expect(page.getByTestId('popup-lose')).toContainText('Ходов нет');
   await page.locator('[data-action="replay"]').click();
   await expect(page.getByTestId('popup-lose')).toHaveCount(0);
-  await expect(page.getByTestId('game')).toHaveAttribute('data-used', '0');
+  await expect(game).toHaveAttribute('data-used', '0');
 });
 
 test('экран помещается без прокрутки (§7.1)', async ({ browser }) => {

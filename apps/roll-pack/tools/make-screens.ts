@@ -100,7 +100,30 @@ await page.screenshot({ path: join(out, 'game-small.png') });
 page = await phone();
 await page.goto(`${base}/#/level/2`);
 await settle(page);
-await put(page, [[0, 1], [1, 0], [1, 1], [1, 2]], 5);
+{
+  // Т-фигура отрезает угол — игра молчит; дальше 7, 7, 6, 5 оставляют куски меньше 4 клеток.
+  const tee: Point[] = [[0, 1], [1, 0], [1, 1], [1, 2]];
+  await put(page, tee, 5);
+  const board = parseMap((LEVELS[1] as (typeof LEVELS)[number]).map).map((row) => [...row]);
+  for (const [r, c] of [...tee, [0, 0] as const]) (board[r] as (typeof board)[number])[c] = 'wall';
+  const free: Point[] = [];
+  board.forEach((row, r) => row.forEach((cell, c) => { if (cell === null) free.push([r, c]); }));
+  let pieces: Point[][] | null = null;
+  outer: for (let i = 0; i < free.length; i += 1)
+    for (let j = i + 1; j < free.length; j += 1)
+      for (let k = j + 1; k < free.length; k += 1) {
+        const trial = board.map((row) => [...row]);
+        for (const [r, c] of [free[i], free[j], free[k]] as Point[]) (trial[r] as (typeof trial)[number])[c] = 'wall';
+        pieces = solve(trial, [7, 7, 6, 5]);
+        if (pieces !== null) break outer;
+      }
+  const used = [false, false, false, false];
+  for (const piece of pieces ?? []) {
+    const i = [7, 7, 6, 5].findIndex((n, j) => n === piece.length && !used[j]);
+    used[i] = true;
+    await put(page, piece, i);
+  }
+}
 await page.waitForTimeout(1500);
 await page.screenshot({ path: join(out, '4-lose.png') });
 

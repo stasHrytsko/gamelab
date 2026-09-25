@@ -76,7 +76,8 @@ export function place(state: GameState, index: number, cells: readonly Point[]):
   for (const [r, c] of cells) (board[r] as Cell[])[c] = size;
   const used = state.used.map((u, i) => u || i === index);
   const left = state.numbers.filter((_, i) => !used[i]);
-  const status = left.length === 0 ? 'won' : solve(board, left) === null ? 'failed' : 'playing';
+  // Решаемость наперёд не проверяется (решение автора): проигрыш — только когда ходов нет.
+  const status = left.length === 0 ? 'won' : hasMove(board, left) ? 'playing' : 'failed';
   return { valid: true, state: { ...state, board, used, status } };
 }
 
@@ -191,6 +192,20 @@ function search(g: Grid, sizes: number[], acc: number[][], onSolution: (pieces: 
   return false;
 }
 
+/**
+ * Есть ли хоть один ход: хотя бы одно из чисел помещается связной фигурой
+ * (в рамке 4×4) на свободные клетки. Это не предсказание — просто «ходов нет».
+ */
+export function hasMove(board: Board, sizes: readonly number[]): boolean {
+  const g = toGrid(board);
+  for (const k of new Set(sizes)) {
+    for (let root = 0; root < g.free.length; root += 1) {
+      if (g.free[root] === 1 && piecesAt(g, root, k).length > 0) return true;
+    }
+  }
+  return false;
+}
+
 export function solve(board: Board, sizes: readonly number[]): Point[][] | null {
   const g = toGrid(board);
   if (!regionsFit(g, sizes)) return null;
@@ -247,32 +262,4 @@ export function snakeSolves(board: Board, sizes: readonly number[]): boolean {
     return ok;
   };
   return go(0, values.map((v) => sizes.filter((s) => s === v).length));
-}
-
-/** Кусок поля, который не закрыть оставшимися числами, — для подсветки при поражении. */
-export function deadRegion(board: Board, sizes: readonly number[]): Point[] {
-  const g = toGrid(board);
-  const seen = new Uint8Array(g.free.length);
-  const regions: number[][] = [];
-  for (let i = 0; i < g.free.length; i += 1) {
-    if (g.free[i] !== 1 || seen[i] === 1) continue;
-    const cells: number[] = [];
-    const stack = [i];
-    seen[i] = 1;
-    while (stack.length > 0) {
-      const x = stack.pop() as number;
-      cells.push(x);
-      for (const y of neighbours(g, x)) {
-        if (g.free[y] === 1 && seen[y] !== 1) {
-          seen[y] = 1;
-          stack.push(y);
-        }
-      }
-    }
-    regions.push(cells);
-  }
-  let sums = 1n;
-  for (const v of sizes) sums |= sums << BigInt(v);
-  const bad = regions.find((cells) => ((sums >> BigInt(cells.length)) & 1n) === 0n) ?? regions.sort((a, b) => a.length - b.length)[0] ?? [];
-  return bad.map((i) => [Math.floor(i / g.w), i % g.w] as const);
 }

@@ -1,4 +1,4 @@
-import { createState, deadRegion, fitsBuilder, isPieceReady, normalize, place, shift } from '../engine/packEngine.ts';
+import { createState, fitsBuilder, isPieceReady, normalize, place, shift } from '../engine/packEngine.ts';
 import { BUILDER, type GameState, type Point } from '../engine/types.ts';
 import { getLevel, LEVEL_COUNT } from '../levels/levels.ts';
 import { vibrate, wait } from './feedback.ts';
@@ -24,7 +24,7 @@ const HOW_TO_PLAY = `
     <li><b>1</b><span>Выбери число — столько клеток будет в фигуре.</span></li>
     <li><b>2</b><span>Собери фигуру: тапай по сетке 4×4 внизу. Клетки должны касаться сторонами.</span></li>
     <li><b>3</b><span>Потяни готовую фигуру вверх, на пустые клетки поля.</span></li>
-    <li><b>4</b><span>Используй все числа и заполни поле целиком. Кусок поля, который уже не закрыть, — проигрыш.</span></li>
+    <li><b>4</b><span>Используй все числа и заполни поле целиком. Если оставшиеся числа больше никуда не помещаются — попытка проиграна.</span></li>
   </ol>`;
 
 const key = (r: number, c: number): string => `${String(r)},${String(c)}`;
@@ -320,8 +320,9 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     }
     if (state.status === 'failed') {
       const left = state.numbers.filter((_, i) => state.used[i] !== true);
-      for (const [r, c] of deadRegion(state.board, left)) cellAt(r, c)?.classList.add('dead');
-      log({ type: 'level_fail', level: levelNumber, reason: 'unsolvable', left });
+      // Пустые клетки, куда уже ничего не встаёт, — коротко подсвечиваем.
+      boardEl.querySelectorAll<HTMLElement>('.cell:not(.wall):not(.void):not(.filled)').forEach((d) => d.classList.add('dead'));
+      log({ type: 'level_fail', level: levelNumber, reason: 'no_moves', left });
       vibrate([30, 60, 30]);
       await wait(900);
       busy = false;
@@ -376,7 +377,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   function showLose(): void {
     popup(
-      `<div class="badge-big badge-lose">${icon.cross}</div><h2>Не собрать</h2><p class="sub">Красный кусок поля уже не закрыть оставшимися числами</p>`,
+      `<div class="badge-big badge-lose">${icon.cross}</div><h2>Ходов нет</h2><p class="sub">Оставшиеся числа больше никуда не помещаются</p>`,
       [
         { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
         { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },

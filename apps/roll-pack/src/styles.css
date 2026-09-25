@@ -106,10 +106,11 @@ svg { display: block; }
 .home { align-items: center; text-align: center; overflow: hidden; background: var(--ui-background); }
 .home > * { position: relative; z-index: 1; }
 .home .home-bg { position: absolute; inset: -48px; z-index: 0; background: var(--banner) center / cover no-repeat; filter: blur(28px) saturate(1.15); opacity: .5; transform: scale(1.15); }
-.home-banner { width: 100%; max-width: 440px; height: auto; margin-top: 8vh; border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); animation: banner-in 420ms cubic-bezier(.2,.8,.2,1) both; }
+.home { justify-content: center; }
+.home-center { width: 100%; display: flex; flex-direction: column; align-items: center; gap: var(--ui-space-6); }
+.home-banner { width: 100%; max-width: 440px; height: auto; border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); animation: banner-in 420ms cubic-bezier(.2,.8,.2,1) both; }
 @keyframes banner-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
-.home-tag { margin-top: var(--ui-space-4); font-size: 15px; font-weight: 500; color: var(--ui-text-muted); }
-.home .btn-large { max-width: 360px; margin-bottom: var(--ui-space-5); animation: breathe 2.4s ease-in-out infinite; }
+.home .btn-large { max-width: 360px; animation: breathe 2.4s ease-in-out infinite; }
 @keyframes breathe { 50% { transform: scale(1.03); } }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 

@@ -4,13 +4,9 @@ import './styles.css';
 const QUEUE_SLOTS = 5;
 
 function heroCard(game: (typeof GAMES)[number]): string {
-  const cta =
-    game.url === ''
-      ? `<button class="btn btn-hero-soon" disabled>Soon</button>`
-      : `<a class="btn btn-hero-primary" href="${game.url}" target="_blank" rel="noopener">Play</a>`;
+  const cta = game.url === '' ? '' : `<a class="btn btn-hero-primary" href="${game.url}" target="_blank" rel="noopener">Play</a>`;
   return `
-    <article class="hero" style="background-image:url('${game.banner}')">
-      <div class="hero-scrim"></div>
+    <article class="hero">
       <div class="hero-content">
         <span class="tag-new">New game</span>
         <h2>${game.title}</h2>
@@ -18,6 +14,7 @@ function heroCard(game: (typeof GAMES)[number]): string {
         <p class="pitch">${game.pitch}</p>
         ${cta}
       </div>
+      <div class="hero-image" style="background-image:url('${game.banner}')"></div>
     </article>`;
 }
 

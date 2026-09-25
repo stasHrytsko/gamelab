@@ -51,35 +51,29 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-muted);
 }
 
-/* --- герой-баннер последней игры, во всю ширину --- */
+/* --- герой последней игры: 1/3 текст, 2/3 картинка, без затемнения --- */
 .hero {
-  position: relative;
-  min-height: 480px;
+  display: flex;
+  min-height: 420px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  overflow: hidden;
+}
+.hero-content {
+  flex: 0 0 34%;
+  background: var(--text);
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  color: #fff;
+}
+.hero-image {
+  flex: 1;
   background-color: var(--surface);
   background-size: cover;
   background-position: center;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-}
-.hero-scrim {
-  position: absolute; inset: 0;
-  background: linear-gradient(100deg,
-    rgba(15, 14, 9, .92) 0%,
-    rgba(15, 14, 9, .74) 30%,
-    rgba(15, 14, 9, .28) 56%,
-    rgba(15, 14, 9, 0) 78%);
-}
-.hero-content {
-  position: relative;
-  max-width: 460px;
-  padding: 48px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  color: #fff;
 }
 .tag-new {
   align-self: flex-start;
@@ -88,57 +82,45 @@ a { color: inherit; text-decoration: none; }
   color: var(--accent); background: #fff; border-radius: 4px;
   padding: 4px 9px;
 }
-.hero-content h2 { font-size: 34px; font-weight: 700; letter-spacing: -.01em; }
+.hero-content h2 { font-size: 32px; font-weight: 700; letter-spacing: -.01em; }
 .hero-content .meta {
   font-family: var(--font-mono);
   font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
-  color: rgba(255,255,255,.7);
+  color: rgba(255,255,255,.65);
 }
-.hero-content .pitch { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.92); }
+.hero-content .pitch { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.9); }
 
 .btn { height: 46px; padding: 0 22px; border-radius: 6px; font: 600 14px var(--font-sans); align-self: flex-start; margin-top: 6px; }
 .btn-hero-primary { background: #fff; color: var(--text); }
 .btn-hero-primary:hover { background: #f2f1ec; }
-.btn-hero-soon {
-  border: 1px dashed rgba(255,255,255,.5); color: rgba(255,255,255,.85); background: transparent;
-  font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase; font-size: 11px;
-  cursor: default;
-}
 
-/* --- заглушки будущих прототипов --- */
-.queue { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+/* --- заглушки будущих прототипов: маленькие, тише героя --- */
+.queue { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
 .queue-card {
   position: relative;
-  aspect-ratio: 4 / 3;
-  border-radius: var(--radius);
+  aspect-ratio: 16 / 10;
+  border-radius: 6px;
   border: 1px solid var(--border);
   overflow: hidden;
   /* не настоящий скриншот — размытый градиент, чтобы не выдавать себя за игру */
   background:
-    radial-gradient(120% 140% at 15% 15%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 55%),
-    radial-gradient(120% 140% at 85% 90%, color-mix(in srgb, #4f7eff 26%, transparent), transparent 55%),
+    radial-gradient(120% 140% at 15% 15%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 55%),
+    radial-gradient(120% 140% at 85% 90%, color-mix(in srgb, #4f7eff 20%, transparent), transparent 55%),
     linear-gradient(160deg, var(--surface), var(--bg));
   display: flex;
   align-items: flex-end;
 }
-.queue-card::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(0deg, rgba(15,14,9,.16) 0%, rgba(15,14,9,0) 45%);
-}
 .queue-card .status {
-  position: relative; z-index: 1;
   font-family: var(--font-mono);
-  font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 12px 14px;
+  font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-muted); opacity: .8;
+  padding: 8px 9px;
 }
 
 @media (max-width: 720px) {
   .page { padding: 40px 20px 64px; gap: 40px; }
   .head h1 { font-size: 32px; }
-  .hero { min-height: 0; }
-  .hero-scrim { background: linear-gradient(180deg, rgba(15,14,9,.15) 0%, rgba(15,14,9,.88) 62%, rgba(15,14,9,.94) 100%); }
-  .hero { align-items: flex-end; }
-  .hero-content { max-width: none; padding: 28px 24px; }
+  .hero { flex-direction: column; min-height: 0; }
+  .hero-image { min-height: 220px; }
+  .hero-content { flex-basis: auto; padding: 28px 24px; }
 }

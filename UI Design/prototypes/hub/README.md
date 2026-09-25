@@ -1,14 +1,16 @@
 # Hub mockup
 
 Prototype Validation Project — title, short description, "Prototype log"
-with the newest prototype as a full-width hero banner (image, scrim, title,
-date, genre, "New game" tag, pitch, button), then "Coming up" — a grid of
-placeholder cards with generic gradient art, not real screenshots.
+with the newest prototype as a hero: 1/3 dark text panel (tag, title, date,
+genre, pitch, button when there's a live link) and 2/3 the real banner
+image, full clarity, no scrim. Then "Coming up" — a row of small placeholder
+cards with generic gradient art, not real screenshots.
 
-**Desktop web page, not a phone mockup** (2026-09-25): the earlier
-390×844 phone-frame version was replaced after the author asked for a
-proper wide layout, big images, and the real game banner instead of a
-cramped screenshot.
+**Desktop web page, not a phone mockup** (2026-09-25, revised same day):
+first pass was a 390×844 phone frame, then a full-bleed banner with a dark
+scrim over the whole image and a "Soon" button. Author asked to drop the
+scrim, split hero into a solid text panel + clean image, remove the dead
+"Soon" button entirely, and shrink the placeholder cards.
 
 **Not PuzzleKit.** The hub borrows its visual language — warm off-white
 background, `Inter` for headings/body, `IBM Plex Mono` for uppercase labels

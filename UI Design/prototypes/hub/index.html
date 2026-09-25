@@ -33,25 +33,24 @@
   .section { display: flex; flex-direction: column; gap: 18px; }
   .section-label { font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
 
-  .hero { position: relative; min-height: 480px; border-radius: var(--radius); border: 1px solid var(--border); background-color: var(--surface); background-size: cover; background-position: center; overflow: hidden; display: flex; align-items: flex-end; }
-  .hero-scrim { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(15,14,9,.92) 0%, rgba(15,14,9,.74) 30%, rgba(15,14,9,.28) 56%, rgba(15,14,9,0) 78%); }
-  .hero-content { position: relative; max-width: 460px; padding: 48px; display: flex; flex-direction: column; gap: 14px; color: #fff; }
+  .hero { display: flex; min-height: 420px; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .hero-content { flex: 0 0 34%; background: var(--text); padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; gap: 14px; color: #fff; }
+  .hero-image { flex: 1; background-color: var(--surface); background-size: cover; background-position: center; }
   .tag-new { align-self: flex-start; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: #fff; border-radius: 4px; padding: 4px 9px; }
-  .hero-content h2 { font-size: 34px; font-weight: 700; letter-spacing: -.01em; }
-  .hero-content .meta { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.7); }
-  .hero-content .pitch { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.92); }
+  .hero-content h2 { font-size: 32px; font-weight: 700; letter-spacing: -.01em; }
+  .hero-content .meta { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.65); }
+  .hero-content .pitch { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.9); }
 
   .btn { height: 46px; padding: 0 22px; border-radius: 6px; font: 600 14px var(--font-sans); align-self: flex-start; margin-top: 6px; }
-  .btn-hero-soon { border: 1px dashed rgba(255,255,255,.5); color: rgba(255,255,255,.85); background: transparent; font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase; font-size: 11px; }
+  .btn-hero-primary { background: #fff; color: var(--text); }
 
-  .queue { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-  .queue-card { position: relative; aspect-ratio: 4/3; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;
-    background: radial-gradient(120% 140% at 15% 15%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 55%),
-                radial-gradient(120% 140% at 85% 90%, color-mix(in srgb, #4f7eff 26%, transparent), transparent 55%),
+  .queue { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .queue-card { position: relative; aspect-ratio: 16/10; border-radius: 6px; border: 1px solid var(--border); overflow: hidden;
+    background: radial-gradient(120% 140% at 15% 15%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 55%),
+                radial-gradient(120% 140% at 85% 90%, color-mix(in srgb, #4f7eff 20%, transparent), transparent 55%),
                 linear-gradient(160deg, var(--surface), var(--bg));
     display: flex; align-items: flex-end; }
-  .queue-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(15,14,9,.16) 0%, rgba(15,14,9,0) 45%); }
-  .queue-card .status { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); padding: 12px 14px; }
+  .queue-card .status { font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); opacity: .8; padding: 8px 9px; }
 </style>
 </head>
 <body>
@@ -63,15 +62,14 @@
 
   <div class="section">
     <span class="section-label">Prototype log</span>
-    <article class="hero" style="background-image:url('../../../apps/hub/public/games/taxi-slide-banner.jpg')">
-      <div class="hero-scrim"></div>
+    <article class="hero">
       <div class="hero-content">
         <span class="tag-new">New game</span>
         <h2>Taxi Slide</h2>
         <div class="meta">Sep 25 · Puzzle</div>
         <p class="pitch">Slide colored taxis around a 5×5 grid like a sliding puzzle and reach each passenger before they leave; every completed ride opens another empty cell.</p>
-        <button class="btn btn-hero-soon">Soon</button>
       </div>
+      <div class="hero-image" style="background-image:url('../../../apps/hub/public/games/taxi-slide-banner.jpg')"></div>
     </article>
   </div>
 

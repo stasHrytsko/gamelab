@@ -23,7 +23,7 @@ score:
   payoff: 4
   differentiation: 4
   prototypeability: 4
-gate1: pending
+gate1: approved
 gate1_date: 2026-09-25
 ---
 

@@ -1,0 +1,357 @@
+<title>Build & Pack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<style>
+  /* Токены PuzzleKit (UI Design/design-tokens.css). Одна светлая тема — как у кита. */
+  :root {
+    --ui-blue: #4f7eff; --ui-coral: #ff7b6b; --ui-yellow: #ffc542; --ui-green: #34d399; --ui-purple: #a78bfa;
+    --ui-background: #f6f8fc; --ui-surface: #ffffff; --ui-surface-muted: #eef2f8; --ui-border: #e3e8f2;
+    --ui-text: #1f2937; --ui-text-muted: #6b7280; --ui-success: #20c979; --ui-danger: #ff646b; --ui-disabled: #cbd5e1;
+    --ui-font: "Poppins", "Inter", "Manrope", "Segoe UI", sans-serif;
+    --ui-radius-medium: 12px; --ui-radius-large: 16px; --ui-radius-card: 20px;
+    --ui-shadow-soft: 0 6px 18px rgba(31,41,55,.08); --ui-shadow-card: 0 10px 30px rgba(79,126,255,.1); --ui-shadow-tile: 0 7px 14px rgba(31,41,55,.14);
+    --cell: 48px; --mini: 36px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; overscroll-behavior: none; }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--ui-blue); outline-offset: 2px; }
+
+  /* Экран на всю высоту: шапка, поле (тянется), лоток в зоне большого пальца. */
+  .app { height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 8px 16px 12px; }
+  .top { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px; min-height: 44px; }
+  .top h1 { font-size: 18px; font-weight: 600; text-align: center; }
+  .top-right { display: flex; gap: 8px; }
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 20px; font-weight: 700; color: var(--ui-blue); }
+  .icon-btn svg { width: 22px; height: 22px; color: var(--ui-text); }
+  .icon-btn:active { transform: scale(.92); }
+
+  .stage { flex: 1; min-height: 0; display: grid; place-items: center; }
+  .board { position: relative; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 8px; display: grid; grid-template-columns: repeat(6, var(--cell)); grid-template-rows: repeat(6, var(--cell)); gap: 4px; }
+  .cell { border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; transition: box-shadow 100ms ease, background 100ms ease; }
+  .cell::before { content: ""; width: 12%; height: 12%; border-radius: 50%; background: var(--ui-disabled); }
+  .cell.wall { background: repeating-linear-gradient(135deg, var(--ui-disabled) 0 6px, color-mix(in srgb, var(--ui-disabled) 70%, var(--ui-text-muted)) 6px 12px); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--ui-disabled) 60%, var(--ui-text-muted)); }
+  .cell.wall::before { display: none; }
+  .cell.filled::before { display: none; }
+  .cell.aim-ok { background: color-mix(in srgb, var(--ui-green) 22%, var(--ui-surface-muted)); box-shadow: inset 0 0 0 2px var(--ui-green); }
+  .cell.aim-bad { background: #ffe4e6; box-shadow: inset 0 0 0 2px var(--ui-danger); }
+
+  .tray { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .hint { text-align: center; font-size: 13px; color: var(--ui-text-muted); min-height: 18px; line-height: 18px; }
+  .hint b { color: var(--ui-text); font-weight: 600; }
+  .tray-row { display: flex; gap: 12px; align-items: stretch; }
+  .builder { display: grid; grid-template-columns: repeat(4, var(--mini)); grid-template-rows: repeat(4, var(--mini)); gap: 4px; touch-action: none; flex: none; padding: 6px; border-radius: var(--ui-radius-large); background: var(--ui-background); transition: box-shadow 160ms ease, opacity 160ms ease; }
+  .tray.off .builder { opacity: .4; pointer-events: none; }
+  .tray.ready .builder { box-shadow: inset 0 0 0 2px var(--ui-green); }
+  .bcell { border-radius: 26%; background: var(--ui-surface); display: grid; place-items: center; }
+  .bcell::before { content: ""; width: 12%; height: 12%; border-radius: 50%; background: var(--ui-disabled); }
+  .bcell.on { background: none; }
+  .bcell.on::before { display: none; }
+  .tray-side { flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-width: 0; }
+  .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .chip { --c: var(--ui-blue); aspect-ratio: 1; border-radius: 28%; color: #fff; font-size: 20px; font-weight: 700;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: var(--ui-shadow-tile), inset 0 -3px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+    text-shadow: 0 1px 2px rgba(31,41,55,.2); transition: transform 140ms ease; }
+  .chip.sel { transform: translateY(-4px); box-shadow: 0 0 0 3px var(--ui-blue), 0 10px 16px rgba(79,126,255,.3); }
+  .chip.used { background: var(--ui-surface-muted); color: var(--ui-disabled); box-shadow: inset 0 0 0 2px var(--ui-border); text-shadow: none; cursor: default; }
+  .clear-btn { height: 40px; border-radius: var(--ui-radius-medium); border: 1px solid var(--ui-border); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .clear-btn svg { width: 16px; height: 16px; }
+  .clear-btn:disabled { opacity: .4; cursor: default; }
+
+  /* Клетка фигуры: тайл кита с белой «таблеткой». */
+  .sq { --c: var(--ui-blue); width: 100%; height: 100%; border-radius: 26%; position: relative;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: 0 4px 8px rgba(31,41,55,.12), inset 0 -3px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+    display: grid; place-items: center; }
+  .sq::after { content: ""; width: 34%; height: 16%; border-radius: 999px; background: rgba(255,255,255,.9); }
+  .c4 { --c: var(--ui-green); } .c5 { --c: var(--ui-blue); } .c6 { --c: var(--ui-coral); } .c7 { --c: var(--ui-purple); }
+  .tray.ready .bcell.on .sq { cursor: grab; animation: ready 1.4s ease-in-out infinite; }
+  @keyframes ready { 50% { transform: translateY(-2px); } }
+  .land { animation: land 260ms cubic-bezier(.3,1.6,.5,1); }
+  @keyframes land { 0% { transform: scale(.7); } 100% { transform: none; } }
+
+  .ghost { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 10; display: grid; gap: 4px; filter: drop-shadow(0 12px 16px rgba(31,41,55,.22)); }
+
+  .scrim { position: fixed; inset: 0; background: rgba(31,41,55,.5); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 24px; z-index: 20; }
+  .modal { width: 100%; max-width: 340px; background: var(--ui-surface); border-radius: 24px; padding: 28px 22px 18px; text-align: center; display: flex; flex-direction: column; gap: 10px; animation: pop 360ms cubic-bezier(.3,1.4,.5,1); }
+  @keyframes pop { from { transform: scale(.85); opacity: 0; } }
+  .badge { width: 76px; height: 76px; margin: 0 auto 6px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 38px; font-weight: 700; }
+  .badge.win { background: linear-gradient(160deg, #7ee2b6, var(--ui-success)); box-shadow: 0 0 0 10px rgba(32,201,121,.14); }
+  .badge.lose { background: linear-gradient(160deg, #ffa3a7, var(--ui-danger)); box-shadow: 0 0 0 10px rgba(255,100,107,.14); }
+  .modal h2 { font-size: 22px; font-weight: 700; text-wrap: balance; }
+  .modal p { font-size: 14px; color: var(--ui-text-muted); line-height: 1.45; }
+  .btn { height: 50px; border-radius: var(--ui-radius-large); font-weight: 600; font-size: 16px; color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 8px 18px rgba(79,126,255,.35); margin-top: 8px; }
+  .rules { text-align: left; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.4; color: var(--ui-text); list-style: none; }
+  .rules li { display: flex; gap: 10px; }
+  .rules b { flex: none; width: 22px; height: 22px; border-radius: 7px; background: #e8efff; color: var(--ui-blue); font-size: 12px; display: grid; place-items: center; }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="app">
+  <div class="top">
+    <button class="icon-btn" id="levels" aria-label="К уровням"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></g></svg></button>
+    <h1>Уровень 1</h1>
+    <div class="top-right">
+      <button class="icon-btn" id="help" aria-label="Как играть">?</button>
+      <button class="icon-btn" id="restart" aria-label="Заново"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 107-7H8.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M10.5 2.5L8 5l2.5 2.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+  </div>
+  <div class="stage" id="stage"><div class="board" id="board"></div></div>
+  <div class="tray off" id="work">
+    <div class="hint" id="hint"></div>
+    <div class="tray-row">
+      <div class="builder" id="builder"></div>
+      <div class="tray-side">
+        <div class="chips" id="chips"></div>
+        <button class="clear-btn" id="clear" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>Очистить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // Уровень 1: поле 6×6 без двух углов. Числа в сумме = 34 клеткам. Фигура — 4..7 клеток в сетке 4×4.
+  const MAP = [
+    '#.....',
+    '......',
+    '......',
+    '......',
+    '......',
+    '.....#',
+  ];
+  const NUMBERS = [7, 7, 6, 5, 5, 4];
+  const W = 6, H = 6, BW = 4, BH = 4;
+
+  const $ = (id) => document.getElementById(id);
+  const chipsEl = $('chips'), hintEl = $('hint'), workEl = $('work'), builderEl = $('builder'), boardEl = $('board');
+
+  let board, used, selected, built;   // built: Set of "r,c" в конструкторе
+
+  function reset() {
+    board = MAP.map((row) => [...row].map((ch) => (ch === '#' ? 'wall' : null)));
+    used = NUMBERS.map(() => false);
+    selected = null;
+    built = new Set();
+    render(true);
+  }
+
+  // ---------- геометрия ----------
+  const key = (r, c) => `${r},${c}`;
+  const parse = (k) => k.split(',').map(Number);
+  function isConnected(cells) {
+    if (cells.size === 0) return false;
+    const [first] = cells; const seen = new Set([first]); const st = [first];
+    while (st.length) {
+      const [r, c] = parse(st.pop());
+      for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        const k = key(r + dr, c + dc);
+        if (cells.has(k) && !seen.has(k)) { seen.add(k); st.push(k); }
+      }
+    }
+    return seen.size === cells.size;
+  }
+  function normalize(cells) {
+    const pts = [...cells].map(parse);
+    const r0 = Math.min(...pts.map((p) => p[0])), c0 = Math.min(...pts.map((p) => p[1]));
+    return pts.map(([r, c]) => [r - r0, c - c0]);
+  }
+  function freeComponents() {
+    const seen = new Set(); const out = [];
+    for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+      if (board[r][c] !== null || seen.has(key(r, c))) continue;
+      let n = 0; const st = [[r, c]]; seen.add(key(r, c));
+      while (st.length) {
+        const [a, b] = st.pop(); n++;
+        for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+          const y = a + dr, x = b + dc;
+          if (y >= 0 && y < H && x >= 0 && x < W && board[y][x] === null && !seen.has(key(y, x))) { seen.add(key(y, x)); st.push([y, x]); }
+        }
+      }
+      out.push(n);
+    }
+    return out;
+  }
+  // Каждую свободную область должна закрыть какая-то часть оставшихся чисел.
+  function deadRegion() {
+    const left = NUMBERS.filter((_, i) => !used[i]);
+    let sums = 1n;
+    for (const v of left) sums |= sums << BigInt(v);
+    for (const n of freeComponents()) if (!((sums >> BigInt(n)) & 1n)) return n;
+    return null;
+  }
+
+  // ---------- отрисовка ----------
+  function render(fresh) {
+    chipsEl.innerHTML = NUMBERS.map((n, i) =>
+      `<button class="chip c${n} ${used[i] ? 'used' : ''} ${selected === i ? 'sel' : ''}" data-i="${i}" ${used[i] ? 'disabled' : ''} aria-label="Число ${n}">${n}</button>`).join('');
+
+    const need = selected === null ? 0 : NUMBERS[selected];
+    const complete = selected !== null && built.size === need && isConnected(built);
+    workEl.classList.toggle('off', selected === null);
+    workEl.classList.toggle('ready', complete);
+    $('clear').disabled = built.size === 0;
+
+    builderEl.innerHTML = '';
+    for (let r = 0; r < BH; r++) for (let c = 0; c < BW; c++) {
+      const on = built.has(key(r, c));
+      const d = document.createElement('div');
+      d.className = 'bcell' + (on ? ' on' : '');
+      d.dataset.r = r; d.dataset.c = c;
+      if (on) d.innerHTML = `<div class="sq c${need}"></div>`;
+      builderEl.append(d);
+    }
+
+    if (fresh) {
+      boardEl.innerHTML = '';
+      for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+        const d = document.createElement('div');
+        d.className = 'cell'; d.dataset.r = r; d.dataset.c = c;
+        boardEl.append(d);
+      }
+    }
+    boardEl.querySelectorAll('.cell').forEach((d) => {
+      const v = board[+d.dataset.r][+d.dataset.c];
+      d.classList.toggle('wall', v === 'wall');
+      d.classList.toggle('filled', typeof v === 'number');
+      if (typeof v === 'number' && !d.firstChild) d.innerHTML = `<div class="sq c${v} land"></div>`;
+      if (v === null) d.innerHTML = '';
+    });
+
+    if (selected === null) hintEl.innerHTML = 'Выбери число справа';
+    else if (!complete && built.size === need) hintEl.innerHTML = 'Клетки должны касаться сторонами';
+    else if (!complete) hintEl.innerHTML = `Собери фигуру из <b>${need}</b> клеток`;
+    else hintEl.innerHTML = '<b>Тяни фигуру на поле</b>';
+  }
+
+  // ---------- ввод: числа и конструктор ----------
+  chipsEl.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-i]'); if (!b) return;
+    const i = +b.dataset.i; if (used[i]) return;
+    if (selected !== null && NUMBERS[selected] !== NUMBERS[i]) built.clear();
+    selected = selected === i ? null : i;
+    if (selected === null) built.clear();
+    render();
+  });
+
+  let dragging = null;
+  builderEl.addEventListener('pointerdown', (e) => {
+    const cell = e.target.closest('.bcell'); if (!cell || selected === null) return;
+    const k = key(+cell.dataset.r, +cell.dataset.c);
+    const need = NUMBERS[selected];
+    const complete = built.size === need && isConnected(built);
+    if (complete && built.has(k)) { startDrag(e, k); return; }
+    if (built.has(k)) built.delete(k);
+    else if (built.size < need) built.add(k);
+    render();
+  });
+  $('clear').addEventListener('click', () => { built.clear(); render(); });
+  // ---------- перетаскивание на поле ----------
+  function cellSize() {
+    const a = boardEl.children[0].getBoundingClientRect(), b = boardEl.children[1].getBoundingClientRect();
+    return { size: a.width, step: b.left - a.left };
+  }
+  function startDrag(e, grabKey) {
+    e.preventDefault();
+    const shape = normalize(built);
+    const all = [...built].map(parse);
+    const r0 = Math.min(...all.map((p) => p[0])), c0 = Math.min(...all.map((p) => p[1]));
+    const [gr, gc] = parse(grabKey); const grab = [gr - r0, gc - c0];
+    const { size, step } = cellSize();
+    const rows = Math.max(...shape.map((p) => p[0])) + 1, cols = Math.max(...shape.map((p) => p[1])) + 1;
+    const ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
+    ghost.style.gridTemplateRows = `repeat(${rows}, ${size}px)`;
+    const set = new Set(shape.map(([r, c]) => key(r, c)));
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const d = document.createElement('div');
+      if (set.has(key(r, c))) d.innerHTML = `<div class="sq c${NUMBERS[selected]}"></div>`;
+      ghost.append(d);
+    }
+    document.body.append(ghost);
+    dragging = { shape, grab, size, step, ghost, target: null, pointer: e.pointerId };
+    builderEl.setPointerCapture(e.pointerId);
+    moveDrag(e);
+  }
+  function moveDrag(e) {
+    const d = dragging; if (!d) return;
+    // Фигура едет над пальцем, чтобы её было видно.
+    const lift = d.step * 1.2;
+    const gx = e.clientX - d.grab[1] * d.step - d.size / 2, gy = e.clientY - lift - d.grab[0] * d.step - d.size / 2;
+    d.ghost.style.transform = `translate(${gx}px, ${gy}px)`;
+    const origin = boardEl.children[0].getBoundingClientRect();
+    const col = Math.round((gx - origin.left) / d.step), row = Math.round((gy - origin.top) / d.step);
+    boardEl.querySelectorAll('.aim-ok, .aim-bad').forEach((c) => c.classList.remove('aim-ok', 'aim-bad'));
+    const cells = d.shape.map(([r, c]) => [r + row, c + col]);
+    const near = cells.some(([r, c]) => r >= 0 && r < H && c >= 0 && c < W);
+    if (!near) { d.target = null; return; }
+    const valid = cells.every(([r, c]) => r >= 0 && r < H && c >= 0 && c < W && board[r][c] === null);
+    for (const [r, c] of cells) {
+      if (r < 0 || r >= H || c < 0 || c >= W) continue;
+      boardEl.children[r * W + c].classList.add(valid ? 'aim-ok' : 'aim-bad');
+    }
+    d.target = valid ? cells : null;
+  }
+  function endDrag() {
+    const d = dragging; if (!d) return;
+    dragging = null; d.ghost.remove();
+    boardEl.querySelectorAll('.aim-ok, .aim-bad').forEach((c) => c.classList.remove('aim-ok', 'aim-bad'));
+    if (!d.target) { hintEl.innerHTML = 'Сюда не встаёт: все клетки фигуры должны лечь на пустые'; return; }
+    const n = NUMBERS[selected];
+    for (const [r, c] of d.target) board[r][c] = n;
+    used[selected] = true; selected = null; built.clear();
+    render();
+    afterPlace();
+  }
+  builderEl.addEventListener('pointermove', (e) => { if (dragging && e.pointerId === dragging.pointer) moveDrag(e); });
+  builderEl.addEventListener('pointerup', (e) => { if (dragging && e.pointerId === dragging.pointer) endDrag(); });
+  builderEl.addEventListener('pointercancel', () => { if (dragging) { dragging.target = null; endDrag(); } });
+
+  // ---------- победа и поражение ----------
+  function afterPlace() {
+    if (used.every(Boolean)) { setTimeout(() => popup('win', 'Уровень пройден!', 'Поле заполнено целиком, без пустых клеток.'), 350); return; }
+    const dead = deadRegion();
+    if (dead !== null) {
+      setTimeout(() => popup('lose', 'Не собрать', `Осталась отдельная область из ${dead} ${word(dead)}, а оставшимися числами её ровно не закрыть.`), 350);
+    }
+  }
+  const word = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'клетки' : 'клеток');
+  function popup(kind, title, text, button = 'Переиграть', action = reset) {
+    const s = document.createElement('div');
+    s.className = 'scrim';
+    const badge = kind === 'win' ? '<div class="badge win">✓</div>' : kind === 'lose' ? '<div class="badge lose">✕</div>' : '';
+    s.innerHTML = `<div class="modal" role="dialog" aria-modal="true">${badge}<h2>${title}</h2>${text}<button class="btn">${button}</button></div>`;
+    s.querySelector('.btn').addEventListener('click', () => { s.remove(); action(); });
+    document.body.append(s);
+  }
+  function howTo() {
+    popup('', 'Как играть', `<ol class="rules">
+      <li><b>1</b><span>Выбери число — столько клеток будет в фигуре.</span></li>
+      <li><b>2</b><span>Собери фигуру: тапай по сетке 4×4 внизу. Клетки должны касаться сторонами.</span></li>
+      <li><b>3</b><span>Потяни готовую фигуру вверх, на пустые клетки поля.</span></li>
+      <li><b>4</b><span>Используй все числа и заполни поле целиком. Отдельный кусок поля, который не закрыть оставшимися числами, — проигрыш.</span></li>
+    </ol>`, 'Понятно!', () => {});
+  }
+  $('restart').addEventListener('click', reset);
+  $('levels').addEventListener('click', () => { hintEl.textContent = 'В мокапе один уровень'; });
+
+  // Размеры от экрана: сначала лоток (конструктор 34–40 px), остаток — полю.
+  function fit() {
+    const root = document.documentElement;
+    root.style.setProperty('--mini', `${innerHeight < 620 ? 32 : innerHeight < 720 ? 36 : 40}px`);
+    const st = $('stage').getBoundingClientRect();
+    const cell = Math.floor(Math.min((st.width - 16 - 20) / 6, (st.height - 16 - 20) / 6));
+    root.style.setProperty('--cell', `${Math.max(28, Math.min(cell, 60))}px`);
+  }
+  addEventListener('resize', fit);
+  new ResizeObserver(fit).observe($('stage'));
+  $('help').addEventListener('click', howTo);
+
+  reset();
+  howTo();
+})();
+</script>

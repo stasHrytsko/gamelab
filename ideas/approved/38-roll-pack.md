@@ -1,7 +1,7 @@
 ---
 slug: roll-pack
 number: 38
-title_ru: Собери и уложи
+title_ru: Build & Pack
 title_en: Build & Pack
 verb: укладка
 pressure:

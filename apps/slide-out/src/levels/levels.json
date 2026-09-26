@@ -1,0 +1,915 @@
+{
+  "schemaVersion": 1,
+  "levels": [
+    {
+      "id": 1,
+      "gridSize": 5,
+      "blocks": [
+        {
+          "id": "block-1",
+          "color": "red",
+          "row": 4,
+          "col": 1
+        },
+        {
+          "id": "block-2",
+          "color": "red",
+          "row": 4,
+          "col": 3
+        },
+        {
+          "id": "block-3",
+          "color": "yellow",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "block-4",
+          "color": "red",
+          "row": 0,
+          "col": 2
+        },
+        {
+          "id": "block-5",
+          "color": "yellow",
+          "row": 3,
+          "col": 2
+        },
+        {
+          "id": "block-6",
+          "color": "red",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "block-7",
+          "color": "blue",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "block-8",
+          "color": "yellow",
+          "row": 1,
+          "col": 2
+        },
+        {
+          "id": "block-9",
+          "color": "blue",
+          "row": 3,
+          "col": 3
+        },
+        {
+          "id": "block-10",
+          "color": "blue",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "block-11",
+          "color": "blue",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "block-12",
+          "color": "red",
+          "row": 2,
+          "col": 2
+        },
+        {
+          "id": "block-13",
+          "color": "blue",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "block-14",
+          "color": "yellow",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "id": "block-15",
+          "color": "yellow",
+          "row": 0,
+          "col": 3
+        },
+        {
+          "id": "block-16",
+          "color": "red",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "block-17",
+          "color": "blue",
+          "row": 1,
+          "col": 3
+        }
+      ],
+      "goals": [
+        {
+          "id": "goal-1",
+          "color": "blue",
+          "target": {
+            "side": "bottom",
+            "index": 1
+          },
+          "initialCountdown": 9,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "goal-2",
+          "color": "red",
+          "target": {
+            "side": "right",
+            "index": 3
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "goal-3",
+          "color": "red",
+          "target": {
+            "side": "bottom",
+            "index": 4
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "gridSize": 5,
+      "blocks": [
+        {
+          "id": "block-1",
+          "color": "blue",
+          "row": 3,
+          "col": 4
+        },
+        {
+          "id": "block-2",
+          "color": "blue",
+          "row": 2,
+          "col": 4
+        },
+        {
+          "id": "block-3",
+          "color": "blue",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "block-4",
+          "color": "yellow",
+          "row": 4,
+          "col": 1
+        },
+        {
+          "id": "block-5",
+          "color": "red",
+          "row": 2,
+          "col": 1
+        },
+        {
+          "id": "block-6",
+          "color": "red",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "block-7",
+          "color": "red",
+          "row": 4,
+          "col": 3
+        },
+        {
+          "id": "block-8",
+          "color": "blue",
+          "row": 4,
+          "col": 2
+        },
+        {
+          "id": "block-9",
+          "color": "red",
+          "row": 2,
+          "col": 2
+        },
+        {
+          "id": "block-10",
+          "color": "yellow",
+          "row": 4,
+          "col": 4
+        },
+        {
+          "id": "block-11",
+          "color": "red",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "block-12",
+          "color": "red",
+          "row": 1,
+          "col": 2
+        },
+        {
+          "id": "block-13",
+          "color": "yellow",
+          "row": 0,
+          "col": 4
+        },
+        {
+          "id": "block-14",
+          "color": "yellow",
+          "row": 0,
+          "col": 2
+        },
+        {
+          "id": "block-15",
+          "color": "red",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "block-16",
+          "color": "yellow",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "block-17",
+          "color": "yellow",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "block-18",
+          "color": "blue",
+          "row": 1,
+          "col": 3
+        },
+        {
+          "id": "block-19",
+          "color": "yellow",
+          "row": 3,
+          "col": 1
+        },
+        {
+          "id": "block-20",
+          "color": "blue",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "block-21",
+          "color": "blue",
+          "row": 2,
+          "col": 3
+        }
+      ],
+      "goals": [
+        {
+          "id": "goal-1",
+          "color": "blue",
+          "target": {
+            "side": "top",
+            "index": 2
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "goal-2",
+          "color": "blue",
+          "target": {
+            "side": "top",
+            "index": 1
+          },
+          "initialCountdown": 8,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "goal-3",
+          "color": "red",
+          "target": {
+            "side": "bottom",
+            "index": 1
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 2
+        },
+        {
+          "id": "goal-4",
+          "color": "yellow",
+          "target": {
+            "side": "left",
+            "index": 4
+          },
+          "initialCountdown": 9,
+          "unlockAfterServed": 2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "gridSize": 5,
+      "blocks": [
+        {
+          "id": "block-1",
+          "color": "blue",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "id": "block-2",
+          "color": "blue",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "block-3",
+          "color": "yellow",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "block-4",
+          "color": "yellow",
+          "row": 0,
+          "col": 3
+        },
+        {
+          "id": "block-5",
+          "color": "red",
+          "row": 4,
+          "col": 3
+        },
+        {
+          "id": "block-6",
+          "color": "red",
+          "row": 0,
+          "col": 2
+        },
+        {
+          "id": "block-7",
+          "color": "blue",
+          "row": 3,
+          "col": 3
+        },
+        {
+          "id": "block-8",
+          "color": "blue",
+          "row": 2,
+          "col": 3
+        },
+        {
+          "id": "block-9",
+          "color": "yellow",
+          "row": 2,
+          "col": 1
+        },
+        {
+          "id": "block-10",
+          "color": "red",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "block-11",
+          "color": "red",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "block-12",
+          "color": "blue",
+          "row": 1,
+          "col": 2
+        },
+        {
+          "id": "block-13",
+          "color": "blue",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "block-14",
+          "color": "red",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "block-15",
+          "color": "red",
+          "row": 3,
+          "col": 4
+        },
+        {
+          "id": "block-16",
+          "color": "red",
+          "row": 3,
+          "col": 1
+        },
+        {
+          "id": "block-17",
+          "color": "blue",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "block-18",
+          "color": "yellow",
+          "row": 2,
+          "col": 4
+        },
+        {
+          "id": "block-19",
+          "color": "yellow",
+          "row": 4,
+          "col": 2
+        },
+        {
+          "id": "block-20",
+          "color": "yellow",
+          "row": 0,
+          "col": 4
+        }
+      ],
+      "goals": [
+        {
+          "id": "goal-1",
+          "color": "red",
+          "target": {
+            "side": "right",
+            "index": 2
+          },
+          "initialCountdown": 6,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "goal-2",
+          "color": "red",
+          "target": {
+            "side": "left",
+            "index": 3
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "goal-3",
+          "color": "blue",
+          "target": {
+            "side": "left",
+            "index": 2
+          },
+          "initialCountdown": 6,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "goal-4",
+          "color": "yellow",
+          "target": {
+            "side": "right",
+            "index": 3
+          },
+          "initialCountdown": 8,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "goal-5",
+          "color": "blue",
+          "target": {
+            "side": "bottom",
+            "index": 4
+          },
+          "initialCountdown": 6,
+          "unlockAfterServed": 3
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "gridSize": 5,
+      "blocks": [
+        {
+          "id": "block-1",
+          "color": "blue",
+          "row": 4,
+          "col": 2
+        },
+        {
+          "id": "block-2",
+          "color": "red",
+          "row": 3,
+          "col": 3
+        },
+        {
+          "id": "block-3",
+          "color": "blue",
+          "row": 2,
+          "col": 4
+        },
+        {
+          "id": "block-4",
+          "color": "blue",
+          "row": 4,
+          "col": 1
+        },
+        {
+          "id": "block-5",
+          "color": "yellow",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "block-6",
+          "color": "blue",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "block-7",
+          "color": "red",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "block-8",
+          "color": "yellow",
+          "row": 3,
+          "col": 1
+        },
+        {
+          "id": "block-9",
+          "color": "red",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "block-10",
+          "color": "red",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "block-11",
+          "color": "yellow",
+          "row": 3,
+          "col": 2
+        },
+        {
+          "id": "block-12",
+          "color": "yellow",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "id": "block-13",
+          "color": "yellow",
+          "row": 1,
+          "col": 3
+        },
+        {
+          "id": "block-14",
+          "color": "blue",
+          "row": 0,
+          "col": 3
+        },
+        {
+          "id": "block-15",
+          "color": "yellow",
+          "row": 2,
+          "col": 1
+        },
+        {
+          "id": "block-16",
+          "color": "blue",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "block-17",
+          "color": "yellow",
+          "row": 3,
+          "col": 4
+        },
+        {
+          "id": "block-18",
+          "color": "blue",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "block-19",
+          "color": "red",
+          "row": 2,
+          "col": 2
+        },
+        {
+          "id": "block-20",
+          "color": "red",
+          "row": 0,
+          "col": 4
+        },
+        {
+          "id": "block-21",
+          "color": "red",
+          "row": 2,
+          "col": 3
+        }
+      ],
+      "goals": [
+        {
+          "id": "goal-1",
+          "color": "red",
+          "target": {
+            "side": "left",
+            "index": 2
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "goal-2",
+          "color": "blue",
+          "target": {
+            "side": "right",
+            "index": 3
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "goal-3",
+          "color": "red",
+          "target": {
+            "side": "right",
+            "index": 4
+          },
+          "initialCountdown": 5,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "goal-4",
+          "color": "yellow",
+          "target": {
+            "side": "left",
+            "index": 1
+          },
+          "initialCountdown": 10,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "goal-5",
+          "color": "yellow",
+          "target": {
+            "side": "left",
+            "index": 0
+          },
+          "initialCountdown": 6,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "goal-6",
+          "color": "red",
+          "target": {
+            "side": "bottom",
+            "index": 1
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 5
+        },
+        {
+          "id": "goal-7",
+          "color": "blue",
+          "target": {
+            "side": "left",
+            "index": 4
+          },
+          "initialCountdown": 5,
+          "unlockAfterServed": 5
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "gridSize": 5,
+      "blocks": [
+        {
+          "id": "block-1",
+          "color": "red",
+          "row": 1,
+          "col": 0
+        },
+        {
+          "id": "block-2",
+          "color": "red",
+          "row": 4,
+          "col": 3
+        },
+        {
+          "id": "block-3",
+          "color": "red",
+          "row": 1,
+          "col": 1
+        },
+        {
+          "id": "block-4",
+          "color": "yellow",
+          "row": 1,
+          "col": 3
+        },
+        {
+          "id": "block-5",
+          "color": "yellow",
+          "row": 2,
+          "col": 1
+        },
+        {
+          "id": "block-6",
+          "color": "blue",
+          "row": 3,
+          "col": 3
+        },
+        {
+          "id": "block-7",
+          "color": "red",
+          "row": 0,
+          "col": 0
+        },
+        {
+          "id": "block-8",
+          "color": "yellow",
+          "row": 2,
+          "col": 3
+        },
+        {
+          "id": "block-9",
+          "color": "yellow",
+          "row": 2,
+          "col": 0
+        },
+        {
+          "id": "block-10",
+          "color": "red",
+          "row": 1,
+          "col": 4
+        },
+        {
+          "id": "block-11",
+          "color": "red",
+          "row": 3,
+          "col": 2
+        },
+        {
+          "id": "block-12",
+          "color": "blue",
+          "row": 3,
+          "col": 4
+        },
+        {
+          "id": "block-13",
+          "color": "yellow",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "id": "block-14",
+          "color": "blue",
+          "row": 0,
+          "col": 4
+        },
+        {
+          "id": "block-15",
+          "color": "yellow",
+          "row": 0,
+          "col": 3
+        },
+        {
+          "id": "block-16",
+          "color": "red",
+          "row": 4,
+          "col": 1
+        },
+        {
+          "id": "block-17",
+          "color": "blue",
+          "row": 3,
+          "col": 0
+        },
+        {
+          "id": "block-18",
+          "color": "blue",
+          "row": 4,
+          "col": 0
+        },
+        {
+          "id": "block-19",
+          "color": "blue",
+          "row": 4,
+          "col": 2
+        },
+        {
+          "id": "block-20",
+          "color": "yellow",
+          "row": 3,
+          "col": 1
+        },
+        {
+          "id": "block-21",
+          "color": "blue",
+          "row": 2,
+          "col": 2
+        }
+      ],
+      "goals": [
+        {
+          "id": "goal-1",
+          "color": "blue",
+          "target": {
+            "side": "top",
+            "index": 1
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 0
+        },
+        {
+          "id": "goal-2",
+          "color": "yellow",
+          "target": {
+            "side": "left",
+            "index": 1
+          },
+          "initialCountdown": 5,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "goal-3",
+          "color": "yellow",
+          "target": {
+            "side": "left",
+            "index": 0
+          },
+          "initialCountdown": 9,
+          "unlockAfterServed": 1
+        },
+        {
+          "id": "goal-4",
+          "color": "yellow",
+          "target": {
+            "side": "top",
+            "index": 4
+          },
+          "initialCountdown": 7,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "goal-5",
+          "color": "blue",
+          "target": {
+            "side": "left",
+            "index": 2
+          },
+          "initialCountdown": 4,
+          "unlockAfterServed": 3
+        },
+        {
+          "id": "goal-6",
+          "color": "red",
+          "target": {
+            "side": "left",
+            "index": 4
+          },
+          "initialCountdown": 6,
+          "unlockAfterServed": 5
+        },
+        {
+          "id": "goal-7",
+          "color": "yellow",
+          "target": {
+            "side": "top",
+            "index": 2
+          },
+          "initialCountdown": 4,
+          "unlockAfterServed": 5
+        },
+        {
+          "id": "goal-8",
+          "color": "yellow",
+          "target": {
+            "side": "right",
+            "index": 2
+          },
+          "initialCountdown": 9,
+          "unlockAfterServed": 5
+        }
+      ]
+    }
+  ]
+}

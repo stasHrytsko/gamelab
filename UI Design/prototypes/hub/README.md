@@ -22,6 +22,6 @@ and in `site/src/styles.css` — that file is the source of truth, this
 one is only a record of the agreed look.
 
 - `index.html` — mockup source, self-contained, references the real banner
-  at `site/public/games/taxi-slide-banner.jpg`.
+  at `site/public/games/slide-out-banner.jpg`.
 - `preview.png` — snapshot, 1440×900 desktop viewport.
 - `render.mjs` — rebuilds `preview.png`.

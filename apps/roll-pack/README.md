@@ -14,7 +14,7 @@
 | `https://<домен>/?unlock=all#/level/5` | любой уровень без прохождения предыдущих — для проверки, прогресс не трогает |
 
 Маршруты в `#`, превью ссылки — `public/og.png`, иконка «На экран Домой» —
-`manifest.webmanifest`; всё как у `apps/taxi-slide`.
+`manifest.webmanifest`; всё как у `apps/slide-out`.
 
 ## Vercel
 

@@ -17,12 +17,12 @@ export interface GameEntry {
 export const GAMES: readonly GameEntry[] = [
   {
     slug: 'two-moves-later',
-    title: 'Taxi Slide',
+    title: 'Slide Out',
     date: 'Sep 25',
     genre: 'Puzzle',
     pitch:
-      'Slide colored taxis around a 5×5 grid like a sliding puzzle and reach each passenger before they leave; every completed ride opens another empty cell.',
-    banner: '/games/taxi-slide-banner.jpg',
+      'Slide colored tiles around a 5×5 grid and bring each one to the matching goal on the edge before its countdown runs out; every tile that exits opens another empty cell.',
+    banner: '/games/slide-out-banner.jpg',
     url: '',
   },
 ];

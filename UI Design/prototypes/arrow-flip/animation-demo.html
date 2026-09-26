@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arrow Flip — анимация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<style>
+  /* Демо анимации хода для specs/36-arrow-flip.md §7.2. Правила — порт applyMove
+     из tools/arrow-flip-solver.mjs. Токены PuzzleKit вписаны сюда, чтобы файл
+     открывался сам по себе (UI Design/design-tokens.css). */
+  :root {
+    --ui-blue: #4f7eff; --ui-coral: #ff7b6b; --ui-yellow: #ffc542; --ui-green: #34d399;
+    --ui-background: #f6f8fc; --ui-surface: #ffffff; --ui-surface-muted: #eef2f8; --ui-border: #e3e8f2;
+    --ui-text: #1f2937; --ui-text-muted: #6b7280; --ui-disabled: #cbd5e1;
+    --ui-font: "Poppins", "Inter", "Manrope", "Segoe UI", sans-serif;
+    --ui-radius-medium: 12px; --ui-radius-card: 20px; --ui-radius-pill: 999px;
+    --ui-shadow-soft: 0 6px 18px rgba(31,41,55,.08); --ui-shadow-card: 0 10px 30px rgba(79,126,255,.1);
+    --ui-shadow-tile: 0 7px 14px rgba(31,41,55,.14);
+    --cell: 76px; --gap: 6px; --pad: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+
+  .app { height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding: 8px 16px 16px; }
+  .top { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; min-height: 44px; }
+  .top h1 { font-size: 18px; font-weight: 600; text-align: center; }
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+  .icon-btn:active { transform: scale(.92); }
+  .icon-btn:disabled { opacity: .35; }
+
+  .moves { align-self: center; display: flex; align-items: baseline; gap: 8px; padding: 6px 18px; border-radius: var(--ui-radius-pill); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); font-size: 14px; color: var(--ui-text-muted); font-weight: 500; transition: box-shadow 200ms ease; }
+  .moves b { font-size: 22px; color: var(--ui-text); font-weight: 700; }
+  .moves span { font-size: 16px; font-weight: 600; }
+  .moves.last { box-shadow: 0 0 0 2px var(--ui-coral), var(--ui-shadow-soft); }
+
+  .stage { flex: 1; min-height: 0; display: grid; place-items: center; }
+  .board { position: relative; overflow: hidden; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: var(--pad); display: grid; grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(4, var(--cell)); gap: var(--gap); }
+  .cell { border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .cell::before { content: ""; width: 10%; height: 10%; border-radius: 50%; background: var(--ui-disabled); }
+
+  /* Блок: квадрат двигается только когда едет сам. Стрелка — отдельный слой,
+     крутится вокруг центра квадрата; квадрат при этом стоит на месте. */
+  .block { --c: var(--ui-blue); position: absolute; left: 0; top: 0; width: var(--cell); height: var(--cell); border-radius: 26%;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+    display: grid; place-items: center; will-change: transform; cursor: pointer; }
+  .ring { position: absolute; inset: -4px; border-radius: 28%; box-shadow: 0 0 0 4px var(--ui-yellow); opacity: 0; transition: opacity 150ms ease; pointer-events: none; }
+  .spin { position: absolute; top: -10px; right: -10px; width: 26px; height: 26px; border-radius: 50%; background: var(--ui-yellow); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 17px; font-weight: 700; line-height: 1; color: var(--ui-text); opacity: 0; transform: scale(.6); transition: opacity 150ms ease, transform 150ms ease; pointer-events: none; }
+  .block.turned .ring, .block.turned .spin { opacity: 1; }
+  .block.turned .spin { transform: scale(1); }
+  .arrow { width: 52%; height: 52%; will-change: transform; filter: drop-shadow(0 1px 2px rgba(31,41,55,.25)); }
+  .blocker-flash { animation: flash 260ms ease; }
+  @keyframes flash { 50% { filter: brightness(1.18); } }
+
+  .panel { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 12px 16px; text-align: center; font-size: 13px; color: var(--ui-text-muted); line-height: 19px; min-height: 64px; display: grid; place-items: center; }
+  .panel b { color: var(--ui-text); font-weight: 600; }
+  .row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+  .pill { padding: 6px 14px; border-radius: var(--ui-radius-pill); border: 1px solid var(--ui-border); font-size: 13px; font-weight: 600; }
+  .pill.on { background: var(--ui-blue); color: #fff; border-color: var(--ui-blue); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M12 3.5 20 12h-5v8.5H9V12H4z" fill="#fff"/></symbol>
+</defs></svg>
+<div class="app">
+  <header class="top">
+    <button class="icon-btn" id="prev" aria-label="Предыдущий уровень">‹</button>
+    <h1 id="title">Уровень 1</h1>
+    <button class="icon-btn" id="next" aria-label="Следующий уровень">›</button>
+  </header>
+  <div class="moves" id="moves">Ходы <b>0</b><span>/ 3</span></div>
+  <main class="stage"><div class="board" id="board"></div></main>
+  <div class="panel" id="panel"></div>
+  <div class="row">
+    <button class="pill" id="restart">↺ Заново</button>
+    <button class="pill" id="slow">Замедлить ×4</button>
+  </div>
+</div>
+<script>
+/* ---------- уровни (GAME_LEVELS из tools/arrow-flip-solver.mjs) ---------- */
+const LEVELS = [
+  { name: 'AF-T1', limit: 3, blocks: [['0',1,2,'<'],['1',3,1,'v'],['2',2,1,'<']] },
+  { name: 'AF-T2', limit: 4, blocks: [['0',0,1,'>'],['1',1,0,'<'],['2',1,1,'>'],['3',1,2,'<']] },
+  { name: 'AF-01', limit: 6, blocks: [['0',0,2,'<'],['1',1,1,'<'],['2',0,0,'v'],['3',1,0,'>'],['4',0,3,'v']] },
+  { name: 'AF-03', limit: 8, blocks: [['0',1,3,'<'],['1',3,3,'<'],['2',0,0,'v'],['3',0,3,'>'],['4',0,2,'<'],['5',3,2,'>']] },
+  { name: 'AF-04', limit: 9, blocks: [['0',3,0,'>'],['1',1,3,'<'],['2',1,2,'>'],['3',3,2,'v'],['4',3,1,'^'],['5',0,3,'v'],['6',0,1,'^']] },
+];
+const DELTA = { '^': [-1,0], '>': [0,1], 'v': [1,0], '<': [0,-1] };
+const ROT = { '^': '>', '>': 'v', 'v': '<', '<': '^' };
+const DEG = { '^': 0, '>': 90, 'v': 180, '<': 270 };
+
+/* ---------- тайминги §7.2 ---------- */
+const T = {
+  cell: 90,          // мс на клетку, скорость постоянная
+  exitTail: 1.3,     // клеток за краем, пока уходящий блок гаснет
+  stopEase: 110,     // доводка при остановке у блока
+  lead: 0.35,        // сбоку: поворот стартует, когда центру ехавшего осталось 0,35 клетки до соседа
+  rotate: 320,       // длительность поворота стрелки
+  rotateEase: 'cubic-bezier(.34,1.5,.52,1)', // лёгкий перелёт ~6° и возврат
+  shake: 160,
+};
+let slow = 1;
+
+/* ---------- состояние ---------- */
+const board = document.getElementById('board');
+let lv = 0, blocks = [], moves = 0, busy = false, done = false;
+
+function px() {
+  const s = getComputedStyle(document.documentElement);
+  return { cell: parseFloat(s.getPropertyValue('--cell')), gap: parseFloat(s.getPropertyValue('--gap')), pad: parseFloat(s.getPropertyValue('--pad')) };
+}
+function xy(r, c) { const p = px(); return [p.pad + c * (p.cell + p.gap), p.pad + r * (p.cell + p.gap)]; }
+
+function fit() {
+  const stage = document.querySelector('.stage');
+  const room = Math.min(stage.clientWidth, stage.clientHeight) - 2 * 10;
+  const cell = Math.max(56, Math.min(88, Math.floor((room - 3 * 6) / 4)));
+  document.documentElement.style.setProperty('--cell', cell + 'px');
+  for (const b of blocks) place(b);
+}
+
+function load(i) {
+  lv = i; moves = 0; busy = false; done = false;
+  board.querySelectorAll('.block').forEach((e) => e.remove());
+  if (!board.querySelector('.cell')) for (let k = 0; k < 16; k++) board.appendChild(Object.assign(document.createElement('div'), { className: 'cell' }));
+  blocks = LEVELS[i].blocks.map(([id, row, col, dir]) => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    el.innerHTML = '<div class="ring"></div><svg class="arrow"><use href="#arrow"/></svg><div class="spin">↻</div>';
+    const b = { id, row, col, dir, angle: DEG[dir], el, arrow: el.querySelector('.arrow') };
+    b.arrow.style.transform = `rotate(${b.angle}deg)`;
+    el.addEventListener('pointerdown', () => tap(b));
+    board.appendChild(el);
+    place(b);
+    return b;
+  });
+  document.getElementById('title').textContent = `Уровень ${i + 1}`;
+  document.getElementById('prev').disabled = i === 0;
+  document.getElementById('next').disabled = i === LEVELS.length - 1;
+  hud(); say(i < 2 ? 'Тапни блок — он поедет по стрелке.<br><b>Кого заденет по пути — повернёт на 90°.</b>' : 'Выведи все блоки за край. Лимит ходов — без запаса.');
+}
+function place(b) { const [x, y] = xy(b.row, b.col); b.el.style.transform = `translate(${x}px, ${y}px)`; }
+function hud() {
+  const m = document.getElementById('moves'), L = LEVELS[lv].limit;
+  m.innerHTML = `Ходы <b>${moves}</b><span>/ ${L}</span>`;
+  m.classList.toggle('last', !done && L - moves === 1);
+}
+function say(html) { document.getElementById('panel').innerHTML = `<div>${html}</div>`; }
+const at = (r, c) => blocks.find((b) => b.row === r && b.col === c);
+const inside = (r, c) => r >= 0 && r < 4 && c >= 0 && c < 4;
+
+/* ---------- ход: правила applyMove + расписание анимации ---------- */
+function tap(b) {
+  if (busy || done) return;
+  const [dr, dc] = DELTA[b.dir];
+  const path = [[b.row, b.col]];
+  let r = b.row, c = b.col, exited = false;
+  for (;;) {
+    const nr = r + dr, nc = c + dc;
+    if (!inside(nr, nc)) { exited = true; break; }
+    if (at(nr, nc)) break;
+    r = nr; c = nc; path.push([r, c]);
+  }
+  if (!exited && path.length === 1) return shake(b, at(r + dr, c + dc));
+
+  // Кого задели и на какой клетке пути — впервые (поворот один раз за ход).
+  const firstTouch = new Map();
+  path.forEach(([pr, pc], i) => {
+    for (const [nr, nc] of [[pr-1,pc],[pr+1,pc],[pr,pc-1],[pr,pc+1]]) {
+      const n = at(nr, nc);
+      if (n && n !== b && !firstTouch.has(n)) firstTouch.set(n, i);
+    }
+  });
+
+  busy = true;
+  blocks.forEach((x) => x.el.classList.remove('turned'));
+  const steps = path.length - 1;
+  const cellT = T.cell * slow;
+  const [x0, y0] = xy(b.row, b.col);
+  const [x1, y1] = xy(r, c);
+  const dist = exited ? steps + T.exitTail : steps;
+  const [xe, ye] = xy(b.row + dr * dist, b.col + dc * dist);
+  const travel = dist * cellT + (exited ? 0 : T.stopEase * slow);
+
+  // Движение: постоянная скорость, у упора — короткая доводка; уход — гаснет за краем.
+  const frames = exited
+    ? [{ transform: `translate(${x0}px,${y0}px)`, opacity: 1 },
+       { transform: `translate(${x0 + (xe - x0) * steps / dist}px,${y0 + (ye - y0) * steps / dist}px)`, opacity: 1, offset: steps / dist || 0 },
+       { transform: `translate(${xe}px,${ye}px)`, opacity: 0 }]
+    : [{ transform: `translate(${x0}px,${y0}px)` }, { transform: `translate(${x1}px,${y1}px)` }];
+  const anim = b.el.animate(frames, { duration: Math.max(travel, 1), easing: exited ? (steps ? 'cubic-bezier(.45,0,1,1)' : 'ease-in') : 'cubic-bezier(.3,0,.25,1)' });
+
+  // Повороты привязаны к фактической позиции ехавшего блока на экране, а не к
+  // расписанию: при любом easing стрелка начинает крутиться, когда блок подъезжает.
+  // Сбоку — когда центр блока в T.lead клетки от соседа; спереди — в момент упора.
+  const pitch = px().cell + px().gap;
+  const triggers = [...firstTouch].map(([n, i]) => {
+    const front = !exited && i === steps && n.row === r + dr && n.col === c + dc;
+    return { n, at: i === 0 ? 0 : front ? steps - 0.04 : i - T.lead, fired: false };
+  });
+  for (const tr of triggers) { tr.n.dir = ROT[tr.n.dir]; tr.n.angle += 90; }
+  // угол копится, чтобы < → ^ крутилось по часовой, а не назад на 270°
+  const fire = (tr) => {
+    tr.fired = true;
+    const n = tr.n, to = n.angle, from = to - 90;
+    n.el.classList.add('turned');
+    n.arrow.animate([{ transform: `rotate(${from}deg)` }, { transform: `rotate(${to}deg)` }],
+      { duration: T.rotate * slow, easing: T.rotateEase, fill: 'forwards' })
+      .finished.then(() => { n.arrow.style.transform = `rotate(${to}deg)`; });
+  };
+  let pending = triggers.length;
+  const t0 = performance.now();
+  (function watch() {
+    const m = new DOMMatrix(getComputedStyle(b.el).transform);
+    const progress = (Math.abs(m.e - x0) + Math.abs(m.f - y0)) / pitch; // клеток пройдено
+    const late = performance.now() - t0 >= travel; // страховка на случай пропуска кадров
+    for (const tr of triggers) if (!tr.fired && (progress >= tr.at || late)) { fire(tr); pending -= 1; }
+    if (pending > 0) requestAnimationFrame(watch);
+    else setTimeout(() => { busy = false; check(); }, Math.max(0, travel - (performance.now() - t0)) + T.rotate * slow);
+  })();
+
+  if (exited) blocks = blocks.filter((x) => x !== b); else { b.row = r; b.col = c; }
+  anim.finished.then(() => { if (exited) b.el.remove(); else place(b); });
+  moves += 1;
+  if (!triggers.length) setTimeout(() => { busy = false; check(); }, travel);
+}
+
+function shake(b, blocker) {
+  const [x, y] = xy(b.row, b.col), [dr, dc] = DELTA[b.dir];
+  b.el.animate([
+    { transform: `translate(${x}px,${y}px)` },
+    { transform: `translate(${x + dc * 5}px,${y + dr * 5}px)` },
+    { transform: `translate(${x - dc * 2}px,${y - dr * 2}px)` },
+    { transform: `translate(${x}px,${y}px)` },
+  ], { duration: T.shake * slow, easing: 'ease-out' });
+  if (blocker) { blocker.el.classList.remove('blocker-flash'); void blocker.el.offsetWidth; blocker.el.classList.add('blocker-flash'); }
+}
+
+function canMove(b) {
+  const [dr, dc] = DELTA[b.dir], nr = b.row + dr, nc = b.col + dc;
+  return !inside(nr, nc) || !at(nr, nc);
+}
+function check() {
+  const L = LEVELS[lv].limit;
+  if (!blocks.length) { done = true; hud(); return say('<b>Победа!</b> Все блоки за краем.'); }
+  if (moves >= L) { done = true; hud(); return say('<b>Ходы закончились.</b> Нажми «Заново».'); }
+  if (!blocks.some(canMove)) { done = true; hud(); return say('<b>Ходов нет</b> — все блоки упёрлись.'); }
+  hud();
+}
+
+document.getElementById('restart').onclick = () => load(lv);
+document.getElementById('prev').onclick = () => lv > 0 && load(lv - 1);
+document.getElementById('next').onclick = () => lv < LEVELS.length - 1 && load(lv + 1);
+document.getElementById('slow').onclick = (e) => { slow = slow === 1 ? 4 : 1; e.target.classList.toggle('on', slow > 1); };
+addEventListener('resize', fit);
+load(0); fit();
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arrow Flip</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  /* Скетч игрового экрана для specs/36-arrow-flip.md §7.1.
+     Уровень 2, сразу после первого хода: блок 0 уехал вправо за край,
+     по дороге коснулся блоков 2 и 3 — они повернулись на 90° по часовой. */
+  :root { --cell: 76px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); }
+  button { font: inherit; color: inherit; border: 0; background: none; }
+
+  .app { height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding: 8px 16px 16px; }
+  .top { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px; min-height: 44px; }
+  .top h1 { font-size: 18px; font-weight: 600; text-align: center; }
+  .top-right { display: flex; gap: 8px; }
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 20px; font-weight: 700; color: var(--ui-blue); }
+  .icon-btn svg { width: 22px; height: 22px; color: var(--ui-text); }
+
+  .moves { align-self: center; display: flex; align-items: baseline; gap: 8px; padding: 6px 18px; border-radius: var(--ui-radius-pill); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); font-size: 14px; color: var(--ui-text-muted); font-weight: 500; }
+  .moves b { font-size: 22px; color: var(--ui-text); font-weight: 700; }
+  .moves span { font-size: 16px; font-weight: 600; }
+
+  .stage { flex: 1; min-height: 0; display: grid; place-items: center; }
+  .board { position: relative; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 10px; display: grid; grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(4, var(--cell)); gap: 6px; }
+  .cell { border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .cell::before { content: ""; width: 10%; height: 10%; border-radius: 50%; background: var(--ui-disabled); }
+  .cell.trail { background: color-mix(in srgb, var(--ui-blue) 10%, var(--ui-surface-muted)); }
+
+  .block { --c: var(--ui-blue); position: absolute; width: var(--cell); height: var(--cell); border-radius: 26%;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+    display: grid; place-items: center; }
+  .block svg { width: 52%; height: 52%; filter: drop-shadow(0 1px 2px rgba(31,41,55,.25)); }
+  .block.stuck { --c: var(--ui-blue); }
+  /* Только что повернулся: жёлтое кольцо и дуга поворота, держатся до следующего тапа. */
+  .block.turned { box-shadow: 0 0 0 4px var(--ui-yellow), var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45); }
+  .spin { position: absolute; top: -12px; right: -12px; width: 28px; height: 28px; border-radius: 50%; background: var(--ui-yellow); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; }
+  .spin { font-size: 18px; font-weight: 700; line-height: 1; color: var(--ui-text); }
+  /* Уезжающий блок — полупрозрачный, за правым краем поля. */
+  .block.leaving { opacity: .45; }
+
+  .hint-card { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 14px 16px; text-align: center; font-size: 14px; color: var(--ui-text-muted); line-height: 20px; }
+  .hint-card b { color: var(--ui-text); font-weight: 600; }
+  .legend { display: flex; justify-content: center; gap: 16px; margin-top: 8px; font-size: 12px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; vertical-align: -1px; margin-right: 6px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M12 3.5 20 12h-5v8.5H9V12H4z" fill="#fff"/></symbol>
+  </defs>
+</svg>
+<div class="app">
+  <header class="top">
+    <button class="icon-btn" aria-label="К уровням"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></svg></button>
+    <h1>Уровень 2</h1>
+    <div class="top-right">
+      <button class="icon-btn" aria-label="Как играть">?</button>
+      <button class="icon-btn" aria-label="Заново"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12a7 7 0 1 0 2-5"/><path d="M5 3v4h4"/></svg></button>
+    </div>
+  </header>
+
+  <div class="moves">Ходы <b>1</b><span>/ 4</span></div>
+
+  <main class="stage">
+    <div class="board" id="board"></div>
+  </main>
+
+  <div class="hint-card">
+    Тапни блок — он поедет по стрелке.<br><b>Кого заденет по пути — повернёт на 90°.</b>
+    <div class="legend"><span><i style="background:var(--ui-yellow)"></i>повернулся этим ходом</span></div>
+  </div>
+</div>
+<script>
+  // Координаты в клетках; поворот стрелки: 0 ↑, 90 →, 180 ↓, 270 ←.
+  const cell = 76, gap = 6, pad = 10;
+  const board = document.getElementById('board');
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+    const d = document.createElement('div');
+    d.className = 'cell' + (r === 0 && c >= 1 ? ' trail' : '');
+    board.appendChild(d);
+  }
+  const blocks = [
+    { r: 1, c: 0, deg: 270 },
+    { r: 1, c: 1, deg: 180, turned: true },
+    { r: 1, c: 2, deg: 0, turned: true },
+    { r: 0, c: 3.55, deg: 90, leaving: true },
+  ];
+  for (const b of blocks) {
+    const el = document.createElement('div');
+    el.className = 'block' + (b.turned ? ' turned' : '') + (b.leaving ? ' leaving' : '');
+    el.style.left = pad + b.c * (cell + gap) + 'px';
+    el.style.top = pad + b.r * (cell + gap) + 'px';
+    el.innerHTML = `<svg style="transform:rotate(${b.deg}deg)"><use href="#arrow"/></svg>` +
+      (b.turned ? '<div class="spin">↻</div>' : '');
+    board.appendChild(el);
+  }
+</script>
+</body>
+</html>

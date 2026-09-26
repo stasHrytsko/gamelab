@@ -285,6 +285,49 @@ export function findGate1Levels({
   return found;
 }
 
+/**
+ * Trap-free check for tutorial levels: from every state reachable within the move limit
+ * the level is still winnable in the moves left. No move can lose the level.
+ */
+export function isTrapFree(level, moveLimit) {
+  const memo = new Map();
+  const winnable = (current, left) => {
+    if (current.blocks.length === 0) return true;
+    if (left === 0) return false;
+    const key = `${stateKey(current.blocks)}#${left}`;
+    if (!memo.has(key)) memo.set(key, legalMoves(current).some((o) => winnable(o.level, left - 1)));
+    return memo.get(key);
+  };
+  const safe = (current, left) => {
+    if (current.blocks.length === 0) return true;
+    if (!winnable(current, left)) return false;
+    return legalMoves(current).every((o) => safe(o.level, left - 1));
+  };
+  return safe({ size: level.size, blocks: canonical(level.blocks) }, moveLimit);
+}
+
+/** Tutorial levels: no traps, every legal move exits a block, rotation is visible on the first move. */
+export const TUTORIAL_LEVELS = [
+  {
+    name: 'AF-T1', size: 4, moveLimit: 3,
+    blocks: [
+      { id: '0', row: 1, col: 2, dir: '<' },
+      { id: '1', row: 3, col: 1, dir: 'v' },
+      { id: '2', row: 2, col: 1, dir: '<' },
+    ],
+  },
+  {
+    name: 'AF-T2', size: 4, moveLimit: 4,
+    blocks: [
+      { id: '0', row: 0, col: 1, dir: '>' },
+      { id: '1', row: 1, col: 0, dir: '<' },
+      { id: '2', row: 1, col: 1, dir: '>' },
+      { id: '3', row: 1, col: 2, dir: '<' },
+    ],
+  },
+];
+
+/** Trap levels: candidates found by findGate1Levels() and checked below. */
 export const CURATED_LEVELS = [
   {
     name: 'AF-01', size: 4, moveLimit: 6,
@@ -343,6 +386,10 @@ export const CURATED_LEVELS = [
   },
 ];
 
+/** Level order of the prototype (specs/36-arrow-flip.md §6). */
+export const GAME_LEVELS = ['AF-T1', 'AF-T2', 'AF-01', 'AF-03', 'AF-04']
+  .map((name) => [...TUTORIAL_LEVELS, ...CURATED_LEVELS].find((l) => l.name === name));
+
 function compact(report) {
   return {
     optimalMoves: report.optimalMoves,
@@ -355,6 +402,17 @@ function compact(report) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   let failed = false;
+  for (const level of TUTORIAL_LEVELS) {
+    const report = analyze(level, { maxDepth: level.moveLimit, nodeBudget: 500_000 });
+    const ok = report.solvable
+      && report.complete
+      && report.optimalMoves === level.moveLimit
+      && report.greedySolvable
+      && report.firstMoves.some((m) => m.touched.length > 0)
+      && isTrapFree(level, level.moveLimit);
+    console.log(level.name, ok ? 'PASS' : 'FAIL', JSON.stringify(compact(report)));
+    if (!ok) failed = true;
+  }
   for (const level of CURATED_LEVELS) {
     const report = analyze(level, { maxDepth: level.moveLimit, nodeBudget: 500_000 });
     const ok = report.solvable

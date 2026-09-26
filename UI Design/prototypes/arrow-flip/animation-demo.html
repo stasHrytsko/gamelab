@@ -48,10 +48,8 @@
     background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
     box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
     display: grid; place-items: center; will-change: transform; cursor: pointer; }
-  .ring { position: absolute; inset: -4px; border-radius: 28%; box-shadow: 0 0 0 4px var(--ui-yellow); opacity: 0; transition: opacity 150ms ease; pointer-events: none; }
-  .spin { position: absolute; top: -10px; right: -10px; width: 26px; height: 26px; border-radius: 50%; background: var(--ui-yellow); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 17px; font-weight: 700; line-height: 1; color: var(--ui-text); opacity: 0; transform: scale(.6); transition: opacity 150ms ease, transform 150ms ease; pointer-events: none; }
-  .block.turned .ring, .block.turned .spin { opacity: 1; }
-  .block.turned .spin { transform: scale(1); }
+  /* Отметка "повернулся": сам квадрат на миг светлеет и гаснет обратно к
+     обычному цвету — filter:brightness через Web Animations, см. fire(). */
   .arrow { width: 52%; height: 52%; will-change: transform; filter: drop-shadow(0 1px 2px rgba(31,41,55,.25)); }
   .blocker-flash { animation: flash 260ms ease; }
   @keyframes flash { 50% { filter: brightness(1.18); } }
@@ -102,6 +100,8 @@ const T = {
   lead: 0.35,        // сбоку: поворот стартует, когда центру ехавшего осталось 0,35 клетки до соседа
   rotate: 320,       // длительность поворота стрелки
   rotateEase: 'cubic-bezier(.34,1.5,.52,1)', // лёгкий перелёт ~6° и возврат
+  glowPeak: 1.35,     // пиковая яркость повёрнутого блока
+  glow: 700,          // мс, за которые свечение гаснет обратно к обычному цвету
   shake: 160,
 };
 let slow = 1;
@@ -131,7 +131,7 @@ function load(i) {
   blocks = LEVELS[i].blocks.map(([id, row, col, dir]) => {
     const el = document.createElement('div');
     el.className = 'block';
-    el.innerHTML = '<div class="ring"></div><svg class="arrow"><use href="#arrow"/></svg><div class="spin">↻</div>';
+    el.innerHTML = '<svg class="arrow"><use href="#arrow"/></svg>';
     const b = { id, row, col, dir, angle: DEG[dir], el, arrow: el.querySelector('.arrow') };
     b.arrow.style.transform = `rotate(${b.angle}deg)`;
     el.addEventListener('pointerdown', () => tap(b));
@@ -178,7 +178,6 @@ function tap(b) {
   });
 
   busy = true;
-  blocks.forEach((x) => x.el.classList.remove('turned'));
   const steps = path.length - 1;
   const cellT = T.cell * slow;
   const [x0, y0] = xy(b.row, b.col);
@@ -208,10 +207,12 @@ function tap(b) {
   const fire = (tr) => {
     tr.fired = true;
     const n = tr.n, to = n.angle, from = to - 90;
-    n.el.classList.add('turned');
     n.arrow.animate([{ transform: `rotate(${from}deg)` }, { transform: `rotate(${to}deg)` }],
       { duration: T.rotate * slow, easing: T.rotateEase, fill: 'forwards' })
       .finished.then(() => { n.arrow.style.transform = `rotate(${to}deg)`; });
+    // Свечение: квадрат мгновенно светлеет и плавно, дольше поворота, гаснет к обычному цвету.
+    n.el.animate([{ filter: `brightness(${T.glowPeak})` }, { filter: 'brightness(1)' }],
+      { duration: T.glow * slow, easing: 'ease-out' });
   };
   let pending = triggers.length;
   const t0 = performance.now();

@@ -8,7 +8,8 @@
 <style>
   /* Скетч игрового экрана для specs/36-arrow-flip.md §7.1.
      Уровень 2, сразу после первого хода: блок 0 уехал вправо за край,
-     по дороге коснулся блоков 2 и 3 — они повернулись на 90° по часовой. */
+     по дороге коснулся блоков 2 и 3 — они повернулись на 90° по часовой и
+     ещё светлее обычного (свечение на середине угасания, §7.2 спеки). */
   :root { --cell: 76px; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; overflow: hidden; }
@@ -38,10 +39,9 @@
     display: grid; place-items: center; }
   .block svg { width: 52%; height: 52%; filter: drop-shadow(0 1px 2px rgba(31,41,55,.25)); }
   .block.stuck { --c: var(--ui-blue); }
-  /* Только что повернулся: жёлтое кольцо и дуга поворота, держатся до следующего тапа. */
-  .block.turned { box-shadow: 0 0 0 4px var(--ui-yellow), var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45); }
-  .spin { position: absolute; top: -12px; right: -12px; width: 28px; height: 28px; border-radius: 50%; background: var(--ui-yellow); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; }
-  .spin { font-size: 18px; font-weight: 700; line-height: 1; color: var(--ui-text); }
+  /* Только что повернулся: квадрат светлее обычного — filter: brightness(),
+     на скетче застигнуто на середине угасания к обычному цвету (§7.2). */
+  .block.turned { filter: brightness(1.18); }
   /* Уезжающий блок — полупрозрачный, за правым краем поля. */
   .block.leaving { opacity: .45; }
 
@@ -75,7 +75,7 @@
 
   <div class="hint-card">
     Тапни блок — он поедет по стрелке.<br><b>Кого заденет по пути — повернёт на 90°.</b>
-    <div class="legend"><span><i style="background:var(--ui-yellow)"></i>повернулся этим ходом</span></div>
+    <div class="legend"><span><i style="background:var(--ui-blue);filter:brightness(1.35)"></i>повернулся этим ходом — светлее, гаснет за 700 мс</span></div>
   </div>
 </div>
 <script>
@@ -98,8 +98,7 @@
     el.className = 'block' + (b.turned ? ' turned' : '') + (b.leaving ? ' leaving' : '');
     el.style.left = pad + b.c * (cell + gap) + 'px';
     el.style.top = pad + b.r * (cell + gap) + 'px';
-    el.innerHTML = `<svg style="transform:rotate(${b.deg}deg)"><use href="#arrow"/></svg>` +
-      (b.turned ? '<div class="spin">↻</div>' : '');
+    el.innerHTML = `<svg style="transform:rotate(${b.deg}deg)"><use href="#arrow"/></svg>`;
     board.appendChild(el);
   }
 </script>

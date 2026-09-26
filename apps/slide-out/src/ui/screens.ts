@@ -1,5 +1,6 @@
 import { LEVEL_COUNT, LEVELS } from '../levels/loadLevels.ts';
-import { icon, colorTile } from './icons.ts';
+import art from '@ui/prototypes/slide-out/assets/home-art.webp';
+import { icon } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
@@ -8,15 +9,14 @@ export function homeScreen(go: Go): HTMLElement {
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
+  // Арт первого экрана от автора: название, поле и выезжающие плитки. Низ и края
+  // арта растворяются в размытой копии; кнопка — настоящая, под артом (§7.1).
+  el.style.setProperty('--art', `url("${art}")`);
   el.innerHTML = `
-    <div class="home-logo" aria-hidden="true">
-      ${colorTile('red')}<div class="hole"></div>${colorTile('blue')}
-      <div class="hole"></div>${colorTile('yellow')}<div class="hole"></div>
-      ${colorTile('blue')}<div class="hole"></div>${colorTile('red')}
-    </div>
-    <h1>Slide<br>Out</h1>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary btn-large" data-testid="play">${icon.play}Играть</button>`;
+    <div class="home-bg" aria-hidden="true"></div>
+    <img class="home-art" src="${art}" alt="" width="941" height="1330">
+    <h1 class="sr-only">Slide Out</h1>
+    <button class="play-btn" data-testid="play">Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;
 }

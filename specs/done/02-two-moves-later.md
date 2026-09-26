@@ -21,8 +21,6 @@ kill_criterion: >-
 family: spatial-logic
 levels: authored
 solver: required
-spec_status: approved
-spec_reviewed: 2026-09-24
 ---
 
 # 1. Граница прототипа

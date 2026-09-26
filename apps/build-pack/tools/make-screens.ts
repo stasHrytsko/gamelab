@@ -1,5 +1,5 @@
 /**
- * Снимает экраны прототипа для §7.1 спеки в UI Design/prototypes/roll-pack/:
+ * Снимает экраны прототипа для §7.1 спеки в UI Design/prototypes/build-pack/:
  *   npm run build && npx tsx tools/make-screens.ts
  */
 import { chromium, type Page } from '@playwright/test';
@@ -11,7 +11,7 @@ import type { Point } from '../src/engine/types.ts';
 import { LEVELS } from '../src/levels/levels.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const out = join(here, '../../../UI Design/prototypes/roll-pack');
+const out = join(here, '../../../UI Design/prototypes/build-pack');
 const server = spawn('npx', ['vite', 'preview', '--port', '4177', '--strictPort'], { cwd: join(here, '..'), stdio: 'ignore' });
 await new Promise((resolve) => setTimeout(resolve, 2500));
 const base = 'http://localhost:4177';

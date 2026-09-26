@@ -1,6 +1,6 @@
 # Build & Pack — экраны
 
-Спека — `specs/38-roll-pack.md`. Снимки собранного прототипа `apps/roll-pack`
+Спека — `specs/38-build-pack.md`. Снимки собранного прототипа `apps/build-pack`
 (пересобрать: `npm run build && npx tsx tools/make-screens.ts`):
 
 - `1-home.png` — главный: арт во весь экран, под ним живая кнопка «Играть».

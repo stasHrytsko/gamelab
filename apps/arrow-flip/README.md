@@ -15,7 +15,7 @@
 | `https://<домен>/?unlock=all#/level/5` | любой уровень без прохождения предыдущих — для проверки, прогресс не трогает |
 
 Маршруты в `#`, превью ссылки — `public/og.png`, иконка «На экран Домой» —
-`manifest.webmanifest`; всё как у `apps/roll-pack`.
+`manifest.webmanifest`; всё как у `apps/build-pack`.
 
 ## Vercel
 

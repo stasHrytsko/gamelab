@@ -1,6 +1,6 @@
 # Build & Pack — прототип
 
-Спека — `specs/38-roll-pack.md`, экраны — `UI Design/prototypes/roll-pack/`.
+Спека — `specs/38-build-pack.md`, экраны — `UI Design/prototypes/build-pack/`.
 Веб-игра под телефон: TypeScript + Vite, без фреймворка, экран на HTML/CSS,
 стиль — токены и шрифт из `UI Design/` (подключаются напрямую, не копией).
 
@@ -19,7 +19,7 @@
 ## Vercel
 
 1. Vercel → Add New → Project → импортировать репозиторий `gamelab`.
-2. **Root Directory: `apps/roll-pack`.** Остальное Vercel возьмёт из
+2. **Root Directory: `apps/build-pack`.** Остальное Vercel возьмёт из
    `vercel.json` (Vite, `npm run build`, `dist`).
 3. Опция «Include files outside the Root Directory» должна остаться
    включённой: сборка читает `../../UI Design`.
@@ -32,7 +32,7 @@ npm run dev          # http://<ip-компьютера>:5173 — открыть 
 npm test             # движок, солвер, уровни: решаемость, «змейка» не проходит 2–5 (§6)
 npm run e2e          # пять уровней решением солвера, счётчик, препятствие, проигрыш, тач, «без прокрутки»
 npx tsx tools/make-images.ts    # иконки и og.png из tools/brand.html
-npx tsx tools/make-screens.ts   # экраны для UI Design/prototypes/roll-pack (после npm run build)
+npx tsx tools/make-screens.ts   # экраны для UI Design/prototypes/build-pack (после npm run build)
 npx tsx tools/build-artifact.ts # один HTML-файл для превью на claude.ai
 ```
 

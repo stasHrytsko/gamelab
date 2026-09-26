@@ -1,6 +1,6 @@
 import type { Level } from '../engine/types.ts';
 import { LEVELS } from '../levels/levels.ts';
-import art from '@ui/prototypes/roll-pack/assets/home-art.webp';
+import art from '@ui/prototypes/build-pack/assets/home-art.webp';
 import { icon } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 

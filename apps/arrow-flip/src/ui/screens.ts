@@ -9,7 +9,7 @@ export function homeScreen(go: Go): HTMLElement {
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
-  // Арт первого экрана (§7.1, roll-pack §7.1): название, поле и стрелки. Низ
+  // Арт первого экрана (§7.1, build-pack §7.1): название, поле и стрелки. Низ
   // арта растворяется в размытой копии; кнопка — настоящая, под артом.
   el.style.setProperty('--art', `url("${art}")`);
   el.innerHTML = `

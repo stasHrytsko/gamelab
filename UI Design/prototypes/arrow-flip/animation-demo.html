@@ -42,12 +42,18 @@
   .cell { border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
   .cell::before { content: ""; width: 10%; height: 10%; border-radius: 50%; background: var(--ui-disabled); }
 
+  /* --c регистрируется как <color> — браузер плавно ведёт градиент между
+     направлениями сам, без ручных кадров (§7.2). */
+  @property --c { syntax: '<color>'; inherits: true; initial-value: #4f7eff; }
+
   /* Блок: квадрат двигается только когда едет сам. Стрелка — отдельный слой,
-     крутится вокруг центра квадрата; квадрат при этом стоит на месте. */
+     крутится вокруг центра квадрата; квадрат при этом стоит на месте. Цвет —
+     прямое отражение направления, меняется вместе со стрелкой. */
   .block { --c: var(--ui-blue); position: absolute; left: 0; top: 0; width: var(--cell); height: var(--cell); border-radius: 26%;
     background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
     box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
-    display: grid; place-items: center; will-change: transform; cursor: pointer; }
+    display: grid; place-items: center; will-change: transform; cursor: pointer;
+    transition: --c 320ms ease; }
   /* Отметка "повернулся": сам квадрат на миг светлеет и гаснет обратно к
      обычному цвету — filter:brightness через Web Animations, см. fire(). */
   .arrow { width: 52%; height: 52%; will-change: transform; filter: drop-shadow(0 1px 2px rgba(31,41,55,.25)); }
@@ -91,6 +97,8 @@ const LEVELS = [
 const DELTA = { '^': [-1,0], '>': [0,1], 'v': [1,0], '<': [0,-1] };
 const ROT = { '^': '>', '>': 'v', 'v': '<', '<': '^' };
 const DEG = { '^': 0, '>': 90, 'v': 180, '<': 270 };
+// Цвет — по направлению (решение автора 2026-09-27): токены кита, «красный» — coral.
+const DIR_COLOR = { '<': 'var(--ui-blue)', '>': 'var(--ui-green)', '^': 'var(--ui-coral)', 'v': 'var(--ui-yellow)' };
 
 /* ---------- тайминги §7.2 ---------- */
 const T = {
@@ -134,6 +142,7 @@ function load(i) {
     el.innerHTML = '<svg class="arrow"><use href="#arrow"/></svg>';
     const b = { id, row, col, dir, angle: DEG[dir], el, arrow: el.querySelector('.arrow') };
     b.arrow.style.transform = `rotate(${b.angle}deg)`;
+    el.style.setProperty('--c', DIR_COLOR[dir]);
     el.addEventListener('pointerdown', () => tap(b));
     board.appendChild(el);
     place(b);
@@ -192,7 +201,9 @@ function tap(b) {
        { transform: `translate(${x0 + (xe - x0) * steps / dist}px,${y0 + (ye - y0) * steps / dist}px)`, opacity: 1, offset: steps / dist || 0 },
        { transform: `translate(${xe}px,${ye}px)`, opacity: 0 }]
     : [{ transform: `translate(${x0}px,${y0}px)` }, { transform: `translate(${x1}px,${y1}px)` }];
-  const anim = b.el.animate(frames, { duration: Math.max(travel, 1), easing: exited ? (steps ? 'cubic-bezier(.45,0,1,1)' : 'ease-in') : 'cubic-bezier(.3,0,.25,1)' });
+  // fill:'forwards' — иначе WAAPI откатывает блок на исходную клетку сразу,
+  // как отыграет анимация, и до place()/remove() на миг виден «призрак» (§7.2).
+  const anim = b.el.animate(frames, { duration: Math.max(travel, 1), easing: exited ? (steps ? 'cubic-bezier(.45,0,1,1)' : 'ease-in') : 'cubic-bezier(.3,0,.25,1)', fill: 'forwards' });
 
   // Повороты привязаны к фактической позиции ехавшего блока на экране, а не к
   // расписанию: при любом easing стрелка начинает крутиться, когда блок подъезжает.
@@ -213,6 +224,8 @@ function tap(b) {
     // Свечение: квадрат мгновенно светлеет и плавно, дольше поворота, гаснет к обычному цвету.
     n.el.animate([{ filter: `brightness(${T.glowPeak})` }, { filter: 'brightness(1)' }],
       { duration: T.glow * slow, easing: 'ease-out' });
+    // Цвет плавно меняется на новое направление — CSS-переход по --c.
+    n.el.style.setProperty('--c', DIR_COLOR[n.dir]);
   };
   let pending = triggers.length;
   const t0 = performance.now();
@@ -226,7 +239,7 @@ function tap(b) {
   })();
 
   if (exited) blocks = blocks.filter((x) => x !== b); else { b.row = r; b.col = c; }
-  anim.finished.then(() => { if (exited) b.el.remove(); else place(b); });
+  anim.finished.then(() => { if (exited) b.el.remove(); else { place(b); anim.cancel(); } });
   moves += 1;
   if (!triggers.length) setTimeout(() => { busy = false; check(); }, travel);
 }

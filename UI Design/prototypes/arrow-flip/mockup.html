@@ -7,9 +7,12 @@
 <link rel="stylesheet" href="../../design-tokens.css">
 <style>
   /* Скетч игрового экрана для specs/36-arrow-flip.md §7.1.
-     Уровень 2, сразу после первого хода: блок 0 уехал вправо за край,
-     по дороге коснулся блоков 2 и 3 — они повернулись на 90° по часовой и
-     ещё светлее обычного (свечение на середине угасания, §7.2 спеки). */
+     Уровень 2, сразу после первого хода: блок 0 (дир. →, зелёный) уехал
+     вправо за край, по дороге коснулся блоков 2 и 3 — оба повернулись на
+     90° по часовой, уже сменили цвет на новое направление (↓ жёлтый,
+     ↑ коралловый) и ещё светлее обычного — свечение на середине угасания
+     (§7.2 спеки). Цвет = направление: ← синий, → зелёный, ↑ коралловый,
+     ↓ жёлтый. */
   :root { --cell: 76px; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; overflow: hidden; }
@@ -75,7 +78,7 @@
 
   <div class="hint-card">
     Тапни блок — он поедет по стрелке.<br><b>Кого заденет по пути — повернёт на 90°.</b>
-    <div class="legend"><span><i style="background:var(--ui-blue);filter:brightness(1.35)"></i>повернулся этим ходом — светлее, гаснет за 700 мс</span></div>
+    <div class="legend"><span><i style="background:var(--ui-yellow);filter:brightness(1.35)"></i>повернулся этим ходом — цвет сменился, светлее, гаснет за 700 мс</span></div>
   </div>
 </div>
 <script>
@@ -87,6 +90,8 @@
     d.className = 'cell' + (r === 0 && c >= 1 ? ' trail' : '');
     board.appendChild(d);
   }
+  // Цвет по направлению (§7): ← синий, → зелёный, ↑ коралловый, ↓ жёлтый.
+  const COLOR = { 0: 'var(--ui-coral)', 90: 'var(--ui-green)', 180: 'var(--ui-yellow)', 270: 'var(--ui-blue)' };
   const blocks = [
     { r: 1, c: 0, deg: 270 },
     { r: 1, c: 1, deg: 180, turned: true },
@@ -98,6 +103,7 @@
     el.className = 'block' + (b.turned ? ' turned' : '') + (b.leaving ? ' leaving' : '');
     el.style.left = pad + b.c * (cell + gap) + 'px';
     el.style.top = pad + b.r * (cell + gap) + 'px';
+    el.style.setProperty('--c', COLOR[b.deg]);
     el.innerHTML = `<svg style="transform:rotate(${b.deg}deg)"><use href="#arrow"/></svg>`;
     board.appendChild(el);
   }

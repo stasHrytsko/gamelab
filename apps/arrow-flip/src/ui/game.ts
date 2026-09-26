@@ -17,6 +17,10 @@ export interface Screen {
 // Углы стрелки в градусах при загрузке уровня (до накопления поворотов, §7.2).
 const DEG: Record<Dir, number> = { '^': 0, '>': 90, v: 180, '<': 270 };
 const DELTA: Record<Dir, readonly [number, number]> = { '^': [-1, 0], '>': [0, 1], v: [1, 0], '<': [0, -1] };
+// Цвет блока — прямое отражение направления (§7): цвет читается раньше, чем
+// стрелка успевает прорисоваться глазом. Токены кита, без нового цвета —
+// «красный» здесь coral, чистый ui-danger оставлен за проигрышем.
+const DIR_COLOR: Record<Dir, string> = { '<': 'var(--ui-blue)', '>': 'var(--ui-green)', '^': 'var(--ui-coral)', v: 'var(--ui-yellow)' };
 
 // Тайминги хода — §7.2 спеки, взяты из живого демо
 // (UI Design/prototypes/arrow-flip/animation-demo.html).
@@ -35,9 +39,9 @@ const T = {
 const HOW_TO_PLAY = `
   <h2>Как играть?</h2>
   <div class="demo" aria-hidden="true">
-    <div class="demo-block"><svg viewBox="0 0 24 24" style="transform:rotate(90deg)">${blockArrow}</svg></div>
+    <div class="demo-block" style="--c:${DIR_COLOR['>']}"><svg viewBox="0 0 24 24" style="transform:rotate(90deg)">${blockArrow}</svg></div>
     ${icon.arrow.replace('class=""', 'class="arrow-hint"')}
-    <div class="demo-block" style="--c:var(--ui-coral)"><svg viewBox="0 0 24 24" style="transform:rotate(180deg)">${blockArrow}</svg></div>
+    <div class="demo-block" style="--c:${DIR_COLOR.v}"><svg viewBox="0 0 24 24" style="transform:rotate(180deg)">${blockArrow}</svg></div>
   </div>
   <ol class="rules">
     <li><b>1</b><span>Тапни блок — он поедет туда, куда смотрит стрелка.</span></li>
@@ -100,6 +104,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     box.innerHTML = `<svg class="arrow" viewBox="0 0 24 24">${blockArrow}</svg>`;
     const arrow = box.querySelector('svg') as SVGElement;
     arrow.style.transform = `rotate(${String(DEG[b.dir])}deg)`;
+    box.style.setProperty('--c', DIR_COLOR[b.dir]);
     box.addEventListener('pointerdown', () => tapBlock(b.id));
     boardEl.append(box);
     sprites.set(b.id, { id: b.id, row: b.row, col: b.col, angle: DEG[b.dir], el: box, arrow });
@@ -192,20 +197,29 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
               { transform: `translate(${String(xe)}px,${String(ye)}px)`, opacity: 0 },
             ]
         : [{ transform: `translate(${String(x0)}px,${String(y0)}px)` }, { transform: `translate(${String(xe)}px,${String(ye)}px)` }];
+      // fill:'forwards' — иначе по окончании WAAPI-анимации блок на кадр
+      // откатывается к позиции до хода (браузер снимает эффект), и до того,
+      // как игра его переставит или удалит, на старом месте вспыхивает призрак.
       const anim = mover.el.animate(frames, {
         duration: Math.max(travel, 1),
         easing: move.exited ? (steps ? 'cubic-bezier(.45,0,1,1)' : 'ease-in') : 'cubic-bezier(.3,0,.25,1)',
+        fill: 'forwards',
       });
       void anim.finished.then(() => {
         if (!move.exited) {
           mover.row = mover.row + dr * steps;
           mover.col = mover.col + dc * steps;
-          place(mover);
+          place(mover); // инлайновый transform уже на конечном месте
+          anim.cancel(); // снимает fill:'forwards', чтобы дальнейший place() (resize) снова работал
         }
+        // Уезжающий блок отменять нельзя: cancel() снял бы fill:'forwards' и
+        // откатил бы его на исходную клетку до самого удаления из DOM — это
+        // и был баг «призрака». Блок просто держит конечный кадр до remove().
       });
 
       const triggers = move.touches.map((t) => ({
         sprite: sprites.get(t.id),
+        newDir: result.state.blocks.find((b) => b.id === t.id)?.dir,
         at: t.pathIndex === 0 ? 0 : t.front ? steps - 0.04 : t.pathIndex - T.lead,
         fired: false,
       }));
@@ -216,12 +230,18 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
         s.angle += 90;
         const to = s.angle;
         const from = to - 90;
-        s.arrow.animate([{ transform: `rotate(${String(from)}deg)` }, { transform: `rotate(${String(to)}deg)` }], {
+        const rotateAnim = s.arrow.animate([{ transform: `rotate(${String(from)}deg)` }, { transform: `rotate(${String(to)}deg)` }], {
           duration: T.rotate,
           easing: T.rotateEase,
           fill: 'forwards',
-        }).finished.catch(() => undefined).then(() => { s.arrow.style.transform = `rotate(${String(to)}deg)`; }).catch(() => undefined);
+        });
+        rotateAnim.finished
+          .then(() => { s.arrow.style.transform = `rotate(${String(to)}deg)`; rotateAnim.cancel(); })
+          .catch(() => undefined);
         s.el.animate([{ filter: `brightness(${String(T.glowPeak)})` }, { filter: 'brightness(1)' }], { duration: T.glow, easing: 'ease-out' });
+        // Цвет меняется вместе со стрелкой — CSS сам плавно ведёт градиент
+        // от старого --c к новому (@property в styles.css).
+        if (tr.newDir !== undefined) s.el.style.setProperty('--c', DIR_COLOR[tr.newDir]);
       };
 
       let pending = triggers.length;

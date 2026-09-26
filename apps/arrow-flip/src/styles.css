@@ -182,12 +182,18 @@ svg { display: block; }
 .cell { border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
 .cell::before { content: ""; width: 10%; height: 10%; border-radius: 50%; background: var(--ui-disabled); }
 
+/* --c регистрируется как <color>, чтобы браузер плавно интерполировал сам
+   градиент между направлениями, а не мигал с одного цвета на другой (§7). */
+@property --c { syntax: '<color>'; inherits: true; initial-value: #4f7eff; }
+
 /* Блок: квадрат стоит на месте, кроме собственного движения. Стрелка — слой
-   внутри, крутится вокруг центра квадрата (§7.2 спеки). */
+   внутри, крутится вокруг центра квадрата (§7.2 спеки). Цвет — прямое
+   отражение направления, меняется вместе со стрелкой. */
 .block { --c: var(--ui-blue); position: absolute; left: 0; top: 0; width: var(--cell); height: var(--cell); border-radius: 26%;
   background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
   box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
-  display: grid; place-items: center; will-change: transform; touch-action: none; }
+  display: grid; place-items: center; will-change: transform; touch-action: none;
+  transition: --c 320ms ease; }
 .block .arrow { width: 52%; height: 52%; will-change: transform; filter: drop-shadow(0 1px 2px rgba(31,41,55,.25)); }
 .block.stuck-flash { animation: stuck-flash 260ms ease; }
 @keyframes stuck-flash { 50% { filter: brightness(1.18); } }

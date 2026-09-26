@@ -1,6 +1,6 @@
 import type { Level } from '../engine/types.ts';
 import { LEVELS } from '../levels/levels.ts';
-import banner from '@ui/prototypes/roll-pack/assets/home-banner.webp';
+import art from '@ui/prototypes/roll-pack/assets/home-art.webp';
 import { icon } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
@@ -10,15 +10,14 @@ export function homeScreen(go: Go): HTMLElement {
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
-  // Баннер — фон экрана (размытый, во весь экран) и чёткая карточка сверху (§7.1).
-  el.style.setProperty('--banner', `url("${banner}")`);
+  // Арт первого экрана (§7.1): название, поле и фигуры. Низ арта растворяется в
+  // размытой копии; кнопка — настоящая, под артом.
+  el.style.setProperty('--art', `url("${art}")`);
   el.innerHTML = `
     <div class="home-bg" aria-hidden="true"></div>
-    <div class="home-center">
-      <img class="home-banner" src="${banner}" alt="" width="1672" height="941">
-      <h1 class="sr-only">Build &amp; Pack</h1>
-      <button class="btn btn-primary btn-large" data-testid="play">${icon.play}Играть</button>
-    </div>`;
+    <img class="home-art" src="${art}" alt="" width="940" height="1180">
+    <h1 class="sr-only">Build &amp; Pack</h1>
+    <button class="play-btn" data-testid="play">Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;
 }

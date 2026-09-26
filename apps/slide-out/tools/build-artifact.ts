@@ -28,9 +28,18 @@ const css = find('.css').replace(/url\(\.?\/?(?:assets\/)?([^)]+\.ttf)\)/g, (_ma
   const data = readFileSync(join(assets, font)).toString('base64');
   return `url(data:font/ttf;base64,${data})`;
 });
-const js = find('.js').replaceAll('</script', '<\\/script');
+const mime: Record<string, string> = { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg', svg: 'image/svg+xml' };
+let js = find('.js').replaceAll('</script', '<\\/script');
+js = js.replace(
+  /new URL\(`([^`]+\.(webp|png|jpg|svg))`,\s*import\.meta\.url\)\.href/g,
+  (_match, file: string, ext: string) => {
+    const data = readFileSync(join(assets, file)).toString('base64');
+    return JSON.stringify(`data:${mime[ext]};base64,${data}`);
+  },
+);
 
-const page = `<title>Slide Out</title>
+const page = `<meta charset="utf-8">
+<title>Slide Out</title>
 <style>${css}</style>
 <div id="app"></div>
 <script type="module">${js}</script>

@@ -25,6 +25,7 @@ const T = {
   reveal: 300, // волна раскрытия комнаты
   popup: 900, // от «Забрать» или ловушки до попапа
   clueTip: 1500, // обучающая подсветка соседей
+  hold: 350, // удержание открытой плиты с числом до подсветки соседей
 } as const;
 
 // Геометрия поля (§7.1): плита 36–60 px, зазор 5 px.
@@ -303,6 +304,44 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     return out;
   }
 
+  // ---------- удержание открытой плиты: подсветка соседей (§4, §7, решение автора 2026-09-27) ----------
+  // Подсвечивает только закрытые соседние плиты — тот же круг, что число уже
+  // называет («N ловушек среди этих плит»). Не то, где ловушка точно, и не
+  // вероятность: геометрия, которую игрок и так видит по клетке рядом.
+  let holdTimer: ReturnType<typeof setTimeout> | null = null;
+  let holdIndex = -1;
+
+  function clearHold(): void {
+    if (holdTimer !== null) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    }
+    if (holdIndex >= 0) {
+      neighboursOf(holdIndex)
+        .filter((j) => !state.open[j])
+        .forEach((j) => cellEl(j).classList.remove('tip-ring'));
+      cellEl(holdIndex).classList.remove('peek-source');
+      tipEl.hidden = true;
+      holdIndex = -1;
+    }
+  }
+
+  function startHold(i: number): void {
+    clearHold();
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      holdIndex = i;
+      const n = state.clue[i] ?? 0;
+      const closed = neighboursOf(i).filter((j) => !state.open[j]);
+      closed.forEach((j) => cellEl(j).classList.add('tip-ring'));
+      cellEl(i).classList.add('peek-source');
+      tipEl.innerHTML = `<b>${String(n)} ${plural(n, 'ловушка', 'ловушки', 'ловушек')}</b> среди этих плит`;
+      tipEl.hidden = false;
+      vibrate(10);
+      log({ type: 'peek', level: levelNumber, row: Math.floor(i / level.cols), col: i % level.cols });
+    }, T.hold);
+  }
+
   // ---------- тап по плите (§4) ----------
   function tapCell(row: number, col: number): void {
     if (locked()) return;
@@ -466,9 +505,21 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   boardEl.addEventListener('pointerdown', (event) => {
     const box = (event.target as HTMLElement).closest<HTMLElement>('.cell');
+    clearHold();
     if (box === null) return;
-    tapCell(Number(box.dataset['row']), Number(box.dataset['col']));
+    const row = Number(box.dataset['row']);
+    const col = Number(box.dataset['col']);
+    const i = row * level.cols + col;
+    // Держат открытую плиту с числом — подсвечиваем соседей вместо тапа (тап по
+    // открытой плите и так ничего не делает, §4).
+    if (!locked() && state.open[i] === true && (state.clue[i] ?? 0) > 0) {
+      startHold(i);
+      return;
+    }
+    tapCell(row, col);
   });
+  document.addEventListener('pointerup', clearHold);
+  document.addEventListener('pointercancel', clearHold);
   takeBtn.addEventListener('click', onTake);
   q('[data-testid="to-levels"]').addEventListener('click', toLevels);
   q('[data-testid="restart"]').addEventListener('click', () => {
@@ -492,6 +543,8 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     el,
     destroy: () => {
       observer.disconnect();
+      document.removeEventListener('pointerup', clearHold);
+      document.removeEventListener('pointercancel', clearHold);
       if (state.status === 'playing' && taps > 0) log({ type: 'abandon', level: levelNumber, attempt, gold: state.gold });
     },
   };

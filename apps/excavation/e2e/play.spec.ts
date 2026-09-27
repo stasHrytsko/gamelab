@@ -133,6 +133,55 @@ test('уровень 1: первое число подсвечивает сос�
   await expect(page.getByTestId('clue-tip')).toBeHidden();
 });
 
+test('удержание открытой плиты с числом подсвечивает закрытых соседей (§4)', async ({ page }) => {
+  await page.goto('/?unlock=all#/level/3');
+  const { room } = await roomOf(page, 3);
+  const first = safeSequence(room).find((i) => (room.clue[i] ?? 0) > 0);
+  if (first === undefined) throw new Error('no numbered safe tile');
+  const n = room.clue[first] ?? 0;
+  const r = Math.floor(first / room.cols);
+  const c = first % room.cols;
+  let closedNeighbours = 0;
+  for (let dr = -1; dr <= 1; dr += 1)
+    for (let dc = -1; dc <= 1; dc += 1) {
+      if (!dr && !dc) continue;
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr < 0 || nr >= room.rows || nc < 0 || nc >= room.cols) continue;
+      if (nr * room.cols + nc !== room.entrance) closedNeighbours += 1;
+    }
+  await page.getByTestId(cellId(room.cols, first)).click();
+  const gold = await game(page).getAttribute('data-gold');
+
+  const cell = page.getByTestId(cellId(room.cols, first));
+  await cell.hover();
+  await page.mouse.down();
+  await expect(page.getByTestId('clue-tip')).toBeHidden();
+  await page.waitForTimeout(450);
+  await expect(page.getByTestId('clue-tip')).toBeVisible();
+  await expect(page.getByTestId('clue-tip')).toContainText(String(n));
+  // Подсвечиваются все закрытые соседи (не только те, что окажутся ловушками).
+  await expect(page.locator('.cell.tip-ring')).toHaveCount(closedNeighbours);
+  // Удержание не открывает клетки и не тратит ход: золото не изменилось.
+  await expect(game(page)).toHaveAttribute('data-gold', String(gold));
+
+  await page.mouse.up();
+  await expect(page.getByTestId('clue-tip')).toBeHidden();
+  await expect(page.locator('.cell.tip-ring')).toHaveCount(0);
+});
+
+test('короткий тап по числу — не удержание: ничего не подсвечивает', async ({ page }) => {
+  await page.goto('/?unlock=all#/level/3');
+  const { room } = await roomOf(page, 3);
+  const first = safeSequence(room).find((i) => (room.clue[i] ?? 0) > 0);
+  if (first === undefined) throw new Error('no numbered safe tile');
+  await page.getByTestId(cellId(room.cols, first)).click();
+  await page.getByTestId(cellId(room.cols, first)).click();
+  await page.waitForTimeout(500);
+  await expect(page.getByTestId('clue-tip')).toBeHidden();
+  await expect(page.locator('.cell.tip-ring')).toHaveCount(0);
+});
+
 test('экран помещается без прокрутки (§7.1)', async ({ browser }) => {
   for (const [width, height] of [[360, 560], [375, 560], [390, 664], [430, 932]] as const) {
     const page = await browser.newPage({ viewport: { width, height }, isMobile: true, hasTouch: true });

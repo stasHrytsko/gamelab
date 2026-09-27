@@ -109,7 +109,7 @@ svg { display: block; }
 .h-cell b { font-size: calc(var(--cell) * .42); font-weight: 700; margin-top: -18%; }
 .h-cell > svg { width: 50%; height: 50%; color: var(--ui-green); }
 .h-cell.exit { box-shadow: inset 0 0 0 2px var(--ui-green); }
-.h-cell.exit > svg { width: 46%; height: 46%; margin-top: -12%; }
+.h-cell.exit > svg { width: 42%; height: 42%; }
 .h-cell .corner { position: absolute; top: 3px; left: 7px; font-size: calc(var(--cell) * .25); margin: 0; }
 .h-cell .pips { bottom: calc(var(--cell) * .13); }
 
@@ -225,15 +225,17 @@ svg { display: block; }
 .cell { position: relative; width: var(--cell); height: var(--cell); border-radius: 26%; background: var(--ui-surface-muted); box-shadow: inset 0 0 0 1px var(--ui-border); display: grid; place-items: center; }
 .cell.closed { background: none; box-shadow: none; cursor: pointer; }
 .cell .num { font-size: calc(var(--cell) * .44); font-weight: 700; line-height: 1; margin-top: -16%; }
-.cell.entrance svg, .cell.exit > svg, .cell.ghost-exit > svg { width: 48%; height: 48%; color: var(--ui-green); }
+.cell.entrance svg { width: 50%; height: 50%; color: var(--ui-green); }
+.cell.exit > svg, .cell.ghost-exit > svg { width: 40%; height: 40%; color: var(--ui-green); }
 .cell.exit { box-shadow: inset 0 0 0 2px var(--ui-green); }
-.cell.exit > svg, .cell.ghost-exit > svg { margin-top: -12%; }
 .cell.exit .corner { position: absolute; top: 3px; left: 6px; font-size: calc(var(--cell) * .25); font-weight: 700; line-height: 1.1; }
 .cell.ghost .num, .cell.ghost .pips, .cell.ghost-exit > svg { opacity: .38; }
 .cell.ghost-trap svg { width: 50%; height: 50%; color: var(--ui-coral); opacity: .8; }
 .cell.trap-hit { background: none; box-shadow: none; }
 /* Обучающая подсветка соседей (§7). */
 .cell.tip-ring .stone { outline: 2.5px solid var(--ui-coral); outline-offset: 1px; }
+/* Плита, которую держат (§4, §7): лёгкое кольцо вокруг числа, пока идёт подсветка. */
+.cell.peek-source { box-shadow: inset 0 0 0 2px var(--ui-coral); }
 .clue-tip { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 5; max-width: calc(100% - 16px); padding: 8px 14px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-card), 0 0 0 1px var(--ui-border); font-size: 13px; line-height: 1.3; text-align: center; pointer-events: none; animation: fade-in 200ms ease both; }
 .clue-tip b { color: var(--ui-coral); }
 .clue-tip span { color: var(--ui-yellow); font-weight: 600; }

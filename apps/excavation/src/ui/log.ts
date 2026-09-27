@@ -25,7 +25,9 @@ export type LogEvent =
   | { type: 'abandon'; level: number; attempt: number; gold: number }
   | { type: 'take_blocked'; level: number; attempt: number; why: 'no_exit' | 'no_gold' }
   | { type: 'clue_tip'; level: number }
-  | { type: 'help_open'; level: number };
+  | { type: 'help_open'; level: number }
+  /** Игрок держал открытую плиту с числом, чтобы подсветить закрытых соседей (§4, §7). */
+  | { type: 'peek'; level: number; row: number; col: number };
 
 export function log(event: LogEvent): void {
   try {

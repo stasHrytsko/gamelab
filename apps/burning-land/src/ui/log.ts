@@ -28,7 +28,7 @@ export type LogEvent =
     }
   | { type: 'skip'; level: number; attempt: number; turn: number }
   | { type: 'help_open'; level: number }
-  | { type: 'level_win'; level: number; attempt: number; turn: number; burned: number }
+  | { type: 'level_win'; level: number; attempt: number; turn: number; saved: number }
   | { type: 'level_fail'; level: number; attempt: number; reason: 'house_burned'; turn: number };
 
 export function log(event: LogEvent): void {

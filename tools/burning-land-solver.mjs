@@ -7,10 +7,14 @@
  * - board 8×8; cells: grass, stone, wall, fire (active front), ash, house;
  * - a turn gives three shapes; the player puts exactly one of them (any of its rotations)
  *   onto grass cells, they become wall; the other two are discarded;
- * - if after the placement the fire has no grass/house neighbour → win at once;
+ * - if after the placement the fire has no grass/house neighbour, or no house is reachable
+ *   by the fire through grass any more → win at once (the houses are safe);
  * - fire step: every grass/house neighbour (up/down/left/right) of the front ignites,
  *   the old front turns to ash;
- * - a house ignited → fail `house_burned`; fire with no grass/house neighbour → win;
+ * - a house ignited → fail `house_burned`; fire with no grass/house neighbour, or no house
+ *   reachable by the fire → win;
+ * - at most 3 rotations per turn in the game; any orientation of one shape needs ≤ 3, so the
+ *   limit never removes a placement and the solver ignores it.
  * - if none of the three shapes fits anywhere, the turn is skipped and the fire still steps.
  *
  * Level map: 8 strings of 8 chars. `.` grass, `#` stone, `F` fire, `H` house.
@@ -133,7 +137,7 @@ export function spread(grid) {
     g[i] = FIRE;
   }
   if (houseHit) return { grid: g, status: 'failed' };
-  if (nextBurn(g).size === 0) return { grid: g, status: 'won' };
+  if (nextBurn(g).size === 0 || housesSafe(g)) return { grid: g, status: 'won' };
   return { grid: g, status: 'playing' };
 }
 
@@ -177,7 +181,7 @@ export function playTurn(grid, move) {
       g[i] = WALL;
     }
   }
-  if (nextBurn(g).size === 0) return { grid: g, status: 'won' };
+  if (nextBurn(g).size === 0 || housesSafe(g)) return { grid: g, status: 'won' };
   return spread(g);
 }
 
@@ -210,6 +214,21 @@ export function fireDist(grid) {
     }
   }
   return d;
+}
+
+/** No house can be reached by the fire through grass: the houses are safe, the level is won. */
+export function housesSafe(grid) {
+  const d = fireDist(grid);
+  for (let i = 0; i < N * N; i++) if (grid[i] === HOUSE && d[i] >= 0) return false;
+  return true;
+}
+
+/** Land saved from the fire: grass and houses the fire can never reach. */
+export function saved(grid) {
+  const d = fireDist(grid);
+  let n = 0;
+  for (let i = 0; i < N * N; i++) if ((grid[i] === GRASS || grid[i] === HOUSE) && d[i] < 0) n++;
+  return n;
 }
 
 function houseScore(grid) {
@@ -470,6 +489,7 @@ export function analyze(level) {
     solvable: r.solvable,
     solverTurns: end?.turns ?? null,
     burnedBySolver: end ? burned(end.grid) : null,
+    savedBySolver: end ? saved(end.grid) : null,
     nodes: r.nodes,
     greedyFront: greedyFront(level).won,
     greedyHouse: greedyHouse(level).won,

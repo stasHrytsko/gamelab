@@ -78,8 +78,11 @@ export function houseCells(level: Level): number[] {
   return parseCells(level).flatMap((k, i) => (k === 'house' ? [i] : []));
 }
 
+/** Поворотов на ход, общий лимит на три фигуры (§4, решение автора 2026-09-27). */
+export const ROTATIONS_PER_TURN = 3;
+
 export function createState(level: Level): GameState {
-  return { level: level.id, cells: parseCells(level), turn: 0, rotations: [0, 0, 0], status: 'playing', failReason: null };
+  return { level: level.id, cells: parseCells(level), turn: 0, rotations: [0, 0, 0], rotationsLeft: ROTATIONS_PER_TURN, status: 'playing', failReason: null };
 }
 
 export function neighbours(i: number): number[] {
@@ -103,6 +106,39 @@ export function nextBurn(cells: readonly CellKind[]): Set<number> {
     for (const n of neighbours(i)) if (burnable(cells[n])) out.add(n);
   });
   return out;
+}
+
+/** Расстояние огня по траве и домам до каждой клетки; -1 — огонь туда не дойдёт. */
+export function fireDistance(cells: readonly CellKind[]): number[] {
+  const d = cells.map(() => -1);
+  const queue: number[] = [];
+  cells.forEach((k, i) => {
+    if (k === 'fire') {
+      d[i] = 0;
+      queue.push(i);
+    }
+  });
+  for (let h = 0; h < queue.length; h += 1) {
+    const cur = queue[h] as number;
+    for (const n of neighbours(cur)) {
+      if ((d[n] ?? 0) >= 0 || !burnable(cells[n])) continue;
+      d[n] = (d[cur] ?? 0) + 1;
+      queue.push(n);
+    }
+  }
+  return d;
+}
+
+/** Ни до одного дома огонь больше не доберётся — дома в безопасности, победа (§5). */
+export function housesSafe(cells: readonly CellKind[]): boolean {
+  const d = fireDistance(cells);
+  return cells.every((k, i) => k !== 'house' || (d[i] ?? -1) < 0);
+}
+
+/** Спасено земли: трава и дома, до которых огонь не доберётся никогда (§7, попап победы). */
+export function savedCount(cells: readonly CellKind[]): number {
+  const d = fireDistance(cells);
+  return cells.filter((k, i) => (k === 'grass' || k === 'house') && (d[i] ?? -1) < 0).length;
 }
 
 /** Клетки фигуры с якорем (клетка `0,0` повёрнутой фигуры) в `anchor`; `null` — за краем поля. */
@@ -147,14 +183,15 @@ export interface TurnResult {
 }
 
 /**
- * Один ход (§4 п.2–7, порядок §5): стена → огню некуда расти (победа, без шага) →
- * шаг огня → дом загорелся (`house_burned`) → огню некуда расти (победа) →
- * следующий ход. `placed = null` — пропуск хода (правило 8).
+ * Один ход (§4 п.2–7, порядок §5): стена → дома в безопасности (победа, без шага) →
+ * шаг огня → дом загорелся (`house_burned`) → дома в безопасности (победа) →
+ * следующий ход. «Дома в безопасности» — огню некуда расти или ни до одного дома
+ * он больше не доберётся. Пустой `placed` — пропуск хода (правило 8).
  */
 function resolveTurn(state: GameState, placed: readonly number[]): TurnResult {
   const cells = [...state.cells];
   for (const i of placed) cells[i] = 'wall';
-  if (nextBurn(cells).size === 0) {
+  if (nextBurn(cells).size === 0 || housesSafe(cells)) {
     return { state: { ...state, cells, status: 'won', failReason: null }, placed, stepped: false, ignited: [], ashed: [], burnedHouses: [] };
   }
   const add = [...nextBurn(cells)];
@@ -172,12 +209,13 @@ function resolveTurn(state: GameState, placed: readonly number[]): TurnResult {
   if (burnedHouses.length > 0) {
     status = 'failed';
     failReason = 'house_burned';
-  } else if (nextBurn(cells).size === 0) status = 'won';
+  } else if (nextBurn(cells).size === 0 || housesSafe(cells)) status = 'won';
   const next: GameState = {
     ...state,
     cells,
     turn: status === 'playing' ? state.turn + 1 : state.turn,
     rotations: status === 'playing' ? [0, 0, 0] : state.rotations,
+    rotationsLeft: status === 'playing' ? ROTATIONS_PER_TURN : state.rotationsLeft,
     status,
     failReason,
   };
@@ -200,15 +238,13 @@ export function skipTurn(level: Level, state: GameState): TurnResult | null {
   return resolveTurn(state, []);
 }
 
-/** Тап по фигуре хода: следующий поворот по часовой. */
+/** Тап по фигуре хода: следующий поворот по часовой. `null` — нельзя, в том числе когда повороты хода кончились. */
 export function rotateSlot(level: Level, state: GameState, slot: number): GameState | null {
-  if (state.status !== 'playing') return null;
+  if (state.status !== 'playing' || state.rotationsLeft <= 0) return null;
   const letter = trayOf(level, state.turn)[slot];
   if (letter === undefined) return null;
   const rotations = [...state.rotations] as [number, number, number];
   rotations[slot] = ((rotations[slot] ?? 0) + 1) % rotationCount(letter);
-  return { ...state, rotations };
+  return { ...state, rotations, rotationsLeft: state.rotationsLeft - 1 };
 }
 
-/** Отдано огню: пепел и огонь (§7, попап победы). */
-export const burnedCount = (cells: readonly CellKind[]): number => cells.filter((k) => k === 'ash' || k === 'fire').length;

@@ -89,7 +89,8 @@ test('с главного до победы на уровне 1 и открыт�
 
   await playLine(page, 1, solverLine(1));
   await expect(page.getByTestId('popup-win')).toBeVisible();
-  await expect(page.getByTestId('popup-win')).toContainText('Отдано огню');
+  await expect(page.getByTestId('popup-win')).toContainText('от огня');
+  await expect(page.getByTestId('saved').locator('b')).toHaveText(/^\d+$/);
   await page.locator('[data-action="next"]').click();
   await expect(page.getByTestId('game')).toHaveAttribute('data-level', '2');
   await expect(page.getByTestId('popup-help')).toHaveCount(0);
@@ -143,6 +144,24 @@ test('тап поворачивает фигуру и не тратит ход; 
   await idle(page);
   await expect(page.getByTestId('game')).toHaveAttribute('data-turn', '1');
   await expect(page.getByTestId('cell-5-5')).toHaveAttribute('data-kind', 'wall');
+});
+
+test('повороты: 3 на ход, четвёртый тап фигуру не крутит; новый ход — снова 3', async ({ page }) => {
+  await openLevel(page, 3);
+  // Ход 1: O D T. Два тапа по T, один по D — повороты кончились.
+  await page.getByTestId('slot-2').click();
+  await page.getByTestId('slot-2').click();
+  await page.getByTestId('slot-1').click();
+  await expect(page.getByTestId('game')).toHaveAttribute('data-rotations-left', '0');
+  await expect(page.getByTestId('rotations')).toHaveClass(/out/);
+  await page.getByTestId('slot-2').click();
+  await page.waitForTimeout(250);
+  await expect(page.getByTestId('slot-2')).toHaveAttribute('data-rot', '2');
+  await expect(page.getByTestId('game')).toHaveAttribute('data-turn', '0');
+  await drag(page, 0, 'O', 0, 5, 5);
+  await idle(page);
+  await expect(page.getByTestId('game')).toHaveAttribute('data-rotations-left', '3');
+  await expect(page.getByTestId('rotations').locator('b')).toHaveText('3');
 });
 
 test('ловушка: «отодвигай от ближайшего дома» проигрывает уровень 3, «Переиграть» возвращает старт', async ({ page }) => {

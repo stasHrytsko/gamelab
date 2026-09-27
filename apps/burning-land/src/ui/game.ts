@@ -1,15 +1,16 @@
 import {
   anyFits,
-  burnedCount,
   cellOf,
   cellsAt,
   centerOffset,
   createState,
+  fireDistance,
   fits,
   houseCells,
   nextBurn,
   place,
   rotateSlot,
+  savedCount,
   shapeCells,
   skipTurn,
   trayOf,
@@ -38,9 +39,10 @@ const T = {
   tray: 200, // фигуры «дальше» въезжают в трей
   next: 150, // новый ряд «дальше» проявляется
   rotate: 150,
+  shake: 160, // поворотов не осталось
   back: 200, // недопустимое отпускание: фигура летит в трей
   noFit: 900, // «Некуда поставить»
-  douse: 300, // победа: оставшийся огонь гаснет
+  douse: 300, // победа: огонь догорает в отданной части
   wave: 40, // шаг волны победы
   bounce: 250,
   winPopup: 500,
@@ -67,7 +69,7 @@ const HOW_TO_PLAY = `
     <li><b>1</b><span>Перетащи фигуру на поле — она станет стеной. Тапни фигуру, чтобы повернуть.</span></li>
     <li><b>2</b><span>После каждого хода огонь шагает на соседние клетки — туда, где точки.</span></li>
     <li><b>3</b><span>Огонь не проходит через стены и выгоревшие клетки.</span></li>
-    <li><b>4</b><span>Запри огонь так, чтобы не сгорел ни один дом.</span></li>
+    <li><b>4</b><span>Отрежь огонь от всех домов. Поворотов — 3 за ход.</span></li>
   </ol>`;
 
 /** Мини-фигура из клеток: `size` — сторона клетки, `gap` — зазор. */
@@ -132,6 +134,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     <div class="stats">
       <div class="stat" data-testid="turn">Ход <b></b></div>
       <div class="stat" data-testid="houses">Дома <b></b></div>
+      <div class="stat rot-stat" data-testid="rotations" aria-label="Повороты">${glyph.rotate}<b></b></div>
     </div>
     <div class="stage">
       <div class="board" data-testid="board"></div>
@@ -153,6 +156,8 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   const turnNum = q('[data-testid="turn"] b');
   const housesStat = q('[data-testid="houses"]');
   const housesNum = q('[data-testid="houses"] b');
+  const rotStat = q('[data-testid="rotations"]');
+  const rotNum = q('[data-testid="rotations"] b');
   const toast = q('[data-testid="no-fit"]');
   const slots = [...el.querySelectorAll<HTMLElement>('.slot')];
   const nexts = [...el.querySelectorAll<HTMLElement>('.nx')];
@@ -205,6 +210,10 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     const alive = houses.filter((i) => state.cells[i] === 'house').length;
     housesNum.textContent = `${String(alive)}/${String(houses.length)}`;
     housesStat.classList.toggle('alarm', alive < houses.length);
+    rotNum.textContent = String(state.rotationsLeft);
+    rotStat.classList.toggle('out', state.rotationsLeft === 0);
+    el.classList.toggle('no-rotations', state.rotationsLeft === 0);
+    el.dataset['rotationsLeft'] = String(state.rotationsLeft);
     el.dataset['status'] = state.status;
     el.dataset['turn'] = String(state.turn);
     el.toggleAttribute('data-busy', busy);
@@ -396,9 +405,21 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   function rotate(slot: number): void {
     const next = rotateSlot(level, state, slot);
-    if (next === null) return;
+    if (next === null) {
+      // Повороты хода кончились (§4): фигура покачивается, счётчик мигает, ход не тратится.
+      if (state.status === 'playing' && state.rotationsLeft === 0) {
+        slots[slot]?.querySelector('.mini')?.animate(
+          [{ transform: 'translateX(0)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }],
+          { duration: T.shake, easing: 'ease-out' },
+        );
+        rotStat.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], { duration: T.shake * 2 });
+        vibrate(15);
+      }
+      return;
+    }
     state = next;
     rotationsThisTurn += 1;
+    renderStats();
     renderTray();
     const mini = slots[slot]?.querySelector<HTMLElement>('.mini');
     mini?.animate([{ transform: 'rotate(-90deg)' }, { transform: 'rotate(0)' }], { duration: T.rotate, easing: 'ease-out' });
@@ -509,25 +530,31 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     render();
   }
 
-  // ---------- победа: огонь гаснет, волна по спасённой траве (§7.2) ----------
+  // ---------- победа: огонь догорает в отданной части, волна по спасённой земле (§7.2) ----------
   async function winSequence(): Promise<void> {
     markPassed(levelNumber);
-    const burned = burnedCount(state.cells);
-    log({ type: 'level_win', level: levelNumber, attempt, turn: state.turn + 1, burned });
+    const saved = savedCount(state.cells);
+    log({ type: 'level_win', level: levelNumber, attempt, turn: state.turn + 1, saved });
     busy = true;
     renderStats();
     cellEls.forEach((box) => box.classList.remove('dot', 'ghost', 'ghost-bad'));
+    // Всё, до чего огонь ещё дотянется, выгорает волной от фронта — это отданная часть.
+    const reach = fireDistance(state.cells);
+    let deepest = 0;
     state.cells.forEach((k, i) => {
-      if (k === 'fire') setKind(i, 'ash')?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.douse });
+      const d = reach[i] ?? -1;
+      if (d < 0 || (k !== 'fire' && k !== 'grass')) return;
+      deepest = Math.max(deepest, d);
+      setKind(i, 'ash')?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.douse, delay: reducedMotion() ? 0 : d * T.wave, easing: 'ease-out', fill: 'backwards' });
     });
-    await wait(T.douse);
+    await wait(deepest * T.wave + T.douse);
     const dist = (i: number): number => {
       const a = cellOf(i);
       return Math.min(...houses.map((h) => Math.abs(cellOf(h).row - a.row) + Math.abs(cellOf(h).col - a.col)));
     };
     let far = 0;
     state.cells.forEach((k, i) => {
-      if (k !== 'grass') return;
+      if (k !== 'grass' || (reach[i] ?? -1) >= 0) return;
       const d = dist(i);
       far = Math.max(far, d);
       const glow = document.createElement('div');
@@ -540,7 +567,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     await wait(far * T.wave + 420 + T.winPopup);
     busy = false;
     renderStats();
-    showWin(burned);
+    showWin(saved);
   }
 
   // ---------- попапы ----------
@@ -566,8 +593,8 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     );
   }
 
-  function showWin(burned: number): void {
-    const sub = `<p class="sub">Огонь заперт на ходу ${String(state.turn + 1)}<br>Отдано огню: ${String(burned)} ${plural(burned, 'клетка', 'клетки', 'клеток')}</p>`;
+  function showWin(saved: number): void {
+    const sub = `<div class="saved" data-testid="saved"><b>${String(saved)}</b><span>${plural(saved, 'клетка спасена', 'клетки спасены', 'клеток спасено')} от огня</span></div><p class="sub">Дома в безопасности на ходу ${String(state.turn + 1)}</p>`;
     if (levelNumber === LEVEL_COUNT) {
       popup(
         `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2>${sub}`,

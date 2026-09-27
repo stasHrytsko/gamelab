@@ -119,12 +119,30 @@ describe('победа и поражение (§5)', () => {
     expect(r?.stepped).toBe(false);
   });
 
-  it('спасено земли — трава и дома, до которых огонь не дойдёт', () => {
+  it('спасено — всё, что осталось травой или домом к моменту победы; реальная досягаемость не важна', () => {
+    // Огонь заперт первой же стеной, победа без единого шага огня — ничего не сгорело.
+    const locked: Level = { ...level, rows: ['FW......', '........', ...level.rows.slice(2)], shapes: 'MMMMMM' };
+    const w = place(locked, createState(locked), 0, { row: 1, col: 0 });
+    expect(w?.state.status).toBe('won');
+    expect(savedCount(w?.state.cells ?? [])).toBe(61); // 64 − огонь − стена уровня − поставленная стена
+
+    // Дом отрезан в углу двумя стенами, но огонь ещё жив и не заперт: у него
+    // формально есть куда шагать по всему остальному полю. Раунд всё равно
+    // кончается здесь (housesSafe), и с 2026-09-27 «спасено» не спрашивает,
+    // куда огонь мог бы дойти — считает то, что не сгорело на самом деле.
     const corner: Level = { ...level, rows: ['F.......', '........', '........', '........', '........', '........', '.......W', '......WH'], shapes: 'MMM' };
-    expect(savedCount(createState(corner).cells)).toBe(1); // только дом h1
-    const open: Level = { ...level, rows: ['F.W.....', 'WW......', ...level.rows.slice(2)] };
-    // Огонь a8 может взять только b8: спасено 64 − огонь − b8 − 3 стены = 59.
-    expect(savedCount(createState(open).cells)).toBe(59);
+    const start = createState(corner);
+    expect(housesSafe(start.cells)).toBe(true);
+    expect(nextBurn(start.cells).size).toBeGreaterThan(0); // огню есть куда гореть — это не важно
+    expect(savedCount(start.cells)).toBe(61); // 64 − огонь − 2 стены — весь остаток, включая дом
+
+    // Ash и wall никогда не попадают в счёт, даже когда дом ещё не в безопасности.
+    const midGame: Level = { ...level, rows: ['F.......', '........', ...level.rows.slice(2)], shapes: 'MMMMMM' };
+    const mid = place(midGame, createState(midGame), 0, { row: 5, col: 5 })?.state as GameState;
+    expect(mid.status).toBe('playing');
+    expect(mid.cells.some((k) => k === 'ash')).toBe(true);
+    expect(savedCount(mid.cells)).toBe(mid.cells.filter((k) => k === 'grass' || k === 'house').length);
+    expect(savedCount(mid.cells)).toBe(64 - mid.cells.filter((k) => k === 'ash' || k === 'fire' || k === 'wall').length);
   });
 
   it('повороты: 3 на ход на все три фигуры, четвёртый нельзя; на новом ходу снова 3', () => {

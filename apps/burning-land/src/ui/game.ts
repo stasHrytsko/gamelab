@@ -4,7 +4,6 @@ import {
   cellsAt,
   centerOffset,
   createState,
-  fireDistance,
   fits,
   houseCells,
   nextBurn,
@@ -543,7 +542,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     render();
   }
 
-  // ---------- победа: огонь догорает в отданной части, волна по спасённой земле (§7.2) ----------
+  // ---------- победа: остаток огня гаснет на месте, волна по всей спасённой земле (§7.2) ----------
   async function winSequence(): Promise<void> {
     markPassed(levelNumber);
     const saved = savedCount(state.cells);
@@ -551,23 +550,19 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     busy = true;
     renderStats();
     cellEls.forEach((box) => box.classList.remove('dot', 'ghost', 'ghost-bad'));
-    // Всё, до чего огонь ещё дотянется, выгорает волной от фронта — это отданная часть.
-    const reach = fireDistance(state.cells);
-    let deepest = 0;
+    // Раунд окончен: живой фронт дальше не пойдёт и просто гаснет в пепел на месте.
+    // Никакая трава дальше не сгорает — то, что уцелело к победе, уцелело насовсем.
     state.cells.forEach((k, i) => {
-      const d = reach[i] ?? -1;
-      if (d < 0 || (k !== 'fire' && k !== 'grass')) return;
-      deepest = Math.max(deepest, d);
-      setKind(i, 'ash')?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.douse, delay: reducedMotion() ? 0 : d * T.wave, easing: 'ease-out', fill: 'backwards' });
+      if (k === 'fire') setKind(i, 'ash')?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.douse, easing: 'ease-out' });
     });
-    await wait(deepest * T.wave + T.douse);
+    await wait(T.douse);
     const dist = (i: number): number => {
       const a = cellOf(i);
       return Math.min(...houses.map((h) => Math.abs(cellOf(h).row - a.row) + Math.abs(cellOf(h).col - a.col)));
     };
     let far = 0;
     state.cells.forEach((k, i) => {
-      if (k !== 'grass' || (reach[i] ?? -1) >= 0) return;
+      if (k !== 'grass') return;
       const d = dist(i);
       far = Math.max(far, d);
       const glow = document.createElement('div');

@@ -223,11 +223,15 @@ export function housesSafe(grid) {
   return true;
 }
 
-/** Land saved from the fire: grass and houses the fire can never reach. */
+/**
+ * Land saved: grass and houses left standing when the level ends (author decision
+ * 2026-09-27) — the round stops as soon as the houses are safe, so whatever hasn't
+ * burned by then never will in this playthrough, whether or not the leftover fire
+ * was still topologically able to reach it. Walls never count.
+ */
 export function saved(grid) {
-  const d = fireDist(grid);
   let n = 0;
-  for (let i = 0; i < N * N; i++) if ((grid[i] === GRASS || grid[i] === HOUSE) && d[i] < 0) n++;
+  for (let i = 0; i < N * N; i++) if (grid[i] === GRASS || grid[i] === HOUSE) n++;
   return n;
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { GAME_LEVELS, parse, greedyFront, greedyHouse, isTrapPick, solve, tutorialPick, winningFirstMoves, winsWithoutWalls, type Move, type SolverLevel } from '../../../tools/burning-land-solver.mjs';
-import { anyFits, cellOf, createState, fits, cellsAt, place, ROTATIONS_PER_LEVEL, rotateSlot, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
+import { GAME_LEVELS, parse, greedyFront, greedyHouse, isTrapPick, solve, tapCost, tutorialPick, winningFirstMoves, winsWithoutWalls, type Move, type SolverLevel } from '../../../tools/burning-land-solver.mjs';
+import { anyFits, cellOf, createState, fits, cellsAt, place, rotationCount, ROTATIONS_PER_LEVEL, rotateSlot, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
 import { LEVELS } from '../src/levels/levels.ts';
 import type { GameState, Level } from '../src/engine/types.ts';
 
@@ -19,8 +19,12 @@ export function play(level: Level, line: ReadonlyArray<Move | null>): GameState 
       continue;
     }
     const m = move ?? firstFit(level, s);
-    for (let k = 0; k < m.rot; k += 1) {
-      const rotated = rotateSlot(level, s, m.slot);
+    // Направо или налево — какая сторона дешевле (§4, решение автора 2026-10-01);
+    // это ровно то, что tapCost() в солвере считает стоимостью хода.
+    const count = rotationCount(m.letter);
+    const direction: 1 | -1 = m.rot <= count - m.rot ? 1 : -1;
+    for (let k = 0; k < tapCost(m.letter, m.rot); k += 1) {
+      const rotated = rotateSlot(level, s, m.slot, direction);
       if (rotated === null) throw new Error(`${level.name}: лимит поворотов исчерпан на ${m.letter} у ${m.row},${m.col}`);
       s = rotated;
     }
@@ -98,9 +102,9 @@ describe('уровни (§6)', () => {
     });
   }
 
-  it('BL-5-28: победных первых постановок в пределах лимита поворотов меньше, чем без ограничения (4 из 183, а не 9)', () => {
+  it('BL-5-28: победных первых постановок в пределах лимита поворотов почти как без ограничения (8 из 183)', () => {
     const lvl = asSolver(LEVELS[4] as Level);
-    expect(winningFirstMoves(lvl, 200_000, { rotationBudget: ROTATIONS_PER_LEVEL })).toEqual({ total: 183, wins: 4, unknown: 0 });
+    expect(winningFirstMoves(lvl, 200_000, { rotationBudget: ROTATIONS_PER_LEVEL })).toEqual({ total: 183, wins: 8, unknown: 0 });
   });
 
   // Показ автору 2026-09-27: первый ход V f7 g7 f6 на уровне 4 — победа остаётся,

@@ -228,8 +228,13 @@ svg { display: block; }
 .slot:active:not(.empty) { transform: scale(.97); }
 .slot.lifted, .slot.empty { background: var(--ui-surface-muted); box-shadow: inset 0 0 0 2px var(--ui-border); }
 .slot.lifted .mini { opacity: .25; }
-.slot .rot { position: absolute; right: 6px; top: 6px; width: 16px; height: 16px; color: var(--ui-text-muted); }
+/* Две стрелки поворота — влево и вправо (§4, решение автора 2026-10-01): правая как раньше
+   (по часовой), левая — то же изображение зеркалом, против часовой. */
+.slot .rot { position: absolute; top: 4px; width: 16px; height: 16px; padding: 5px; box-sizing: content-box; color: var(--ui-text-muted); }
 .slot .rot svg { width: 100%; height: 100%; }
+.slot .rot-right { right: 1px; }
+.slot .rot-left { left: 1px; }
+.slot .rot-left svg { transform: scaleX(-1); }
 .mini { display: grid; gap: 3px; pointer-events: none; }
 .mini i { border-radius: 5px; background: linear-gradient(160deg, color-mix(in srgb, var(--ui-blue) 65%, #fff), var(--ui-blue)); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--ui-blue) 75%, #1f2937); }
 .mini i.e, .float-shape i.e { background: none; box-shadow: none; }

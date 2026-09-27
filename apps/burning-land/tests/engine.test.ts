@@ -58,6 +58,26 @@ describe('постановка (§4)', () => {
     expect(r?.placed).toEqual([at(2, 2), at(3, 2), at(4, 2)]);
   });
 
+  it('поворот против часовой (§4, решение автора 2026-10-01): к 4-й ориентации T можно прийти за 1 тап налево вместо 3 направо', () => {
+    const withT: Level = { ...level, shapes: `DIT${level.shapes.slice(3)}` };
+    let s = createState(withT);
+    s = rotateSlot(withT, s, 2, -1) as GameState; // T (слот 2), налево из 0 сразу в 3
+    expect(s.rotations).toEqual([0, 0, 3]);
+    expect(s.rotationsLeft).toBe(ROTATIONS_PER_LEVEL - 1); // тап налево стоит столько же, сколько направо — 1
+    // Тот же результат за три тапа направо (по одному на каждый) — для сравнения.
+    let right = createState(withT);
+    right = rotateSlot(withT, right, 2, 1) as GameState;
+    right = rotateSlot(withT, right, 2, 1) as GameState;
+    right = rotateSlot(withT, right, 2, 1) as GameState;
+    expect(right.rotations).toEqual(s.rotations);
+    expect(right.rotationsLeft).toBe(ROTATIONS_PER_LEVEL - 3);
+  });
+
+  it('поворот без направления по умолчанию — направо, как раньше', () => {
+    const s = rotateSlot(level, createState(level), 1) as GameState;
+    expect(s.rotations).toEqual([0, 1, 0]);
+  });
+
   it('поворот L: зеркала нет, четыре разных поворота', () => {
     const shapes = [0, 1, 2, 3].map((k) => JSON.stringify(cellsAt('L', k, { row: 0, col: 0 })));
     expect(new Set(shapes).size).toBe(4);

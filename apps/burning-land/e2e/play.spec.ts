@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
-import { greedyHouse, solve, type Move } from '../../../tools/burning-land-solver.mjs';
-import { anyFits, cellsAt, centerOffset, createState, fits, nextBurn, place, ROTATIONS_PER_LEVEL, rotateSlot, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
+import { greedyHouse, solve, tapCost, type Move } from '../../../tools/burning-land-solver.mjs';
+import { anyFits, cellsAt, centerOffset, createState, fits, nextBurn, place, rotationCount, ROTATIONS_PER_LEVEL, rotateSlot, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
 import type { GameState, Level } from '../src/engine/types.ts';
 import { LEVELS } from '../src/levels/levels.ts';
 
@@ -41,9 +41,13 @@ async function playLine(page: Page, id: number, line: ReadonlyArray<Move | null>
       continue;
     }
     const m = move ?? firstFit(lvl, s);
-    for (let k = 0; k < m.rot; k += 1) {
-      await page.getByTestId(`slot-${String(m.slot)}`).click();
-      s = rotateSlot(lvl, s, m.slot) as GameState;
+    // Направо или налево — какая сторона дешевле (§4, решение автора 2026-10-01).
+    const count = rotationCount(m.letter);
+    const direction: 1 | -1 = m.rot <= count - m.rot ? 1 : -1;
+    const testid = direction === 1 ? `rotate-right-${String(m.slot)}` : `rotate-left-${String(m.slot)}`;
+    for (let k = 0; k < tapCost(m.letter, m.rot); k += 1) {
+      await page.getByTestId(testid).click();
+      s = rotateSlot(lvl, s, m.slot, direction) as GameState;
     }
     await expect(page.getByTestId(`slot-${String(m.slot)}`)).toHaveAttribute('data-rot', String(m.rot));
     await drag(page, m.slot, m.letter, m.rot, m.row, m.col);
@@ -144,6 +148,18 @@ test('тап поворачивает фигуру и не тратит ход; 
   await idle(page);
   await expect(page.getByTestId('game')).toHaveAttribute('data-turn', '1');
   await expect(page.getByTestId('cell-5-5')).toHaveAttribute('data-kind', 'wall');
+});
+
+test('поворот налево крутит в другую сторону и достаёт 4-ю ориентацию за 1 тап вместо 3-х (§4)', async ({ page }) => {
+  await openLevel(page, 3);
+  // Уровень 3, ход 1: O D T. Слот 2 — T, 4 ориентации: направо 3 тапа, налево — 1.
+  await page.getByTestId('rotate-left-2').click();
+  await expect(page.getByTestId('slot-2')).toHaveAttribute('data-rot', '3');
+  await expect(page.getByTestId('game')).toHaveAttribute('data-rotations-left', '2'); // тот же 1 тап, что и направо
+  // Обратно направо — стрелка справа, ориентация возвращается в 0.
+  await page.getByTestId('rotate-right-2').click();
+  await expect(page.getByTestId('slot-2')).toHaveAttribute('data-rot', '0');
+  await expect(page.getByTestId('game')).toHaveAttribute('data-rotations-left', '1');
 });
 
 test('повороты: 3 на весь уровень, не на ход — исчерпаны на первом ходу, следующий ход их не возвращает', async ({ page }) => {

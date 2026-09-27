@@ -66,7 +66,7 @@ const HOW_TO_PLAY = `
     <div class="demo-cell"><div class="tile house">${glyph.house}</div></div>
   </div>
   <ol class="rules">
-    <li><b>1</b><span>Перетащи фигуру на поле — она станет стеной. Тапни фигуру, чтобы повернуть.</span></li>
+    <li><b>1</b><span>Перетащи фигуру на поле — она станет стеной. Стрелки по бокам фигуры поворачивают её влево и вправо.</span></li>
     <li><b>2</b><span>После каждого хода огонь шагает на соседние клетки — туда, где точки.</span></li>
     <li><b>3</b><span>Огонь не проходит через стены и выгоревшие клетки.</span></li>
     <li><b>4</b><span>Отрежь огонь от всех домов. Поворотов — 3 на весь уровень.</span></li>
@@ -102,6 +102,9 @@ interface Drag {
   valid: boolean;
   lastX: number;
   lastY: number;
+  /** Направление, если это окажется тапом (не перетаскиванием) — по цели самого pointerdown,
+      потому что setPointerCapture перенацеливает дальнейшие события на .slot целиком (§4). */
+  readonly tapDirection: 1 | -1;
 }
 
 export function gameScreen(levelNumber: number, go: Go): Screen {
@@ -272,7 +275,9 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       slot.classList.toggle('lifted', drag?.slot === i && drag.moved);
       slot.dataset['letter'] = letter ?? '';
       slot.dataset['rot'] = String(state.rotations[i] ?? 0);
-      slot.innerHTML = empty ? '' : `${shapeHtml(letter, state.rotations[i] ?? 0, 'mini')}<span class="rot">${glyph.rotate}</span>`;
+      slot.innerHTML = empty
+        ? ''
+        : `${shapeHtml(letter, state.rotations[i] ?? 0, 'mini')}<span class="rot rot-left" data-testid="rotate-left-${String(i)}">${glyph.rotate}</span><span class="rot rot-right" data-testid="rotate-right-${String(i)}">${glyph.rotate}</span>`;
     });
     const upcoming = trayOf(level, state.turn + 1);
     nexts.forEach((box, i) => {
@@ -368,7 +373,8 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     slot.addEventListener('pointerdown', (event) => {
       if (locked() || drag !== null || slot.classList.contains('empty')) return;
       slot.setPointerCapture(event.pointerId);
-      drag = { slot: i, pointerId: event.pointerId, x0: event.clientX, y0: event.clientY, moved: false, float: null, anchor: null, at: null, valid: false, lastX: event.clientX, lastY: event.clientY };
+      const tapDirection: 1 | -1 = (event.target as HTMLElement).closest('.rot-left') ? -1 : 1;
+      drag = { slot: i, pointerId: event.pointerId, x0: event.clientX, y0: event.clientY, moved: false, float: null, anchor: null, at: null, valid: false, lastX: event.clientX, lastY: event.clientY, tapDirection };
     });
     slot.addEventListener('pointermove', (event) => {
       if (drag === null || drag.slot !== i || drag.pointerId !== event.pointerId) return;
@@ -386,7 +392,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       const d = drag;
       if (!d.moved) {
         drag = null;
-        if (!cancelled) rotate(i);
+        if (!cancelled) rotate(i, d.tapDirection);
         return;
       }
       if (!cancelled) updateDrag(event.clientX, event.clientY);
@@ -411,8 +417,8 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     slot.addEventListener('pointercancel', (event) => finish(event, true));
   });
 
-  function rotate(slot: number): void {
-    const next = rotateSlot(level, state, slot);
+  function rotate(slot: number, direction: 1 | -1 = 1): void {
+    const next = rotateSlot(level, state, slot, direction);
     if (next === null) {
       // Повороты хода кончились (§4): фигура покачивается, счётчик мигает, ход не тратится.
       if (state.status === 'playing' && state.rotationsLeft === 0) {
@@ -434,7 +440,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     spentDot?.animate([{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(.4)', opacity: 0 }], { duration: T.rotate, easing: 'ease-in' });
     rotStat.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: T.rotate, easing: 'ease-out' });
     const mini = slots[slot]?.querySelector<HTMLElement>('.mini');
-    mini?.animate([{ transform: 'rotate(-90deg)' }, { transform: 'rotate(0)' }], { duration: T.rotate, easing: 'ease-out' });
+    mini?.animate([{ transform: `rotate(${String(direction * -90)}deg)` }, { transform: 'rotate(0)' }], { duration: T.rotate, easing: 'ease-out' });
   }
 
   // ---------- ход ----------

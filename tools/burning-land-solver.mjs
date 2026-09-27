@@ -13,8 +13,9 @@
  *   the old front turns to ash;
  * - a house ignited → fail `house_burned`; fire with no grass/house neighbour, or no house
  *   reachable by the fire → win;
- * - at most 3 rotations per turn in the game; any orientation of one shape needs ≤ 3, so the
- *   limit never removes a placement and the solver ignores it.
+ * - at most 3 rotation taps for the whole level (not per turn), spent from one shared counter;
+ *   a tap turns a piece 90° either way (author decision 2026-10-01), so reaching orientation
+ *   `rot` out of `n` costs `min(rot, n - rot)` taps, not `rot`.
  * - if none of the three shapes fits anywhere, the turn is skipped and the fire still steps.
  *
  * Level map: 8 strings of 8 chars. `.` grass, `#` stone, `F` fire, `H` house.
@@ -71,6 +72,17 @@ export function orientations(letter) {
   return out;
 }
 const ORIENT = Object.fromEntries(Object.keys(SHAPES).map((k) => [k, orientations(k)]));
+
+export const rotationCount = (letter) => ORIENT[letter].length;
+
+/**
+ * Taps needed to reach orientation `rot` from 0, picking whichever direction is cheaper
+ * (the game lets the player rotate a piece either way, §4 — author decision 2026-10-01).
+ */
+export function tapCost(letter, rot) {
+  const n = rotationCount(letter);
+  return Math.min(rot, n - rot);
+}
 
 export function mulberry32(seed) {
   let a = seed >>> 0;
@@ -284,7 +296,7 @@ export function solve(level, { nodeBudget = 300_000, from = null, turn: startTur
     const key = turn + ':' + spent + ':' + grid.join('');
     if (lost.has(key)) return false;
     const dist = fireDist(grid);
-    let moves = turnMoves(grid, triple(queue, turn)).filter((m) => useful(m, dist) && spent + m.rot <= rotationBudget);
+    let moves = turnMoves(grid, triple(queue, turn)).filter((m) => useful(m, dist) && spent + tapCost(m.letter, m.rot) <= rotationBudget);
     const scored = [];
     for (const m of moves) {
       const res = playTurn(grid, m);
@@ -306,7 +318,7 @@ export function solve(level, { nodeBudget = 300_000, from = null, turn: startTur
     scored.sort((a, b) => b.k - a.k);
     for (const { m, res } of scored) {
       line.push(m);
-      if (dfs(res.grid, turn + 1, spent + (m ? m.rot : 0))) return true;
+      if (dfs(res.grid, turn + 1, spent + (m ? tapCost(m.letter, m.rot) : 0))) return true;
       line.pop();
       if (aborted) return false;
     }
@@ -326,9 +338,9 @@ export function playPolicy(level, pick, { rotationBudget = Infinity } = {}) {
   for (let turn = 0; turn * 3 + 3 <= level.shapes.length; turn++) {
     // Поворот 0 у любой фигуры бесплатен, так что бюджет не создаёт ложный «нечем ходить»:
     // отфильтрованы только конкретные развороты, до которых не хватает оставшихся тапов.
-    const moves = turnMoves(grid, triple(level.shapes, turn)).filter((m) => spent + m.rot <= rotationBudget);
+    const moves = turnMoves(grid, triple(level.shapes, turn)).filter((m) => spent + tapCost(m.letter, m.rot) <= rotationBudget);
     const m = moves.length ? pick(grid, moves, turn) : null;
-    spent += m ? m.rot : 0;
+    spent += m ? tapCost(m.letter, m.rot) : 0;
     const res = playTurn(grid, m);
     log.push(m);
     grid = res.grid;
@@ -399,14 +411,15 @@ export function winningFirstMoves(level, nodeBudget = 60_000, { rotationBudget =
   let wins = 0;
   let unknown = 0;
   for (const m of moves) {
-    if (m.rot > rotationBudget) continue; // этот поворот один исчерпал бы весь лимит уровня
+    const cost = tapCost(m.letter, m.rot);
+    if (cost > rotationBudget) continue; // этот поворот один исчерпал бы весь лимит уровня
     const res = playTurn(grid, m);
     if (res.status === 'won') {
       wins++;
       continue;
     }
     if (res.status === 'failed' || doomed(res.grid)) continue;
-    const r = solve(level, { from: res.grid, turn: 1, nodeBudget, rotationBudget: rotationBudget - m.rot });
+    const r = solve(level, { from: res.grid, turn: 1, nodeBudget, rotationBudget: rotationBudget - cost });
     if (r.solvable) wins++;
     else if (r.aborted) unknown++;
   }

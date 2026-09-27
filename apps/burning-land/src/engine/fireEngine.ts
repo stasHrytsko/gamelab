@@ -246,13 +246,18 @@ export function skipTurn(level: Level, state: GameState): TurnResult | null {
   return resolveTurn(state, []);
 }
 
-/** Тап по фигуре хода: следующий поворот по часовой. `null` — нельзя, в том числе когда лимит уровня исчерпан. */
-export function rotateSlot(level: Level, state: GameState, slot: number): GameState | null {
+/**
+ * Тап по стрелке у фигуры хода: поворот на 90° в выбранную сторону (§4, решение автора
+ * 2026-10-01 — раньше был только по часовой). `null` — нельзя, в том числе когда лимит
+ * уровня исчерпан. Любой тап, в любую сторону, стоит 1 из общего `rotationsLeft`.
+ */
+export function rotateSlot(level: Level, state: GameState, slot: number, direction: 1 | -1 = 1): GameState | null {
   if (state.status !== 'playing' || state.rotationsLeft <= 0) return null;
   const letter = trayOf(level, state.turn)[slot];
   if (letter === undefined) return null;
+  const count = rotationCount(letter);
   const rotations = [...state.rotations] as [number, number, number];
-  rotations[slot] = ((rotations[slot] ?? 0) + 1) % rotationCount(letter);
+  rotations[slot] = ((rotations[slot] ?? 0) + direction + count) % count;
   return { ...state, rotations, rotationsLeft: state.rotationsLeft - 1 };
 }
 

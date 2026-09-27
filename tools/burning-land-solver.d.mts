@@ -45,6 +45,8 @@ export interface RotationOpts {
   readonly rotationBudget?: number;
 }
 
+export function rotationCount(letter: string): number;
+export function tapCost(letter: string, rot: number): number;
 export const N: number;
 export const GAME_LEVELS: readonly SolverLevel[];
 export function parse(level: SolverLevel): Uint8Array;

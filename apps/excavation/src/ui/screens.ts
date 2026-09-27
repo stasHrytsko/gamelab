@@ -4,7 +4,7 @@ import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
 
-// Главный: арта автора для «Раскопа» пока нет — название, мини-комната из
+// Главный: арта автора для The Dig пока нет — название, мини-комната из
 // плит игры и живая кнопка «Играть» (apps/CLAUDE.md §2). Арт заменит
 // мини-комнату, когда появится.
 export function homeScreen(go: Go): HTMLElement {
@@ -30,7 +30,7 @@ export function homeScreen(go: Go): HTMLElement {
     .join('');
   el.innerHTML = `
     <div class="home-title">
-      <h1>Раскоп</h1>
+      <h1>The Dig</h1>
       <p>Число на плите — это и ловушки рядом, и золото.<br>Найди выход и реши, когда уйти.</p>
     </div>
     <div class="home-room" aria-hidden="true">${room}</div>

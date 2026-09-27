@@ -37,7 +37,7 @@ for (const image of files.filter((file) => /\.(webp|png|jpe?g)$/.test(file))) {
 }
 
 const page = `<meta charset="utf-8">
-<title>Раскоп</title>
+<title>The Dig</title>
 <style>${css}</style>
 <div id="app"></div>
 <script type="module">${js}</script>

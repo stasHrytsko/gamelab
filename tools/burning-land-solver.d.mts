@@ -44,7 +44,7 @@ export const N: number;
 export const GAME_LEVELS: readonly SolverLevel[];
 export function parse(level: SolverLevel): Uint8Array;
 export function toRows(grid: Uint8Array): string[];
-export function solve(level: SolverLevel, opts?: { nodeBudget?: number }): SolveResult;
+export function solve(level: SolverLevel, opts?: { nodeBudget?: number; from?: Uint8Array; turn?: number }): SolveResult;
 export function greedyFront(level: SolverLevel): PolicyResult;
 export function greedyHouse(level: SolverLevel): PolicyResult;
 export function winsWithoutWalls(level: SolverLevel): boolean;

@@ -97,13 +97,17 @@ svg { display: block; }
 .c-blue { --c: var(--ui-blue); }
 .c-green { --c: var(--ui-success); }
 
-/* ---------- главный: мини-поле, название и живая кнопка (арта автора пока нет) ---------- */
-.home { align-items: center; justify-content: center; overflow: hidden; }
-.home-hero { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--ui-space-4); text-align: center; animation: art-in 480ms cubic-bezier(.2,.8,.2,1) both; }
-.home-hero h1 { font-size: 40px; font-weight: 700; line-height: 1.1; }
-.home-hero p { font-size: 17px; color: var(--ui-text-muted); line-height: 1.45; }
-.home-board { --cell: min(52px, 11vw, 7dvh); display: grid; grid-template-columns: repeat(5, var(--cell)); gap: 6px; padding: 10px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-card); transform: rotate(-4deg); }
-.hc { position: relative; width: var(--cell); height: var(--cell); border-radius: 24%; background: var(--ui-surface-muted); }
+/* ---------- главный: арт во весь экран и живая кнопка ---------- */
+.home { align-items: center; justify-content: center; overflow: hidden; background: var(--ui-background); padding: env(safe-area-inset-top) 0 0; }
+.home > * { position: relative; z-index: 1; }
+.home .home-bg { position: absolute; inset: -60px; z-index: 0; background: linear-gradient(var(--ui-background) 8%, transparent 40%), var(--art) center 80% / cover no-repeat; filter: blur(36px) saturate(1.1); opacity: .35; transform: scale(1.2); }
+.home-art { width: 100%; max-width: 480px; height: auto; max-height: calc(100dvh - 130px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); min-height: 0; flex: 0 1 auto; object-fit: contain; object-position: bottom;
+  /* Низ и края растворяются в размытой копии: на любом экране нет видимой рамки. */
+  -webkit-mask-image: linear-gradient(transparent, #000 9%, #000 80%, transparent), linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(transparent, #000 9%, #000 80%, transparent), linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-composite: intersect;
+  animation: art-in 480ms cubic-bezier(.2,.8,.2,1) both; }
 @keyframes art-in { from { opacity: 0; transform: translateY(-10px); } }
 
 /* Кнопка «Play» как на арте: пилюля, крупный текст. Дышит, светится и раз в
@@ -196,7 +200,7 @@ svg { display: block; }
 .tile.wall { --c: var(--ui-blue); }
 .tile.wall svg { width: 72%; height: 72%; }
 .tile.house { --c: var(--ui-yellow); color: var(--ui-text); }
-.ash { position: absolute; inset: 0; z-index: 1; border-radius: 24%; background: color-mix(in srgb, var(--ui-text) 72%, var(--ui-surface-muted)); display: grid; place-items: center; color: color-mix(in srgb, var(--ui-text) 40%, var(--ui-surface-muted)); }
+.ash { position: absolute; inset: 0; z-index: 1; border-radius: 24%; background: color-mix(in srgb, var(--ui-text) 16%, var(--ui-surface-muted)); display: grid; place-items: center; color: color-mix(in srgb, var(--ui-text) 45%, var(--ui-surface-muted)); }
 .ash svg { width: 50%; height: 50%; }
 .glow { position: absolute; inset: 0; z-index: 2; border-radius: 24%; background: color-mix(in srgb, var(--ui-green) 70%, transparent); opacity: 0; pointer-events: none; }
 

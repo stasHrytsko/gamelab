@@ -1,32 +1,22 @@
 import { LEVELS } from '../levels/levels.ts';
+import art from '@ui/prototypes/burning-land/assets/home-art.webp';
 import { houseCells, parseCells } from '../engine/fireEngine.ts';
 import { glyph, icon } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
 
-// Мини-поле главного экрана (§7.1: арта автора пока нет): огонь, пепел, стена и дома.
-const HOME_BOARD = ['x.#HH', 'Fx#..', 'xF#.H', 'Fx##.', '.F...'];
-
 export function homeScreen(go: Go): HTMLElement {
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
-  const cells = [...HOME_BOARD.join('')]
-    .map((ch) => {
-      if (ch === 'F') return `<div class="hc"><div class="tile fire">${glyph.flame}</div></div>`;
-      if (ch === 'x') return `<div class="hc"><div class="ash">${glyph.ember}</div></div>`;
-      if (ch === '#') return `<div class="hc"><div class="tile wall">${glyph.brick}</div></div>`;
-      if (ch === 'H') return `<div class="hc"><div class="tile house">${glyph.house}</div></div>`;
-      return '<div class="hc"></div>';
-    })
-    .join('');
+  // Арт первого экрана автора (§7.1): название, поле с огнём, стенами и домами.
+  // Низ арта растворяется в размытой копии; кнопка — настоящая, под артом.
+  el.style.setProperty('--art', `url("${art}")`);
   el.innerHTML = `
-    <div class="home-hero">
-      <div class="home-board" aria-hidden="true">${cells}</div>
-      <h1>Burning Land</h1>
-      <p>Запри огонь стенами.<br>Спаси все дома.</p>
-    </div>
+    <div class="home-bg" aria-hidden="true"></div>
+    <img class="home-art" src="${art}" alt="" width="941" height="1340">
+    <h1 class="sr-only">Burning Land</h1>
     <button class="play-btn" data-testid="play">Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;

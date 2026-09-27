@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GAME_LEVELS, greedyFront, greedyHouse, isTrapPick, solve, tutorialPick, winsWithoutWalls, type Move, type SolverLevel } from '../../../tools/burning-land-solver.mjs';
+import { GAME_LEVELS, parse, greedyFront, greedyHouse, isTrapPick, solve, tutorialPick, winsWithoutWalls, type Move, type SolverLevel } from '../../../tools/burning-land-solver.mjs';
 import { anyFits, cellOf, createState, fits, cellsAt, place, rotateSlot, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
 import { LEVELS } from '../src/levels/levels.ts';
 import type { GameState, Level } from '../src/engine/types.ts';
@@ -93,6 +93,15 @@ describe('уровни (§6)', () => {
       expect(isTrapPick(lvl)).not.toBeNull();
     });
   }
+
+  // Показ автору 2026-09-27: первый ход V f7 g7 f6 на уровне 4 — победа ещё есть.
+  it('BL-4-17: после V f7 g7 f6 победа остаётся (I f5 f4 f3, затем I f2 g2 h2…)', () => {
+    const lvl = asSolver(LEVELS[3] as Level);
+    const s = play(LEVELS[3] as Level, [{ letter: 'V', rot: 0, row: 1, col: 5, cells: [13, 14, 21], slot: 0 }]);
+    expect(s.status).toBe('playing');
+    const grid = parse({ ...lvl, rows: Array.from({ length: 8 }, (_, r) => s.cells.slice(r * 8, r * 8 + 8).map((k) => ({ grass: '.', wall: 'W', fire: 'F', ash: 'x', house: 'H' })[k]).join('')) });
+    expect(solve(lvl, { from: grid, turn: 1 }).solvable).toBe(true);
+  });
 
   it('индексы клеток совпадают с солвером (row * 8 + col)', () => {
     expect(cellOf(13)).toEqual({ row: 1, col: 5 });

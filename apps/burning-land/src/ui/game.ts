@@ -9,6 +9,7 @@ import {
   houseCells,
   nextBurn,
   place,
+  ROTATIONS_PER_TURN,
   rotateSlot,
   savedCount,
   shapeCells,
@@ -134,17 +135,23 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     <div class="stats">
       <div class="stat" data-testid="turn">Ход <b></b></div>
       <div class="stat" data-testid="houses">Дома <b></b></div>
-      <div class="stat rot-stat" data-testid="rotations" aria-label="Повороты">${glyph.rotate}<b></b></div>
     </div>
     <div class="stage">
       <div class="board" data-testid="board"></div>
       ${levelNumber === 1 ? `<div class="hint-card" data-testid="hint">${glyph.finger}<span>Перетащи фигуру на поле</span></div>` : ''}
       <div class="toast" data-testid="no-fit">Некуда поставить</div>
     </div>
+    <div class="rot-row">
+      <div class="rot-pill" data-testid="rotations" aria-label="Повороты">
+        ${glyph.rotate}
+        <div class="rot-dots">${[0, 1, 2].map((i) => `<i class="rd" data-i="${String(i)}"></i>`).join('')}</div>
+        <b></b>
+      </div>
+    </div>
     <div class="tray" data-testid="tray">
       ${[0, 1, 2].map((i) => `<button class="slot" data-slot="${String(i)}" data-testid="slot-${String(i)}"></button>`).join('')}
     </div>
-    <div class="nextrow"><small>Дальше</small><div class="q">${[0, 1, 2].map((i) => `<div class="nx" data-testid="next-${String(i)}"></div>`).join('')}</div></div>`;
+    <div class="next-row" data-testid="next-row">${[0, 1, 2].map((i) => `<div class="nx" data-testid="next-${String(i)}"></div>`).join('')}</div>`;
 
   const q = <E extends HTMLElement>(sel: string): E => {
     const found = el.querySelector<E>(sel);
@@ -158,6 +165,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   const housesNum = q('[data-testid="houses"] b');
   const rotStat = q('[data-testid="rotations"]');
   const rotNum = q('[data-testid="rotations"] b');
+  const rotDots = [...el.querySelectorAll<HTMLElement>('.rd')];
   const toast = q('[data-testid="no-fit"]');
   const slots = [...el.querySelectorAll<HTMLElement>('.slot')];
   const nexts = [...el.querySelectorAll<HTMLElement>('.nx')];
@@ -214,6 +222,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     rotStat.classList.toggle('out', state.rotationsLeft === 0);
     el.classList.toggle('no-rotations', state.rotationsLeft === 0);
     el.dataset['rotationsLeft'] = String(state.rotationsLeft);
+    rotDots.forEach((dot, i) => dot.classList.toggle('spent', i >= state.rotationsLeft));
     el.dataset['status'] = state.status;
     el.dataset['turn'] = String(state.turn);
     el.toggleAttribute('data-busy', busy);
@@ -417,10 +426,14 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       }
       return;
     }
+    // Отдельный дот гаснет и подпрыгивает счётчик — видно, что потрачен именно этот поворот (§7.2).
+    const spentDot = rotDots[ROTATIONS_PER_TURN - 1 - state.rotationsLeft];
     state = next;
     rotationsThisTurn += 1;
     renderStats();
     renderTray();
+    spentDot?.animate([{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(.4)', opacity: 0 }], { duration: T.rotate, easing: 'ease-in' });
+    rotStat.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: T.rotate, easing: 'ease-out' });
     const mini = slots[slot]?.querySelector<HTMLElement>('.mini');
     mini?.animate([{ transform: 'rotate(-90deg)' }, { transform: 'rotate(0)' }], { duration: T.rotate, easing: 'ease-out' });
   }

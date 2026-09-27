@@ -88,6 +88,37 @@
       "normal": 220,
       "slow": 360
     }
+  },
+  "themes": {
+    "tomb": {
+      "description": "Тёмная тема только для «Раскопа» (specs/24-excavation.md), одобрена автором 2026-09-27. Переопределяет нейтральные цвета и тени; брендовые цвета те же.",
+      "selector": "[data-theme=\"tomb\"]",
+      "color": {
+        "neutral": {
+          "background": "#11141B",
+          "surface": "#1B202A",
+          "surfaceMuted": "#262C38",
+          "border": "#2F3644",
+          "text": "#EEF2F8",
+          "textMuted": "#9AA3B2"
+        },
+        "semantic": {
+          "disabled": "#454D5C"
+        },
+        "game": {
+          "stone": "#5D6678",
+          "clue1": "#7B9DFF",
+          "clue2": "#34D399",
+          "clue3": "#FF7B6B",
+          "clue4": "#A78BFA",
+          "clue5": "#FF5FA2"
+        }
+      },
+      "shadow": {
+        "soft": "0 6px 18px rgba(0, 0, 0, 0.35)",
+        "card": "0 10px 30px rgba(0, 0, 0, 0.45)",
+        "tile": "0 7px 14px rgba(0, 0, 0, 0.45)"
+      }
+    }
   }
 }
-

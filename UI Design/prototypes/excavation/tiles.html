@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru" data-theme="tomb">
+<head>
+<meta charset="utf-8">
+<title>Раскоп — плиты</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  /* Все состояния плиты для specs/24-excavation.md §3 и §7. Тема «Гробница». */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow: hidden; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); padding: 20px 16px; }
+  h2 { font-size: 13px; font-weight: 600; color: var(--ui-text-muted); margin: 14px 0 8px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .item { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 60px; }
+  .item span { font-size: 11px; color: var(--ui-text-muted); text-align: center; line-height: 1.2; }
+  .cell { position: relative; width: 56px; height: 56px; border-radius: 26%; background: var(--ui-surface-muted); box-shadow: inset 0 0 0 1px var(--ui-border); display: grid; place-items: center; }
+  .tile { --c: var(--ui-stone); position: absolute; inset: 0; border-radius: 26%;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+    display: grid; place-items: center; }
+  .tile svg { width: 40%; height: 40%; color: rgba(255,255,255,.35); }
+  .tile.trap { --c: var(--ui-coral); }
+  .tile.trap svg { width: 56%; height: 56%; color: #fff; }
+  .cell b { font-size: 26px; font-weight: 700; }
+  .ghost b { opacity: .38; }
+  .ghost-trap svg { width: 50%; height: 50%; color: var(--ui-coral); opacity: .75; }
+  .entrance svg { width: 52%; height: 52%; color: var(--ui-green); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="spikes" viewBox="0 0 24 24"><path d="M3 20 6.5 8 10 20zM8.5 20 12 4l3.5 16zM14 20l3.5-12L21 20z" fill="currentColor"/></symbol>
+  <symbol id="cracks" viewBox="0 0 24 24"><path d="M4 9l5 2 3-4M13 17l4-3 3 1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="door" viewBox="0 0 24 24"><path d="M6 21V9a6 6 0 0 1 12 0v12z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M3 21h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+</defs></svg>
+<h2>Во время попытки</h2>
+<div class="row">
+  <div class="item"><div class="cell"><div class="tile"><svg><use href="#cracks"/></svg></div></div><span>закрыта</span></div>
+  <div class="item"><div class="cell entrance"><svg><use href="#door"/></svg></div><span>вход (0)</span></div>
+  <div class="item"><div class="cell"></div><span>пусто (0) · 0 золота</span></div>
+</div>
+<h2>Открытая плита: число = ловушек рядом = золото</h2>
+<div class="row" id="nums"></div>
+<h2>Конец попытки</h2>
+<div class="row">
+  <div class="item"><div class="cell"><div class="tile trap"><svg><use href="#spikes"/></svg></div></div><span>сработала ловушка</span></div>
+  <div class="item"><div class="cell ghost-trap"><svg><use href="#spikes"/></svg></div><span>ловушка раскрыта</span></div>
+  <div class="item"><div class="cell ghost"><b style="color:var(--ui-clue-2)">2</b></div><span>не открыта, золото не взято</span></div>
+</div>
+<script>
+  document.getElementById('nums').innerHTML = [1, 2, 3, 4, 5].map((n) =>
+    `<div class="item"><div class="cell"><b style="color:var(--ui-clue-${n})">${n}</b></div><span>+${n} золота</span></div>`).join('');
+</script>
+</body>
+</html>

@@ -69,3 +69,28 @@
   --ui-shadow-tile: 0 7px 14px rgba(31, 41, 55, 0.14);
 }
 
+
+/* Тема «Гробница» — тёмная, только для «Раскопа» (specs/24-excavation.md).
+   Одобрена автором 2026-09-27. Включается атрибутом data-theme="tomb" на
+   корне игры. Меняет нейтральные цвета и тени; игровые цвета кита те же.
+   --ui-stone — закрытая плита, --ui-clue-1..5 — цвета чисел на плитах. */
+[data-theme="tomb"] {
+  --ui-background: #11141b;
+  --ui-surface: #1b202a;
+  --ui-surface-muted: #262c38;
+  --ui-border: #2f3644;
+  --ui-text: #eef2f8;
+  --ui-text-muted: #9aa3b2;
+  --ui-disabled: #454d5c;
+
+  --ui-stone: #5d6678;
+  --ui-clue-1: #7b9dff;
+  --ui-clue-2: #34d399;
+  --ui-clue-3: #ff7b6b;
+  --ui-clue-4: #a78bfa;
+  --ui-clue-5: #ff5fa2;
+
+  --ui-shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.35);
+  --ui-shadow-card: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --ui-shadow-tile: 0 7px 14px rgba(0, 0, 0, 0.45);
+}

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../UI Design/design-tokens.css">
+<style>
+  /* Иконка и превью ссылки: мини-поле Sprout — корень от семечка через воду к ростку. */
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--ui-font); background: transparent; }
+  .grid { --cell: 124px; position: relative; display: grid; grid-template-columns: repeat(3, var(--cell)); grid-template-rows: repeat(3, var(--cell)); gap: 12px; }
+  .grid.big { --cell: 112px; grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(4, var(--cell)); flex: none; }
+  .c { position: relative; border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .root { background: color-mix(in srgb, var(--ui-green) 32%, var(--ui-surface)); color: color-mix(in srgb, var(--ui-green) 70%, #1f2937); }
+  .t { --c: var(--ui-blue); position: absolute; inset: 0; border-radius: 26%; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: 0 6px 12px rgba(31,41,55,.14), inset 0 -5px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 3px 0 rgba(255,255,255,.45); z-index: 2; }
+  .water svg { width: 36%; height: 36%; margin-top: -24%; }
+  .water b { position: absolute; bottom: 9%; font-size: calc(var(--cell) * .3); font-weight: 700; line-height: 1; }
+  .stone { --c: var(--ui-text-muted); } .stone svg { width: 62%; height: 62%; }
+  .goal { --c: var(--ui-yellow); color: color-mix(in srgb, var(--ui-green) 70%, #1f2937); }
+  .goal svg { width: 70%; height: 70%; }
+  .seed svg { width: 50%; height: 50%; position: relative; z-index: 2; }
+  .stem { position: absolute; z-index: 1; border-radius: 99px; background: color-mix(in srgb, var(--ui-green) 80%, #1f2937); }
+
+  #icon { width: 512px; height: 512px; background: radial-gradient(90% 90% at 30% 20%, #fff, var(--ui-background)); display: flex; align-items: center; justify-content: center; }
+  #og { width: 1200px; height: 630px; background: radial-gradient(80% 90% at 20% 10%, #fff, var(--ui-background) 70%); display: flex; align-items: center; gap: 72px; padding: 0 96px; }
+  #og h1 { font-size: 92px; font-weight: 700; line-height: 1.05; color: var(--ui-text); }
+  #og p { margin-top: 24px; font-size: 32px; color: var(--ui-text-muted); }
+  #og .cta { margin-top: 36px; display: inline-flex; align-items: center; gap: 14px; height: 76px; padding: 0 40px; border-radius: 22px; color: #fff; font-size: 32px; font-weight: 600; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 10px 24px rgba(79,126,255,.35); }
+  #og .cta svg { width: 30px; height: 30px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="drop" viewBox="0 0 24 24"><path d="M12 2.5C9 7 5.5 10.6 5.5 14.6a6.5 6.5 0 0013 0C18.5 10.6 15 7 12 2.5z" fill="currentColor"/></symbol>
+  <symbol id="rock" viewBox="0 0 24 24"><path d="M4.5 16 7.2 8.6l5.6-2.3 4.4 3.9-1.1 6.6-6.1 1.7z" fill="rgba(255,255,255,.34)"/><path d="M14.8 19.2 16.4 15.4l3.9.5.6 3.3-2.8 1.3z" fill="rgba(255,255,255,.26)"/></symbol>
+  <symbol id="sprout" viewBox="0 0 24 24"><path d="M12 21.5v-8.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M12 13c0-4-3-6.5-7.5-6.5C4.5 10.5 7.5 13 12 13z" fill="currentColor"/><path d="M12 11c0-3.6 2.8-6 7.5-6 0 3.8-3 6-7.5 6z" fill="currentColor"/></symbol>
+  <symbol id="seed" viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="6" ry="4.6" fill="currentColor"/><path d="M12 11.5V7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M12 8c0-2.6 2-4.3 5.2-4.3 0 2.7-2 4.3-5.2 4.3z" fill="currentColor"/></symbol>
+</defs></svg>
+
+<!-- 3×3: семечко внизу слева → вверх → вода → росток вверху справа. -->
+<div id="icon"><div class="grid" id="g3">
+  <div class="c root"></div><div class="c root"></div><div class="c"><div class="t goal"><svg><use href="#sprout"/></svg></div></div>
+  <div class="c root"></div><div class="c"><div class="t stone"><svg><use href="#rock"/></svg></div></div><div class="c"><div class="t water"><svg><use href="#drop"/></svg><b>+3</b></div></div>
+  <div class="c root seed"><svg><use href="#seed"/></svg></div><div class="c"></div><div class="c"></div>
+</div></div>
+
+<div id="og">
+  <div class="grid big" id="g4">
+    <div class="c"></div><div class="c"><div class="t water"><svg><use href="#drop"/></svg><b>+4</b></div></div><div class="c"></div><div class="c"><div class="t goal"><svg><use href="#sprout"/></svg></div></div>
+    <div class="c root"></div><div class="c root"></div><div class="c"><div class="t stone"><svg><use href="#rock"/></svg></div></div><div class="c"></div>
+    <div class="c root"></div><div class="c"><div class="t stone"><svg><use href="#rock"/></svg></div></div><div class="c"><div class="t water"><svg><use href="#drop"/></svg><b>+3</b></div></div><div class="c"></div>
+    <div class="c root seed"><svg><use href="#seed"/></svg></div><div class="c"></div><div class="c"></div><div class="c"><div class="t stone"><svg><use href="#rock"/></svg></div></div>
+  </div>
+  <div>
+    <h1>Sprout</h1>
+    <p>Веди корень к ростку.<br>Вода даёт ходы.</p>
+    <div class="cta"><svg viewBox="0 0 24 24"><path d="M7 4.5v15c0 .8.9 1.3 1.6.8l11-7.5c.6-.4.6-1.2 0-1.6l-11-7.5C7.9 3.2 7 3.7 7 4.5z" fill="currentColor"/></svg>Играть</div>
+  </div>
+</div>
+<script>
+  // Стебель через центры клеток корня: [строка, столбец].
+  const stems = { g3: [[2, 0], [1, 0], [0, 0], [0, 1]], g4: [[3, 0], [2, 0], [1, 0], [1, 1]] };
+  for (const [id, path] of Object.entries(stems)) {
+    const grid = document.getElementById(id);
+    const cell = parseFloat(getComputedStyle(grid).getPropertyValue('--cell'));
+    const gap = 12, w = cell * 0.14;
+    const c = ([r, k]) => [k * (cell + gap) + cell / 2, r * (cell + gap) + cell / 2];
+    for (let i = 1; i < path.length; i++) {
+      const [x1, y1] = c(path[i - 1]), [x2, y2] = c(path[i]);
+      const s = document.createElement('div');
+      s.className = 'stem';
+      Object.assign(s.style, { left: Math.min(x1, x2) - w / 2 + 'px', top: Math.min(y1, y2) - w / 2 + 'px', width: Math.abs(x2 - x1) + w + 'px', height: Math.abs(y2 - y1) + w + 'px' });
+      grid.append(s);
+    }
+  }
+</script>
+</body>
+</html>

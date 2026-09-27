@@ -49,13 +49,14 @@
   .stone svg { width: 58%; height: 58%; }
   .goal { --c: var(--ui-yellow); color: var(--ui-text); }
   .goal b, .root b { position: absolute; bottom: 3px; font-size: 12px; font-weight: 700; }
-  .goal svg { margin-top: -8px; }
+  .goal svg { position: absolute; width: 56%; height: 56%; color: color-mix(in srgb, var(--ui-green) 70%, #1f2937); }
+  .goal svg.rays { width: 80%; height: 80%; top: 4%; opacity: .9; }
   /* Корень — светлый зелёный тайл без объёма, по нему идёт тёмный стебель. */
   .root { --c: var(--ui-green); background: color-mix(in srgb, var(--ui-green) 32%, var(--ui-surface)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ui-green) 45%, transparent); color: color-mix(in srgb, var(--ui-green) 70%, #1f2937); }
   .root svg, .root b { position: relative; z-index: 2; }
   .root svg { width: 50%; height: 50%; }
   .root.tip svg { width: 58%; height: 58%; filter: drop-shadow(0 2px 3px rgba(31,41,55,.2)); }
-  .root.start svg { margin-top: -8px; }
+
   .root.tip .drop { position: absolute; top: 4px; right: 5px; width: 14px; height: 14px; filter: none; color: var(--ui-blue); }
   .stem { position: absolute; z-index: 1; background: color-mix(in srgb, var(--ui-green) 80%, #1f2937); border-radius: 4px; pointer-events: none; }
 </style>
@@ -66,6 +67,8 @@
     <symbol id="drop" viewBox="0 0 24 24"><path d="M12 2.5C9 7 5.5 10.6 5.5 14.6a6.5 6.5 0 0 0 13 0C18.5 10.6 15 7 12 2.5z" fill="currentColor"/></symbol>
     <symbol id="rock" viewBox="0 0 24 24"><path d="M5 15.5 7.5 9l5-2 4 3.5-1 6-5.5 1.5z" fill="rgba(255,255,255,.35)"/><path d="M14.5 18.5 16 15l3.5.5.5 3-2.5 1.2z" fill="rgba(255,255,255,.28)"/></symbol>
     <symbol id="sprout" viewBox="0 0 24 24"><path d="M12 21v-8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M12 13c0-4 -3-6.5-7.5-6.5C4.5 10.5 7.5 13 12 13z" fill="currentColor"/><path d="M12 11c0-3.6 2.8-6 7.5-6 0 3.8-3 6-7.5 6z" fill="currentColor"/></symbol>
+    <symbol id="seed" viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="6" ry="4.6" fill="currentColor"/><path d="M12 11.5V7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M12 8c0-2.6 2-4.3 5.2-4.3 0 2.7-2 4.3-5.2 4.3z" fill="currentColor"/></symbol>
+    <symbol id="rays" viewBox="0 0 24 24"><g stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v2.6M4.9 4.9l1.8 1.8M19.1 4.9l-1.8 1.8M2 12h2.6M19.4 12H22"/></g></symbol>
     <symbol id="leaf" viewBox="0 0 24 24"><path d="M5 19C5 10 10 5 20 4c0 10-5 15-15 15z" fill="currentColor"/><path d="M5 19 13 11" stroke="rgba(31,41,55,.25)" stroke-width="1.6" stroke-linecap="round"/></symbol>
   </defs>
 </svg>
@@ -98,11 +101,11 @@
     d.className = 'cell' + (next.includes(`${r},${c}`) ? ' next' : '');
     const k = onRoot(r, c);
     let tile = '';
-    if (k === 0) tile = `<div class="tile root start"><svg><use href="#sprout"/></svg><b>А</b></div>`;
+    if (k === 0) tile = `<div class="tile root start"><svg><use href="#seed"/></svg></div>`;
     else if (k === root.length - 1) tile = `<div class="tile root tip"><svg><use href="#leaf"/></svg>${ch !== '.' ? '<svg class="drop"><use href="#drop"/></svg>' : ''}</div>`;
     else if (k > 0) tile = `<div class="tile root"></div>`;
     else if (ch === '#') tile = `<div class="tile stone"><svg><use href="#rock"/></svg></div>`;
-    else if (ch === 'B') tile = `<div class="tile goal"><svg><use href="#sprout"/></svg><b>Б</b></div>`;
+    else if (ch === 'B') tile = `<div class="tile goal"><svg class="rays"><use href="#rays"/></svg><svg><use href="#sprout"/></svg></div>`;
     else if (/\d/.test(ch)) tile = `<div class="tile water"><svg><use href="#drop"/></svg><b>+${ch}</b></div>`;
     d.innerHTML = tile;
     board.appendChild(d);

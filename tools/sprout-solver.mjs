@@ -94,7 +94,7 @@ const POW2 = Array.from({ length: 64 }, (_, i) => 2 ** i);
  * `orders: false` stops at the first win; `orders: true` collects every
  * distinct water order of a winning path and one shortest path for each.
  */
-export function solve(g, { start = g.start, bonus = g.bonus, orders: wantOrders = false, nodeBudget = 20_000_000 } = {}) {
+export function solve(g, { start = g.start, bonus = g.bonus, orders: wantOrders = false, nodeBudget = 20_000_000, from = null } = {}) {
   const N = g.size * g.size;
   const adj = Array.from({ length: N }, (_, i) => neighbours(g, i).filter((n) => !g.stone[n]));
   const visited = new Uint8Array(N);
@@ -166,6 +166,19 @@ export function solve(g, { start = g.start, bonus = g.bonus, orders: wantOrders 
     }
   }
 
+  if (from) {
+    // Продолжение с середины попытки: `from.path` — корень от А до кончика, `from.moves` — запас.
+    let mask = 0;
+    for (const cell of from.path) {
+      visited[cell] = 1;
+      mask += POW2[cell];
+    }
+    path.splice(0, path.length, ...from.path);
+    const tip = from.path[from.path.length - 1];
+    if (tip === g.b) return { solvable: true, orders, nodes, aborted };
+    if (from.moves >= 1) dfs(tip, mask, from.moves);
+    return { solvable: found, orders, nodes, aborted };
+  }
   visited[g.a] = 1;
   if (start >= 1) dfs(g.a, POW2[g.a], start);
   return { solvable: found, orders, nodes, aborted };
@@ -484,6 +497,32 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       found++;
       console.log(seed, JSON.stringify(level.rows), level.start);
     }
+  } else if (cmd === 'log') {
+    // node tools/sprout-solver.mjs log <log.json> — метрика step_lost (§8) по логу
+    // игры: для каждой попытки номер шага, после которого победа стала недостижимой.
+    const { readFileSync } = await import('node:fs');
+    const events = JSON.parse(readFileSync(process.argv[3], 'utf8'));
+    let attempt = null;
+    const flush = () => {
+      if (attempt) console.log(JSON.stringify({ level: attempt.level, stepLost: attempt.lost, stepEnd: attempt.end, status: attempt.state.status }));
+    };
+    for (const e of events) {
+      if (e.type === 'level_start') {
+        flush();
+        const level = GAME_LEVELS[e.level - 1];
+        const g = parse(level);
+        attempt = { level: e.level, g, state: createState(g), lost: null, end: null };
+      } else if (e.type === 'step' && attempt) {
+        const cell = e.row * attempt.g.size + e.col;
+        attempt.state = step(attempt.g, attempt.state, cell) ?? attempt.state;
+        if (attempt.lost === null && attempt.state.status !== 'won') {
+          const r = solve(attempt.g, { from: { path: attempt.state.path, moves: attempt.state.moves } });
+          if (!r.solvable) attempt.lost = e.step;
+        }
+        if (attempt.state.status !== 'playing') attempt.end = e.step;
+      }
+    }
+    flush();
   } else if (cmd === 'show') {
     const lvl = validate(randomLevel(Number(process.argv[3]), { water: Number(process.argv[4] ?? 5), stones: Number(process.argv[5] ?? 7) }));
     if (!lvl) console.log('invalid');

@@ -11,7 +11,9 @@ import {
   safeOnly,
   safeSequence,
   toMap,
+  trapProbabilities as solverProbabilities,
 } from '../../../tools/excavation-solver.mjs';
+import { trapProbabilities } from '../src/engine/probability.ts';
 import { createState, tap } from '../src/engine/digEngine.ts';
 import { LEVELS } from '../src/levels/levels.ts';
 import type { GameState } from '../src/engine/types.ts';
@@ -81,6 +83,23 @@ describe('уровни (§6)', () => {
       }
     });
   }
+
+  // Подсветка при удержании (§4) считает вероятности портом солвера — сверяем.
+  it('вероятности ловушки в игре совпадают с солвером на каждом шаге логики', () => {
+    for (const level of LEVELS.slice(1)) {
+      for (const [n, layout] of level.layouts.slice(0, 5).entries()) {
+        const room = roomFromMap(layout.map, level.traps);
+        let s = createState(level, n);
+        for (const i of safeSequence(room)) {
+          const mine = trapProbabilities(s);
+          const ref = solverProbabilities(room, s.open);
+          expect(mine.size).toBe(ref.size);
+          for (const [c, v] of ref) expect(mine.get(c) ?? -1).toBeCloseTo(v, 9);
+          s = tap(s, ...at(s, i))?.state as GameState;
+        }
+      }
+    }
+  });
 
   // Закрытый вопрос backlog-версии (§6, §8): логика против случайного тапа.
   it('логический бот проходит уровни 2–5 всегда, случайный — реже 25%', () => {

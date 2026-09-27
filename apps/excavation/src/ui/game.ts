@@ -1,4 +1,5 @@
 import { canTake, createState, goldLeft, starsFor, take, takeBlock, tap } from '../engine/digEngine.ts';
+import { trapProbabilities } from '../engine/probability.ts';
 import type { GameState, Stars } from '../engine/types.ts';
 import { getLevel, LEVEL_COUNT } from '../levels/levels.ts';
 import { reducedMotion, vibrate, wait } from './feedback.ts';
@@ -304,11 +305,13 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     return out;
   }
 
-  // ---------- удержание открытой плиты: подсветка соседей (§4, §7, решение автора 2026-09-27) ----------
-  // Подсвечивает только закрытые соседние плиты — тот же круг, что число уже
-  // называет («N ловушек среди этих плит»). Не то, где ловушка точно, и не
-  // вероятность: геометрия, которую игрок и так видит по клетке рядом.
+  // ---------- удержание открытой плиты: тепловая подсветка соседей (§4, §7) ----------
+  // Решение автора 2026-09-27: закрытые соседи числа подсвечиваются тем
+  // насыщеннее, чем выше точная вероятность ловушки под ними (перебор по всем
+  // открытым числам и общему числу ловушек, engine/probability.ts). Соседи с
+  // вероятностью 0 не подсвечиваются.
   let holdTimer: ReturnType<typeof setTimeout> | null = null;
+  let holdCells: number[] = [];
   let holdIndex = -1;
 
   function clearHold(): void {
@@ -317,11 +320,15 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       holdTimer = null;
     }
     if (holdIndex >= 0) {
-      neighboursOf(holdIndex)
-        .filter((j) => !state.open[j])
-        .forEach((j) => cellEl(j).classList.remove('tip-ring'));
+      for (const j of holdCells) {
+        const box = cellEl(j);
+        box.classList.remove('heat');
+        box.style.removeProperty('--heat');
+        delete box.dataset['heat'];
+      }
       cellEl(holdIndex).classList.remove('peek-source');
       tipEl.hidden = true;
+      holdCells = [];
       holdIndex = -1;
     }
   }
@@ -332,10 +339,17 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       holdTimer = null;
       holdIndex = i;
       const n = state.clue[i] ?? 0;
-      const closed = neighboursOf(i).filter((j) => !state.open[j]);
-      closed.forEach((j) => cellEl(j).classList.add('tip-ring'));
+      const p = trapProbabilities(state);
+      holdCells = neighboursOf(i).filter((j) => !state.open[j] && (p.get(j) ?? 0) > 1e-9);
+      for (const j of holdCells) {
+        const heat = p.get(j) ?? 0;
+        const box = cellEl(j);
+        box.classList.add('heat');
+        box.style.setProperty('--heat', heat.toFixed(3));
+        box.dataset['heat'] = heat.toFixed(2);
+      }
       cellEl(i).classList.add('peek-source');
-      tipEl.innerHTML = `<b>${String(n)} ${plural(n, 'ловушка', 'ловушки', 'ловушек')}</b> среди этих плит`;
+      tipEl.innerHTML = `<b>${String(n)} ${plural(n, 'ловушка', 'ловушки', 'ловушек')}</b> · чем ярче плита, тем вероятнее`;
       tipEl.hidden = false;
       vibrate(10);
       log({ type: 'peek', level: levelNumber, row: Math.floor(i / level.cols), col: i % level.cols });

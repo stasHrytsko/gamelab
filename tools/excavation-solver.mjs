@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
 
 /**
  * The Dig (Раскоп) — generator, exact trap-probability solver and strategy bots.
@@ -20,6 +21,7 @@
  *   node tools/excavation-solver.mjs stops             — how risky the exit decisions are (pool)
  *   node tools/excavation-solver.mjs layouts N         — print frozen layouts of level N
  *   node tools/excavation-solver.mjs json              — frozen levels as JSON (levels.json of the app)
+ *   node tools/excavation-solver.mjs log <file.json>   — stops and choices from a playtest log (§8)
  */
 
 // ---------- deterministic randomness (generation only, never at play time) ----------
@@ -188,6 +190,32 @@ export function toMap(room) {
     out.push(line);
   }
   return out;
+}
+
+/** Room back from map strings (`*` / `.` / `E` / `X`) — the inverse of toMap. */
+export function roomFromMap(map, traps) {
+  const rows = map.length;
+  const cols = map[0].length;
+  const cells = map.join('');
+  const trap = [...cells].map((ch) => ch === '*');
+  const clue = trap.map((t, i) => (t ? -1 : neighbours(rows, cols, i).filter((j) => trap[j]).length));
+  return { rows, cols, traps: traps ?? trap.filter(Boolean).length, trap, clue, entrance: cells.indexOf('E'), exit: cells.indexOf('X') };
+}
+
+/** Order in which pure logic opens tiles (certain-safe first, highest clue first). */
+export function safeSequence(room, open0) {
+  const n = room.rows * room.cols;
+  const open = open0 ? [...open0] : new Array(n).fill(false);
+  open[room.entrance] = true;
+  const seq = [];
+  for (;;) {
+    const p = trapProbabilities(room, open);
+    let s = -1;
+    for (const [c, v] of p) if (v < 1e-12 && (s < 0 || room.clue[c] > room.clue[s])) s = c;
+    if (s < 0) return seq;
+    open[s] = true;
+    seq.push(s);
+  }
 }
 
 // ---------- exact solver ----------
@@ -446,6 +474,59 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       layouts: layoutsFor(level).map((room) => ({ seed: room.seed, map: toMap(room) })),
     }));
     console.log(JSON.stringify(levels, null, 2));
+  } else if (cmd === 'log') {
+    // §8: replay a device log (localStorage['excavation:log'] saved to a file). A stop is a moment
+    // with the exit open (found and >= 1★), fewer than 3★ and no certain-safe tile; its outcome is
+    // the next action: take or dig. Levels 3–5 feed the kill criterion.
+    const events = JSON.parse(readFileSync(process.argv[3], 'utf8'));
+    const levels = new Map(LEVELS.map((l) => [l.id, l]));
+    const frozen = new Map(LEVELS.map((l) => [l.id, layoutsFor(l)]));
+    const stops = { take: 0, dig: 0 };
+    const byStar = { 1: { take: 0, dig: 0 }, 2: { take: 0, dig: 0 } };
+    let careless = 0;
+    let taps = 0;
+    let run = null;
+    const decide = (outcome) => {
+      if (!run || !run.stop) return;
+      if (run.level.id >= 3) stops[outcome]++;
+      byStar[run.stop][outcome]++;
+      run.stop = 0;
+    };
+    const checkStop = () => {
+      const st = run.level.stars.filter((x) => run.gold >= x).length;
+      const p = trapProbabilities(run.room, run.open);
+      run.p = p;
+      const safe = [...p.values()].some((v) => v < 1e-12);
+      run.stop = run.open[run.room.exit] && st >= 1 && st < 3 && !safe ? st : 0;
+    };
+    for (const e of events) {
+      if (e.type === 'level_start') {
+        const level = levels.get(e.level);
+        const room = frozen.get(e.level)[e.layout];
+        const open = new Array(room.rows * room.cols).fill(false);
+        open[room.entrance] = true;
+        run = { level, room, open, gold: 0, stop: 0 };
+        checkStop();
+      } else if (e.type === 'tap' && run) {
+        const i = e.row * run.room.cols + e.col;
+        taps++;
+        if ((run.p.get(i) ?? 0) > 1e-12 && [...run.p.values()].some((v) => v < 1e-12)) careless++;
+        decide('dig');
+        run.open[i] = true;
+        run.gold = e.gold;
+        if (e.result === 'trap') run = null;
+        else checkStop();
+      } else if (e.type === 'take') {
+        decide('take');
+        run = null;
+      } else if (e.type === 'abandon' || e.type === 'level_win') run = null;
+    }
+    const total = stops.take + stops.dig;
+    const share = (x) => (total ? `${((x / total) * 100).toFixed(0)}%` : '—');
+    console.log(`stops on levels 3–5: ${total}; took ${stops.take} (${share(stops.take)}), dug ${stops.dig} (${share(stops.dig)})`);
+    console.log(`kill criterion (one choice >= 90%): ${total && Math.max(stops.take, stops.dig) / total >= 0.9 ? 'MET — idea fails' : 'not met'}`);
+    for (const k of [1, 2]) console.log(`take_share_${k}: ${byStar[k].take}/${byStar[k].take + byStar[k].dig}`);
+    console.log(`careless_taps: ${careless} of ${taps} taps`);
   } else if (cmd === 'layouts') {
     const level = LEVELS[Number(process.argv[3]) - 1];
     for (const room of layoutsFor(level)) {

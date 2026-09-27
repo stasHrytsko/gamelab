@@ -1,0 +1,17 @@
+{
+  "name": "Раскоп",
+  "short_name": "Раскоп",
+  "description": "Число на плите — и ловушки рядом, и золото. Найди выход и реши, когда уйти.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#11141b",
+  "theme_color": "#11141b",
+  "lang": "ru",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

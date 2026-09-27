@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru" data-theme="tomb">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../UI Design/design-tokens.css">
+<style>
+  /* Иконка и превью ссылки: мини-комната «Раскопа» — камни, числа с монетками, выход. */
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--ui-font); background: transparent; }
+  .grid { --cell: 138px; display: grid; grid-template-columns: repeat(3, var(--cell)); grid-template-rows: repeat(3, var(--cell)); gap: 14px; }
+  .grid.og { --cell: 118px; grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(4, var(--cell)); gap: 12px; flex: none; }
+  .c { position: relative; border-radius: 26%; background: var(--ui-surface-muted); box-shadow: inset 0 0 0 2px var(--ui-border); display: grid; place-items: center; }
+  .s { --c: var(--ui-stone); position: absolute; inset: 0; border-radius: 26%; display: grid; place-items: center;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: 0 8px 16px rgba(0,0,0,.45), inset 0 -7px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 4px 0 rgba(255,255,255,.45); }
+  .s svg { width: 40%; height: 40%; color: rgba(255,255,255,.35); }
+  .s.trap { --c: var(--ui-coral); }
+  .s.trap svg { width: 56%; height: 56%; color: #fff; }
+  .c b { font-size: calc(var(--cell) * .46); font-weight: 700; line-height: 1; margin-top: -18%; }
+  .p { position: absolute; bottom: 13%; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; }
+  .p i { width: calc(var(--cell) * .12); height: calc(var(--cell) * .12); border-radius: 50%; background: var(--ui-yellow); }
+  .c.exit { box-shadow: inset 0 0 0 5px var(--ui-green); }
+  .c.exit svg { width: 48%; height: 48%; color: var(--ui-green); }
+  #icon { width: 512px; height: 512px; border-radius: 0; background: var(--ui-background); display: grid; place-items: center; }
+  #og { width: 1200px; height: 630px; background: var(--ui-background); display: flex; align-items: center; justify-content: center; gap: 70px; padding: 0 70px; }
+  #og h1 { font-size: 110px; color: var(--ui-yellow); font-weight: 700; line-height: 1; }
+  #og p { margin-top: 24px; font-size: 32px; line-height: 1.35; color: var(--ui-text-muted); font-weight: 500; max-width: 520px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="cr" viewBox="0 0 24 24"><path d="M4 9l5 2 3-4M13 17l4-3 3 1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="sp" viewBox="0 0 24 24"><path d="M3 20 6.5 8 10 20zM8.5 20 12 4l3.5 16zM14 20l3.5-12L21 20z" fill="currentColor"/></symbol>
+  <symbol id="ex" viewBox="0 0 24 24"><path d="M5 21V4h9v17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M14 4l5 2v15l-5-1z" fill="currentColor"/><path d="M3 21h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+</defs></svg>
+<div id="icon"><div class="grid">
+  <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+  <div class="c"><b style="color:var(--ui-clue-1)">1</b><div class="p"><i></i></div></div>
+  <div class="c exit"><svg><use href="#ex"/></svg></div>
+  <div class="c"><b style="color:var(--ui-clue-2)">2</b><div class="p"><i></i><i></i></div></div>
+  <div class="c"><b style="color:var(--ui-clue-3)">3</b><div class="p"><i></i><i></i><i></i></div></div>
+  <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+  <div class="c"><div class="s trap"><svg><use href="#sp"/></svg></div></div>
+  <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+  <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+</div></div>
+<div id="og">
+  <div><h1>Раскоп</h1><p>Число на плите — и ловушки рядом, и золото. Найди выход и реши, когда уйти.</p></div>
+  <div class="grid og">
+    <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+    <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+    <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+    <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+    <div class="c"><b style="color:var(--ui-clue-2)">2</b><div class="p"><i></i><i></i></div></div>
+    <div class="c"><b style="color:var(--ui-clue-3)">3</b><div class="p"><i></i><i></i><i></i></div></div>
+    <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+    <div class="c exit"><svg><use href="#ex"/></svg></div>
+    <div class="c"></div>
+    <div class="c"><b style="color:var(--ui-clue-1)">1</b><div class="p"><i></i></div></div>
+    <div class="c"><div class="s trap"><svg><use href="#sp"/></svg></div></div>
+    <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+    <div class="c"></div>
+    <div class="c"><b style="color:var(--ui-clue-1)">1</b><div class="p"><i></i></div></div>
+    <div class="c"><b style="color:var(--ui-clue-1)">1</b><div class="p"><i></i></div></div>
+    <div class="c"><div class="s"><svg><use href="#cr"/></svg></div></div>
+  </div>
+</div>
+</body>
+</html>

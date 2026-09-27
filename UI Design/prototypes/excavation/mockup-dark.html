@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Раскоп — тёмный</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  /* Скетч игрового экрана для specs/24-excavation.md §7.1.
+     Уровень 5, раскладка 3 из 20 (seed 5035), после всех гарантированно
+     безопасных плит: золото 23, первая звезда (18) есть, до второй (26)
+     не хватает 3, безопасных плит не осталось. Кнопка «Забрать 23» активна —
+     момент главного решения. Новых цветов нет: закрытая плита — тайл кита
+     --ui-blue, золото — --ui-yellow, вход — --ui-green. */
+  :root { --cell: 52px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); }
+  button { font: inherit; color: inherit; border: 0; background: none; }
+
+  .app { height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding: 8px 16px 16px; }
+  .top { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px; min-height: 44px; }
+  .top h1 { font-size: 18px; font-weight: 600; text-align: center; }
+  .top-right { display: flex; gap: 8px; }
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 20px; font-weight: 700; color: var(--ui-blue); }
+  .icon-btn svg { width: 22px; height: 22px; color: var(--ui-text); }
+
+  /* HUD: золото + шкала трёх звёзд, справа — число ловушек. */
+  .hud { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .card { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 8px 14px 10px; }
+  .gold-row { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 24px; line-height: 30px; }
+  .gold-row .coin { width: 22px; height: 22px; }
+  .gold-row small { font-size: 13px; font-weight: 500; color: var(--ui-text-muted); margin-left: 4px; }
+  .bar { position: relative; height: 10px; margin: 8px 6px 20px 0; border-radius: var(--ui-radius-pill); background: var(--ui-surface-muted); }
+  .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: var(--ui-yellow); }
+  .mark { position: absolute; top: -7px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+  .mark svg { width: 22px; height: 22px; }
+  .mark b { font-size: 11px; font-weight: 600; color: var(--ui-text-muted); margin-top: 1px; }
+  .mark.got svg { color: var(--ui-yellow); filter: drop-shadow(0 2px 2px rgba(31,41,55,.18)); }
+  .mark:not(.got) svg { color: var(--ui-disabled); }
+  .traps { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 76px; }
+  .traps small { font-size: 12px; color: var(--ui-text-muted); font-weight: 500; }
+  .traps div { display: flex; align-items: center; gap: 4px; font-size: 24px; font-weight: 700; }
+  .traps svg { width: 20px; height: 20px; color: var(--ui-coral); }
+
+  .stage { flex: 1; min-height: 0; display: grid; place-items: center; }
+  .board { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 8px; display: grid; grid-template-columns: repeat(6, var(--cell)); grid-template-rows: repeat(6, var(--cell)); gap: 5px; }
+  .cell { position: relative; border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .tile { --c: var(--ui-blue); position: absolute; inset: 0; border-radius: 26%;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+    display: grid; place-items: center; }
+  .tile svg { width: 40%; height: 40%; color: rgba(255,255,255,.35); }
+  /* Открытая плита: число = ловушек рядом = золото с неё. */
+  .open b { font-size: 22px; font-weight: 700; line-height: 1; }
+  .open .coin { position: absolute; right: 5px; bottom: 5px; width: 13px; height: 13px; }
+  .open.n1 b { color: var(--ui-text); } .open.n2 b { color: var(--ui-text); } .open.n3 b, .open.n4 b { color: var(--ui-text); }
+  .entrance svg { width: 52%; height: 52%; color: var(--ui-green); }
+
+  .actions { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+  .hint { text-align: center; font-size: 13px; color: var(--ui-text-muted); font-weight: 500; }
+  .take { height: 60px; border-radius: var(--ui-radius-pill); background: var(--ui-green); color: #fff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--ui-green) 75%, #1f2937); }
+  .take svg { width: 22px; height: 22px; color: var(--ui-yellow); }
+
+  /* ТЁМНЫЙ ВАРИАНТ — черновик на одобрение автора, в токенах его пока нет.
+     Игровые цвета кита (--ui-yellow, --ui-coral, --ui-green) не меняются,
+     меняются только фон, поверхности, текст и тени. Закрытая плита — «камень»
+     из --ui-text-muted вместо синей. */
+  :root {
+    --ui-background: #11141b;
+    --ui-surface: #1b202a;
+    --ui-surface-muted: #262c38;
+    --ui-border: #2f3644;
+    --ui-text: #eef2f8;
+    --ui-text-muted: #9aa3b2;
+    --ui-disabled: #454d5c;
+    --ui-shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.35);
+    --ui-shadow-card: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --ui-shadow-tile: 0 7px 14px rgba(0, 0, 0, 0.45);
+  }
+  .tile { --c: #5d6678; }
+  .icon-btn { color: var(--ui-yellow); }
+  .open b { color: var(--ui-text) !important; }
+  .open { box-shadow: inset 0 0 0 1px var(--ui-border); }
+  .gold-row { color: var(--ui-yellow); }
+  .gold-row small { color: var(--ui-text-muted); }
+  .take { color: #11141b; }
+  .take svg { color: #11141b; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffc542"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="rgba(31,41,55,.22)" stroke-width="1.6"/></symbol>
+    <symbol id="star" viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4L2.8 9.5l6.4-.8z" fill="currentColor"/></symbol>
+    <symbol id="spikes" viewBox="0 0 24 24"><path d="M3 20 6.5 8 10 20zM8.5 20 12 4l3.5 16zM14 20l3.5-12L21 20z" fill="currentColor"/></symbol>
+    <symbol id="cracks" viewBox="0 0 24 24"><path d="M4 9l5 2 3-4M13 17l4-3 3 1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="door" viewBox="0 0 24 24"><path d="M6 21V9a6 6 0 0 1 12 0v12z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M3 21h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+<div class="app">
+  <header class="top">
+    <button class="icon-btn" aria-label="К уровням"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></svg></button>
+    <h1>Уровень 5</h1>
+    <div class="top-right">
+      <button class="icon-btn" aria-label="Как играть">?</button>
+      <button class="icon-btn" aria-label="Заново"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12a7 7 0 1 0 2-5"/><path d="M5 3v4h4"/></svg></button>
+    </div>
+  </header>
+
+  <section class="hud">
+    <div class="card">
+      <div class="gold-row"><svg class="coin"><use href="#coin"/></svg>23<small>золото попытки</small></div>
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="card traps"><small>Ловушек</small><div><svg><use href="#spikes"/></svg>9</div></div>
+  </section>
+
+  <main class="stage"><div class="board" id="board"></div></main>
+
+  <section class="actions">
+    <div class="hint">Выйти сейчас — или копать дальше ради второй звезды</div>
+    <button class="take"><svg><use href="#star"/></svg>Забрать 23</button>
+  </section>
+</div>
+<script>
+  // Уровень 5, seed 5035. '#' и '*' — закрытые плиты (ловушки игроку не видны),
+  // цифра — открытая плита, '_' — открытая пустая, 'E' — вход.
+  const rows = ['#*1##*', '1122*#', '111*##', '*113**', '22_2*#', '*1E1##'];
+  const board = document.getElementById('board');
+  rows.forEach((line) => [...line].forEach((ch) => {
+    const d = document.createElement('div');
+    d.className = 'cell';
+    if (ch === '#' || ch === '*') d.innerHTML = '<div class="tile"><svg><use href="#cracks"/></svg></div>';
+    else if (ch === 'E') { d.classList.add('entrance'); d.innerHTML = '<svg><use href="#door"/></svg>'; }
+    else if (ch !== '_') { d.classList.add('open', 'n' + ch); d.innerHTML = `<b>${ch}</b><svg class="coin"><use href="#coin"/></svg>`; }
+    board.appendChild(d);
+  }));
+  // Шкала: 0..36 (третья звезда), отметки 18 / 26 / 36, золото 23.
+  const stars = [18, 26, 36], gold = 23, max = 36;
+  const bar = document.getElementById('bar');
+  bar.innerHTML = `<div class="fill" style="width:${gold / max * 100}%"></div>` +
+    stars.map((s) => `<div class="mark ${gold >= s ? 'got' : ''}" style="left:${s / max * 100}%"><svg><use href="#star"/></svg><b>${s}</b></div>`).join('');
+</script>
+</body>
+</html>

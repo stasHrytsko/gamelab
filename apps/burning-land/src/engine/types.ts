@@ -32,7 +32,7 @@ export interface GameState {
   readonly turn: number;
   /** Поворот каждой из трёх фигур хода; на новом ходу — 0. */
   readonly rotations: readonly [number, number, number];
-  /** Сколько поворотов осталось в этом ходу (§4: 3 на ход, общий на три фигуры). */
+  /** Сколько поворотов осталось на весь уровень (§4: 3 на уровень, не восполняются между ходами). */
   readonly rotationsLeft: number;
   readonly status: Status;
   readonly failReason: FailReason | null;

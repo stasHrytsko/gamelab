@@ -40,19 +40,28 @@ export interface FirstMoves {
   readonly unknown: number;
 }
 
+export interface RotationOpts {
+  /** Общий лимит поворотов на всю партию (не на ход), нарастающим итогом. По умолчанию — без лимита. */
+  readonly rotationBudget?: number;
+}
+
 export const N: number;
 export const GAME_LEVELS: readonly SolverLevel[];
 export function parse(level: SolverLevel): Uint8Array;
 export function toRows(grid: Uint8Array): string[];
-export function solve(level: SolverLevel, opts?: { nodeBudget?: number; from?: Uint8Array; turn?: number }): SolveResult;
-export function greedyFront(level: SolverLevel): PolicyResult;
-export function greedyHouse(level: SolverLevel): PolicyResult;
+export function solve(level: SolverLevel, opts?: { nodeBudget?: number; from?: Uint8Array; turn?: number } & RotationOpts): SolveResult;
+export function greedyFront(level: SolverLevel, opts?: RotationOpts): PolicyResult;
+export function greedyHouse(level: SolverLevel, opts?: RotationOpts): PolicyResult;
 export function winsWithoutWalls(level: SolverLevel): boolean;
 export function isTrapPick(level: SolverLevel): FirstMoves | null;
 export function tutorialPick(level: SolverLevel): FirstMoves | null;
+export function winningFirstMoves(level: SolverLevel, nodeBudget?: number, opts?: RotationOpts): FirstMoves;
 export function turnMoves(grid: Uint8Array, letters: readonly string[]): Move[];
 export function triple(queue: string, turn: number): string[];
 export function nextBurn(grid: Uint8Array): Set<number>;
 export function shapeQueue(seed: number, turns?: number): string;
 export function randomLevel(seed: number, cfg?: Record<string, number>): SolverLevel | null;
 export function burned(grid: Uint8Array): number;
+export function saved(grid: Uint8Array): number;
+export function replay(level: SolverLevel, line: ReadonlyArray<Move | null>): { readonly status: string; readonly grid: Uint8Array; readonly turns?: number };
+export function moveName(move: Move | null): string;

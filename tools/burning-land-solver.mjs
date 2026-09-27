@@ -263,27 +263,28 @@ function doomed(grid) {
 }
 
 /**
- * DFS over placements with memo of lost positions. `all: true` also counts winning
- * first moves (for the "how many first moves win" metric). Returns
+ * DFS over placements with memo of lost positions. `rotationBudget` caps the total
+ * taps spent rotating pieces across the whole line (game rule: 3 for the level, not
+ * per turn) — a move needing more taps than are left is skipped. Returns
  * { solvable, line, nodes, aborted }.
  */
-export function solve(level, { nodeBudget = 300_000, from = null, turn: startTurn = 0 } = {}) {
+export function solve(level, { nodeBudget = 300_000, from = null, turn: startTurn = 0, rotationBudget = Infinity } = {}) {
   const queue = level.shapes;
   const lost = new Set();
   let nodes = 0;
   let aborted = false;
   const line = [];
 
-  function dfs(grid, turn) {
+  function dfs(grid, turn, spent) {
     if (++nodes > nodeBudget) {
       aborted = true;
       return false;
     }
     if (turn * 3 + 3 > queue.length) return false;
-    const key = turn + ':' + grid.join('');
+    const key = turn + ':' + spent + ':' + grid.join('');
     if (lost.has(key)) return false;
     const dist = fireDist(grid);
-    let moves = turnMoves(grid, triple(queue, turn)).filter((m) => useful(m, dist));
+    let moves = turnMoves(grid, triple(queue, turn)).filter((m) => useful(m, dist) && spent + m.rot <= rotationBudget);
     const scored = [];
     for (const m of moves) {
       const res = playTurn(grid, m);
@@ -305,7 +306,7 @@ export function solve(level, { nodeBudget = 300_000, from = null, turn: startTur
     scored.sort((a, b) => b.k - a.k);
     for (const { m, res } of scored) {
       line.push(m);
-      if (dfs(res.grid, turn + 1)) return true;
+      if (dfs(res.grid, turn + 1, spent + (m ? m.rot : 0))) return true;
       line.pop();
       if (aborted) return false;
     }
@@ -313,17 +314,21 @@ export function solve(level, { nodeBudget = 300_000, from = null, turn: startTur
     return false;
   }
 
-  const solvable = dfs(from ?? parse(level), startTurn);
+  const solvable = dfs(from ?? parse(level), startTurn, 0);
   return { solvable, line: solvable ? line : null, nodes, aborted };
 }
 
 /** Plays a policy to the end. `pick(grid, moves, turn)` returns a move (or null to skip). */
-export function playPolicy(level, pick) {
+export function playPolicy(level, pick, { rotationBudget = Infinity } = {}) {
   let grid = parse(level);
   const log = [];
+  let spent = 0;
   for (let turn = 0; turn * 3 + 3 <= level.shapes.length; turn++) {
-    const moves = turnMoves(grid, triple(level.shapes, turn));
+    // Поворот 0 у любой фигуры бесплатен, так что бюджет не создаёт ложный «нечем ходить»:
+    // отфильтрованы только конкретные развороты, до которых не хватает оставшихся тапов.
+    const moves = turnMoves(grid, triple(level.shapes, turn)).filter((m) => spent + m.rot <= rotationBudget);
     const m = moves.length ? pick(grid, moves, turn) : null;
+    spent += m ? m.rot : 0;
     const res = playTurn(grid, m);
     log.push(m);
     grid = res.grid;
@@ -336,7 +341,7 @@ export function playPolicy(level, pick) {
  * Kill-criterion strategy «закрывай фронт»: cover as many cells of the fire's next step as
  * possible; ties → keep the nearest house farthest from the fire; ties → first in order.
  */
-export function greedyFront(level) {
+export function greedyFront(level, opts) {
   return playPolicy(level, (grid, moves) => {
     const nb = nextBurn(grid);
     let best = null;
@@ -350,14 +355,14 @@ export function greedyFront(level) {
       if (k > bestK) (bestK = k), (best = m);
     }
     return best;
-  });
+  }, opts);
 }
 
 /**
  * Second naive strategy «отодвинь огонь от ближайшего дома»: maximise the fire distance to
  * the nearest house after the placement, then the sum over all houses.
  */
-export function greedyHouse(level) {
+export function greedyHouse(level, opts) {
   return playPolicy(level, (grid, moves) => {
     let best = null;
     let bestK = -1;
@@ -369,7 +374,7 @@ export function greedyHouse(level) {
       if (k > bestK) (bestK = k), (best = m);
     }
     return best;
-  });
+  }, opts);
 }
 
 /** Share of wins of uniformly random legal placements. */
@@ -388,19 +393,20 @@ export function winsWithoutWalls(level) {
 }
 
 /** How many distinct first placements (by cell set) keep the level solvable. */
-export function winningFirstMoves(level, nodeBudget = 60_000) {
+export function winningFirstMoves(level, nodeBudget = 60_000, { rotationBudget = Infinity } = {}) {
   const grid = parse(level);
   const moves = turnMoves(grid, triple(level.shapes, 0));
   let wins = 0;
   let unknown = 0;
   for (const m of moves) {
+    if (m.rot > rotationBudget) continue; // этот поворот один исчерпал бы весь лимит уровня
     const res = playTurn(grid, m);
     if (res.status === 'won') {
       wins++;
       continue;
     }
     if (res.status === 'failed' || doomed(res.grid)) continue;
-    const r = solve(level, { from: res.grid, turn: 1, nodeBudget });
+    const r = solve(level, { from: res.grid, turn: 1, nodeBudget, rotationBudget: rotationBudget - m.rot });
     if (r.solvable) wins++;
     else if (r.aborted) unknown++;
   }
@@ -485,8 +491,8 @@ export function pool({ from = 1, count = 100, maxSeeds = 20_000, ...cfg } = {}) 
   return out;
 }
 
-export function analyze(level) {
-  const r = solve(level);
+export function analyze(level, { rotationBudget = Infinity } = {}) {
+  const r = solve(level, { rotationBudget });
   const end = r.solvable ? replay(level, r.line) : null;
   return {
     name: level.name,
@@ -495,10 +501,10 @@ export function analyze(level) {
     burnedBySolver: end ? burned(end.grid) : null,
     savedBySolver: end ? saved(end.grid) : null,
     nodes: r.nodes,
-    greedyFront: greedyFront(level).won,
-    greedyHouse: greedyHouse(level).won,
+    greedyFront: greedyFront(level, { rotationBudget }).won,
+    greedyHouse: greedyHouse(level, { rotationBudget }).won,
     random: randomShare(level),
-    firstMoves: winningFirstMoves(level),
+    firstMoves: winningFirstMoves(level, undefined, { rotationBudget }),
   };
 }
 
@@ -553,11 +559,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const cmd = process.argv[2] ?? 'levels';
   const num = (i, d) => (process.argv[i] === undefined ? d : Number(process.argv[i]));
   if (cmd === 'levels') {
+    // Игра ограничивает повороты (3 на весь уровень, не на ход) — считаем с тем же лимитом.
+    const rotationBudget = 3;
     for (const level of GAME_LEVELS) {
-      const a = analyze(level);
-      const r = solve(level);
-      const gf = greedyFront(level);
-      const gh = greedyHouse(level);
+      const a = analyze(level, { rotationBudget });
+      const r = solve(level, { rotationBudget });
+      const gf = greedyFront(level, { rotationBudget });
+      const gh = greedyHouse(level, { rotationBudget });
       console.log(level.name, JSON.stringify(level.rows), level.shapes.slice(0, 24));
       console.log(' ', JSON.stringify(a));
       console.log('  solver:', r.line.map(moveName).join(' | '));

@@ -8,7 +8,7 @@ import {
   houseCells,
   nextBurn,
   place,
-  ROTATIONS_PER_TURN,
+  ROTATIONS_PER_LEVEL,
   rotateSlot,
   savedCount,
   shapeCells,
@@ -69,7 +69,7 @@ const HOW_TO_PLAY = `
     <li><b>1</b><span>Перетащи фигуру на поле — она станет стеной. Тапни фигуру, чтобы повернуть.</span></li>
     <li><b>2</b><span>После каждого хода огонь шагает на соседние клетки — туда, где точки.</span></li>
     <li><b>3</b><span>Огонь не проходит через стены и выгоревшие клетки.</span></li>
-    <li><b>4</b><span>Отрежь огонь от всех домов. Поворотов — 3 за ход.</span></li>
+    <li><b>4</b><span>Отрежь огонь от всех домов. Поворотов — 3 на весь уровень.</span></li>
   </ol>`;
 
 /** Мини-фигура из клеток: `size` — сторона клетки, `gap` — зазор. */
@@ -426,7 +426,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       return;
     }
     // Отдельный дот гаснет и подпрыгивает счётчик — видно, что потрачен именно этот поворот (§7.2).
-    const spentDot = rotDots[ROTATIONS_PER_TURN - 1 - state.rotationsLeft];
+    const spentDot = rotDots[ROTATIONS_PER_LEVEL - 1 - state.rotationsLeft];
     state = next;
     rotationsThisTurn += 1;
     renderStats();

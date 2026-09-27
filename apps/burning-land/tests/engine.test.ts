@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anyFits, cellsAt, centerOffset, createState, housesSafe, nextBurn, place, ROTATIONS_PER_TURN, rotateSlot, rotationCount, savedCount, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
+import { anyFits, cellsAt, centerOffset, createState, housesSafe, nextBurn, place, ROTATIONS_PER_LEVEL, rotateSlot, rotationCount, savedCount, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
 import type { GameState, Level } from '../src/engine/types.ts';
 
 // 8×8: огонь в a8 (0,0), дом в h1 (7,7). Очередь: ход 1 — D I M, ход 2 — O O O, дальше M.
@@ -145,20 +145,21 @@ describe('победа и поражение (§5)', () => {
     expect(savedCount(mid.cells)).toBe(64 - mid.cells.filter((k) => k === 'ash' || k === 'fire' || k === 'wall').length);
   });
 
-  it('повороты: 3 на ход на все три фигуры, четвёртый нельзя; на новом ходу снова 3', () => {
+  it('повороты: 3 на весь уровень, не на ход — четвёртый нельзя нигде, новый ход не восполняет лимит', () => {
     let s = createState(level);
-    expect(s.rotationsLeft).toBe(ROTATIONS_PER_TURN);
+    expect(s.rotationsLeft).toBe(ROTATIONS_PER_LEVEL);
     s = rotateSlot(level, s, 0) as GameState;
     s = rotateSlot(level, s, 1) as GameState;
     s = rotateSlot(level, s, 0) as GameState;
     expect(s.rotationsLeft).toBe(0);
     expect(rotateSlot(level, s, 2)).toBeNull();
     const r = place(level, s, 2, { row: 5, col: 5 });
-    expect(r?.state.rotationsLeft).toBe(3);
+    expect(r?.state.rotationsLeft).toBe(0); // новый ход лимит не восполняет
+    expect(rotateSlot(level, r?.state as GameState, 0)).toBeNull();
   });
 
-  it('трёх поворотов хватает на любой поворот одной фигуры', () => {
-    for (const letter of ['M', 'D', 'I', 'V', 'O', 'L', 'S', 'T'] as const) expect(rotationCount(letter) - 1).toBeLessThanOrEqual(ROTATIONS_PER_TURN);
+  it('трёх поворотов хватает на любой поворот одной фигуры за раз', () => {
+    for (const letter of ['M', 'D', 'I', 'V', 'O', 'L', 'S', 'T'] as const) expect(rotationCount(letter) - 1).toBeLessThanOrEqual(ROTATIONS_PER_LEVEL);
   });
 
   it('после конца попытки ни постановка, ни поворот невозможны', () => {

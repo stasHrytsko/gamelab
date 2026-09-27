@@ -78,11 +78,14 @@ export function houseCells(level: Level): number[] {
   return parseCells(level).flatMap((k, i) => (k === 'house' ? [i] : []));
 }
 
-/** Поворотов на ход, общий лимит на три фигуры (§4, решение автора 2026-09-27). */
-export const ROTATIONS_PER_TURN = 3;
+/**
+ * Поворотов на весь уровень — не на ход (решение автора 2026-09-27). Общий
+ * лимит на все постановки уровня; не восполняется между ходами.
+ */
+export const ROTATIONS_PER_LEVEL = 3;
 
 export function createState(level: Level): GameState {
-  return { level: level.id, cells: parseCells(level), turn: 0, rotations: [0, 0, 0], rotationsLeft: ROTATIONS_PER_TURN, status: 'playing', failReason: null };
+  return { level: level.id, cells: parseCells(level), turn: 0, rotations: [0, 0, 0], rotationsLeft: ROTATIONS_PER_LEVEL, status: 'playing', failReason: null };
 }
 
 export function neighbours(i: number): number[] {
@@ -221,7 +224,6 @@ function resolveTurn(state: GameState, placed: readonly number[]): TurnResult {
     cells,
     turn: status === 'playing' ? state.turn + 1 : state.turn,
     rotations: status === 'playing' ? [0, 0, 0] : state.rotations,
-    rotationsLeft: status === 'playing' ? ROTATIONS_PER_TURN : state.rotationsLeft,
     status,
     failReason,
   };
@@ -244,7 +246,7 @@ export function skipTurn(level: Level, state: GameState): TurnResult | null {
   return resolveTurn(state, []);
 }
 
-/** Тап по фигуре хода: следующий поворот по часовой. `null` — нельзя, в том числе когда повороты хода кончились. */
+/** Тап по фигуре хода: следующий поворот по часовой. `null` — нельзя, в том числе когда лимит уровня исчерпан. */
 export function rotateSlot(level: Level, state: GameState, slot: number): GameState | null {
   if (state.status !== 'playing' || state.rotationsLeft <= 0) return null;
   const letter = trayOf(level, state.turn)[slot];

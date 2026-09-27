@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { greedyHouse, solve, type Move } from '../../../tools/burning-land-solver.mjs';
-import { anyFits, cellsAt, centerOffset, createState, fits, nextBurn, place, rotateSlot, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
+import { anyFits, cellsAt, centerOffset, createState, fits, nextBurn, place, ROTATIONS_PER_LEVEL, rotateSlot, skipTurn, trayOf } from '../src/engine/fireEngine.ts';
 import type { GameState, Level } from '../src/engine/types.ts';
 import { LEVELS } from '../src/levels/levels.ts';
 
@@ -68,7 +68,7 @@ function firstFit(lvl: Level, s: GameState): Move {
   throw new Error('nothing fits');
 }
 
-const solverLine = (id: number): ReadonlyArray<Move | null> => solve(level(id)).line ?? [];
+const solverLine = (id: number): ReadonlyArray<Move | null> => solve(level(id), { rotationBudget: ROTATIONS_PER_LEVEL }).line ?? [];
 
 async function openLevel(page: Page, id: number): Promise<void> {
   await page.goto(`/?unlock=all#/level/${String(id)}`);
@@ -146,9 +146,9 @@ test('тап поворачивает фигуру и не тратит ход; 
   await expect(page.getByTestId('cell-5-5')).toHaveAttribute('data-kind', 'wall');
 });
 
-test('повороты: 3 на ход, четвёртый тап фигуру не крутит; новый ход — снова 3', async ({ page }) => {
+test('повороты: 3 на весь уровень, не на ход — исчерпаны на первом ходу, следующий ход их не возвращает', async ({ page }) => {
   await openLevel(page, 3);
-  // Ход 1: O D T. Два тапа по T, один по D — повороты кончились.
+  // Ход 1: O D T. Два тапа по T, один по D — повороты кончились до конца уровня.
   await page.getByTestId('slot-2').click();
   await page.getByTestId('slot-2').click();
   await page.getByTestId('slot-1').click();
@@ -160,8 +160,14 @@ test('повороты: 3 на ход, четвёртый тап фигуру н
   await expect(page.getByTestId('game')).toHaveAttribute('data-turn', '0');
   await drag(page, 0, 'O', 0, 5, 5);
   await idle(page);
-  await expect(page.getByTestId('game')).toHaveAttribute('data-rotations-left', '3');
-  await expect(page.getByTestId('rotations').locator('b')).toHaveText('3');
+  // Новый ход — лимит не восполняется, повороты по-прежнему недоступны.
+  await expect(page.getByTestId('game')).toHaveAttribute('data-turn', '1');
+  await expect(page.getByTestId('game')).toHaveAttribute('data-rotations-left', '0');
+  await expect(page.getByTestId('rotations').locator('b')).toHaveText('0');
+  await expect(page.getByTestId('rotations')).toHaveClass(/out/);
+  await page.getByTestId('slot-0').click();
+  await page.waitForTimeout(250);
+  await expect(page.getByTestId('slot-0')).toHaveAttribute('data-rot', '0');
 });
 
 test('ловушка: «отодвигай от ближайшего дома» проигрывает уровень 3, «Переиграть» возвращает старт', async ({ page }) => {

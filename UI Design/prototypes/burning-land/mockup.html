@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Burning Land</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  /* Скетч игрового экрана для specs/11-burning-land.md §7.1.
+     Уровень 5 (BL-5-28) после первого хода: стена L c6 d6 e6 c5, огонь сделал шаг.
+     Игрок тащит домино из трея — призрак на b4 c4. Точки — куда огонь пойдёт следующим шагом.
+     Цвета — только токены кита: огонь --ui-coral, стена --ui-blue, дом --ui-yellow,
+     камень --ui-text-muted, пепел — смесь --ui-text с --ui-surface-muted. */
+  :root { --cell: 38px; --gap: 4px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); }
+  button { font: inherit; color: inherit; border: 0; background: none; }
+  .app { height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; padding: 8px 16px 16px; }
+  .top { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px; min-height: 44px; }
+  .top h1 { font-size: 18px; font-weight: 600; text-align: center; }
+  .top-right { display: flex; gap: 8px; }
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 20px; font-weight: 700; color: var(--ui-blue); }
+  .icon-btn svg { width: 22px; height: 22px; color: var(--ui-text); }
+  .stats { display: flex; justify-content: center; gap: 10px; }
+  .stat { display: flex; align-items: baseline; gap: 6px; padding: 6px 16px; border-radius: var(--ui-radius-pill); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); font-size: 13px; color: var(--ui-text-muted); font-weight: 500; }
+  .stat b { font-size: 18px; color: var(--ui-text); font-weight: 700; }
+  .stage { flex: 1; min-height: 0; display: grid; place-items: center; }
+  .board { position: relative; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 7px; display: grid; grid-template-columns: repeat(8, var(--cell)); grid-template-rows: repeat(8, var(--cell)); gap: var(--gap); }
+  .cell { position: relative; border-radius: 24%; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .dot::after { content: ""; width: 26%; height: 26%; border-radius: 50%; background: color-mix(in srgb, var(--ui-coral) 70%, transparent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-coral) 18%, transparent); }
+  .tile { --c: var(--ui-blue); position: absolute; inset: 0; border-radius: 24%;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: var(--ui-shadow-tile), inset 0 -3px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+    display: grid; place-items: center; color: #fff; }
+  .tile svg { width: 62%; height: 62%; }
+  .fire { --c: var(--ui-coral); }
+  .wall { --c: var(--ui-blue); }
+  .wall svg { width: 70%; height: 70%; }
+  .house { --c: var(--ui-yellow); color: var(--ui-text); }
+  .stone { --c: var(--ui-text-muted); }
+  .ash { position: absolute; inset: 0; border-radius: 24%; background: color-mix(in srgb, var(--ui-text) 72%, var(--ui-surface-muted)); display: grid; place-items: center; }
+  .ash svg { width: 50%; height: 50%; color: color-mix(in srgb, var(--ui-text) 40%, var(--ui-surface-muted)); }
+  .ghost { position: absolute; inset: 0; border-radius: 24%; background: color-mix(in srgb, var(--ui-blue) 28%, transparent); outline: 2.5px dashed var(--ui-blue); outline-offset: -2px; }
+  .tray { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .slot { height: 92px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; position: relative; }
+  .slot.lifted { background: var(--ui-surface-muted); box-shadow: inset 0 0 0 2px var(--ui-border); }
+  .slot .rot { position: absolute; right: 6px; top: 6px; width: 18px; height: 18px; color: var(--ui-text-muted); }
+  .mini { display: grid; gap: 3px; }
+  .mini i { width: 18px; height: 18px; border-radius: 5px; background: linear-gradient(160deg, color-mix(in srgb, var(--ui-blue) 65%, #fff), var(--ui-blue)); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--ui-blue) 75%, #1f2937); }
+  .mini i.e { background: none; box-shadow: none; }
+  .slot.lifted .mini { opacity: .25; }
+  .nextrow { display: flex; align-items: center; gap: 10px; }
+  .nextrow small { font-size: 12px; color: var(--ui-text-muted); font-weight: 500; width: 44px; }
+  .nextrow .q { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .nextrow .q div { height: 40px; border-radius: var(--ui-radius-medium); background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .nextrow .mini { gap: 2px; }
+  .nextrow .mini i { width: 9px; height: 9px; border-radius: 3px; background: var(--ui-disabled); box-shadow: none; }
+  .nextrow .mini i.e { background: none; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="flame" viewBox="0 0 24 24"><path d="M12 2.5c.8 3.4 4.8 5.6 4.8 10.6A4.8 4.8 0 0 1 12 18a4.8 4.8 0 0 1-4.8-4.9c0-2.2 1.2-3.7 2.3-4.8.2 1.6 1 2.7 2 3.1C11 8.6 11 5.4 12 2.5z" fill="currentColor"/><path d="M12 21.5c-2 0-3.3-1.3-3.3-3 0-1.5 1-2.4 1.9-3.3.2 1 .8 1.6 1.4 1.8.6-1.2 1.6-1.9 2.1-3.3.8 1.3 1.3 2.4 1.3 4.1 0 2.1-1.4 3.7-3.4 3.7z" fill="rgba(255,255,255,.55)"/></symbol>
+    <symbol id="house" viewBox="0 0 24 24"><path d="M3.5 11.2 12 4l8.5 7.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M6 10.5V19a1 1 0 0 0 1 1h3.5v-5h3v5H17a1 1 0 0 0 1-1v-8.5" fill="currentColor"/></symbol>
+    <symbol id="brick" viewBox="0 0 24 24"><g stroke="rgba(255,255,255,.55)" stroke-width="1.6" stroke-linecap="round"><path d="M3 8h18M3 16h18M9 3v5M15 8v8M9 16v5"/></g></symbol>
+    <symbol id="rock" viewBox="0 0 24 24"><path d="M5 15.5 7.5 9l5-2 4 3.5-1 6-5.5 1.5z" fill="rgba(255,255,255,.35)"/></symbol>
+    <symbol id="ember" viewBox="0 0 24 24"><path d="M6 17c2-1 3-3 6-3s4 2 6 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="rot" viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M19 3v4h-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></symbol>
+  </defs>
+</svg>
+<div class="app">
+  <header class="top">
+    <button class="icon-btn" aria-label="К уровням"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></svg></button>
+    <h1>Уровень 5</h1>
+    <div class="top-right">
+      <button class="icon-btn" aria-label="Как играть">?</button>
+      <button class="icon-btn" aria-label="Заново"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12a7 7 0 1 0 2-5"/><path d="M5 3v4h4"/></svg></button>
+    </div>
+  </header>
+  <div class="stats">
+    <div class="stat">Ход <b>2</b></div>
+    <div class="stat">Дома <b>5/5</b></div>
+  </div>
+  <main class="stage"><div class="board" id="board"></div></main>
+  <div class="tray" id="tray"></div>
+  <div class="nextrow"><small>Дальше</small><div class="q" id="next"></div></div>
+</div>
+<script>
+  // BL-5-28 после хода 1 (toRows): W стена, F фронт, x пепел, H дом.
+  const rows = ['....HH..', '........', '.HWWW...', '..WxF...', '...F.F.F', '....FxFx', '.....F.F', 'H.H.....'];
+  // nextBurn: f5 e4 d3 c4 g4 h5 e2 g2 f1 h1
+  const next = ['f5', 'e4', 'd3', 'c4', 'g4', 'h5', 'e2', 'g2', 'f1', 'h1'].map(n => `${8 - Number(n[1])},${'abcdefgh'.indexOf(n[0])}`);
+  const ghost = ['4,1', '4,2']; // b4 c4
+  const board = document.getElementById('board');
+  rows.forEach((line, r) => [...line].forEach((ch, c) => {
+    const d = document.createElement('div');
+    const k = `${r},${c}`;
+    d.className = 'cell' + (next.includes(k) && !ghost.includes(k) ? ' dot' : '');
+    if (ch === 'F') d.innerHTML = '<div class="tile fire"><svg><use href="#flame"/></svg></div>';
+    else if (ch === 'W') d.innerHTML = '<div class="tile wall"><svg><use href="#brick"/></svg></div>';
+    else if (ch === 'H') d.innerHTML = '<div class="tile house"><svg><use href="#house"/></svg></div>';
+    else if (ch === 'x') d.innerHTML = '<div class="ash"><svg><use href="#ember"/></svg></div>';
+    else if (ch === '#') d.innerHTML = '<div class="tile stone"><svg><use href="#rock"/></svg></div>';
+    if (ghost.includes(k)) d.innerHTML += '<div class="ghost"></div>';
+    board.appendChild(d);
+  }));
+  const SH = { M: [[0,0]], D: [[0,0],[0,1]], I: [[0,0],[0,1],[0,2]], V: [[0,0],[0,1],[1,0]], O: [[0,0],[0,1],[1,0],[1,1]], L: [[0,0],[0,1],[0,2],[1,0]], S: [[0,0],[0,1],[1,1],[1,2]], T: [[0,0],[0,1],[0,2],[1,1]] };
+  const mini = (letter) => {
+    const cells = SH[letter];
+    const h = Math.max(...cells.map(p => p[0])) + 1, w = Math.max(...cells.map(p => p[1])) + 1;
+    let html = `<div class="mini" style="grid-template-columns:repeat(${w},auto)">`;
+    for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) html += cells.some(p => p[0] === r && p[1] === c) ? '<i></i>' : '<i class="e"></i>';
+    return html + '</div>';
+  };
+  // Ход 2: D M L (D поднят и тащится), дальше: V L L.
+  document.getElementById('tray').innerHTML = ['D', 'M', 'L'].map((l, i) => `<div class="slot${i === 0 ? ' lifted' : ''}">${mini(l)}<svg class="rot"><use href="#rot"/></svg></div>`).join('');
+  document.getElementById('next').innerHTML = ['V', 'L', 'L'].map(l => `<div>${mini(l)}</div>`).join('');
+</script>
+</body>
+</html>

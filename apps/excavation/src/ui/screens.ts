@@ -1,39 +1,23 @@
 import { LEVELS } from '../levels/levels.ts';
-import { glyph, icon, pips } from './icons.ts';
+import art from '@ui/prototypes/excavation/assets/home-art.webp';
+import { glyph, icon } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
 
-// Главный: арта автора для The Dig пока нет — название, мини-комната из
-// плит игры и живая кнопка «Играть» (apps/CLAUDE.md §2). Арт заменит
-// мини-комнату, когда появится.
+// Главный: арт автора (§7.1, `UI Design/prototypes/excavation/assets/`) во
+// весь экран, живая кнопка «Играть» под ним (apps/CLAUDE.md §2). Нарисованную
+// в арте кнопку обрезали при подготовке home-art.webp; оригинал со всей
+// сценой — home-screen.png.
 export function homeScreen(go: Go): HTMLElement {
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
-  // Честная мини-комната: числа выведены из раскладки, выход найден.
-  const map = ['**..', '...X', '..*.', 'E...'];
-  const opened = new Set([4, 5, 7, 8, 9, 13, 14]);
-  const trapAt = (r: number, c: number): boolean => map[r]?.[c] === '*';
-  const room = map
-    .flatMap((line, r) =>
-      [...line].map((ch, c) => {
-        let n = 0;
-        for (let dr = -1; dr <= 1; dr += 1) for (let dc = -1; dc <= 1; dc += 1) if ((dr || dc) && trapAt(r + dr, c + dc)) n += 1;
-        const i = r * 4 + c;
-        if (ch === 'E') return `<div class="h-cell">${glyph.arch}</div>`;
-        if (ch === 'X') return `<div class="h-cell exit"><b class="corner" style="color:var(--ui-clue-${String(n)})">${String(n)}</b>${glyph.exit}${pips(n)}</div>`;
-        if (!opened.has(i)) return `<div class="h-cell"><div class="stone">${glyph.cracks}</div></div>`;
-        return `<div class="h-cell">${n > 0 ? `<b style="color:var(--ui-clue-${String(n)})">${String(n)}</b>${pips(n)}` : ''}</div>`;
-      }),
-    )
-    .join('');
+  el.style.setProperty('--art', `url("${art}")`);
   el.innerHTML = `
-    <div class="home-title">
-      <h1>The Dig</h1>
-      <p>Число на плите — это и ловушки рядом, и золото.<br>Найди выход и реши, когда уйти.</p>
-    </div>
-    <div class="home-room" aria-hidden="true">${room}</div>
+    <div class="home-bg" aria-hidden="true"></div>
+    <img class="home-art" src="${art}" alt="" width="941" height="1258">
+    <h1 class="sr-only">The Dig</h1>
     <button class="play-btn" data-testid="play">Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;

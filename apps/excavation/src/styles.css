@@ -98,26 +98,24 @@ svg { display: block; }
 .c-green { --c: var(--ui-success); }
 .c-stone { --c: var(--ui-stone); }
 
-/* ---------- главный: название, мини-комната и живая кнопка ---------- */
-.home { align-items: center; justify-content: center; gap: var(--ui-space-6); overflow: hidden; }
-.home-title { text-align: center; }
-.home-title h1 { font-size: 48px; font-weight: 700; letter-spacing: .02em; color: var(--ui-yellow); text-shadow: 0 4px 24px rgba(255,197,66,.25); }
-.home-title p { margin-top: var(--ui-space-2); font-size: 14px; line-height: 1.45; color: var(--ui-text-muted); }
-.home-room { --cell: min(64px, 17vw, 11dvh); display: grid; grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(4, var(--cell)); gap: 6px; padding: 10px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-card); animation: art-in 480ms cubic-bezier(.2,.8,.2,1) both; }
+/* ---------- главный: арт автора во весь экран и живая кнопка ---------- */
+.home { align-items: center; justify-content: center; overflow: hidden; background: var(--ui-background); padding: env(safe-area-inset-top) 0 0; }
+.home > * { position: relative; z-index: 1; }
+.home .home-bg { position: absolute; inset: -60px; z-index: 0; background: linear-gradient(var(--ui-background) 8%, transparent 40%), var(--art) center 80% / cover no-repeat; filter: blur(36px) saturate(1.1); opacity: .35; transform: scale(1.2); }
+.home-art { width: 100%; max-width: 480px; height: auto; max-height: calc(100dvh - 130px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); min-height: 0; flex: 0 1 auto; object-fit: contain; object-position: bottom;
+  /* Низ и края растворяются в размытой копии: на любом экране нет видимой рамки. */
+  -webkit-mask-image: linear-gradient(transparent, #000 9%, #000 80%, transparent), linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(transparent, #000 9%, #000 80%, transparent), linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-composite: intersect;
+  animation: art-in 480ms cubic-bezier(.2,.8,.2,1) both; }
 @keyframes art-in { from { opacity: 0; transform: translateY(-10px); } }
-.h-cell { position: relative; border-radius: 26%; background: var(--ui-surface-muted); box-shadow: inset 0 0 0 1px var(--ui-border); display: grid; place-items: center; }
-.h-cell b { font-size: calc(var(--cell) * .42); font-weight: 700; margin-top: -18%; }
-.h-cell > svg { width: 50%; height: 50%; color: var(--ui-green); }
-.h-cell.exit { box-shadow: inset 0 0 0 2px var(--ui-green); }
-.h-cell.exit > svg { width: 42%; height: 42%; }
-.h-cell .corner { position: absolute; top: 3px; left: 7px; font-size: calc(var(--cell) * .25); margin: 0; }
-.h-cell .pips { bottom: calc(var(--cell) * .13); }
 
 /* Кнопка «Играть»: пилюля, крупный текст. Дышит, светится и раз в
    3 с по ней пробегает блик — зовёт нажать, не мельтеша. */
 .play-btn {
   position: relative; overflow: hidden; flex: none;
-  width: calc(100% - 2 * var(--ui-space-5)); max-width: 360px; height: 72px;
+  width: calc(100% - 2 * var(--ui-space-5)); max-width: 360px; height: 72px; margin: var(--ui-space-2) 0 calc(var(--ui-space-4) + env(safe-area-inset-bottom));
   border-radius: 999px; color: var(--ui-background); font-size: 26px; font-weight: 700; letter-spacing: .01em;
   background: linear-gradient(180deg, color-mix(in srgb, var(--ui-yellow) 72%, #fff) 0%, var(--ui-yellow) 55%, color-mix(in srgb, var(--ui-yellow) 80%, #1f2937) 100%);
   box-shadow: inset 0 2px 0 rgba(255,255,255,.45), inset 0 -4px 0 color-mix(in srgb, var(--ui-yellow) 65%, #1f2937), 0 12px 28px rgba(255,197,66,.25);
@@ -225,9 +223,9 @@ svg { display: block; }
 .cell { position: relative; width: var(--cell); height: var(--cell); border-radius: 26%; background: var(--ui-surface-muted); box-shadow: inset 0 0 0 1px var(--ui-border); display: grid; place-items: center; }
 .cell.closed { background: none; box-shadow: none; cursor: pointer; }
 .cell .num { font-size: calc(var(--cell) * .44); font-weight: 700; line-height: 1; margin-top: -16%; }
-.cell.entrance svg { width: 50%; height: 50%; color: var(--ui-green); }
-.cell.exit > svg, .cell.ghost-exit > svg { width: 40%; height: 40%; color: var(--ui-green); }
-.cell.exit { box-shadow: inset 0 0 0 2px var(--ui-green); }
+.cell.entrance svg { width: 50%; height: 50%; color: var(--ui-text); }
+.cell.exit > svg, .cell.ghost-exit > svg { width: 40%; height: 40%; color: var(--ui-text); }
+.cell.exit { box-shadow: inset 0 0 0 2px var(--ui-text); }
 .cell.exit .corner { position: absolute; top: 3px; left: 6px; font-size: calc(var(--cell) * .25); font-weight: 700; line-height: 1.1; }
 .cell.ghost .num, .cell.ghost .pips, .cell.ghost-exit > svg { opacity: .38; }
 .cell.ghost-trap svg { width: 50%; height: 50%; color: var(--ui-coral); opacity: .8; }

@@ -361,7 +361,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     flip(res.index);
     vibrate(8);
     if (res.kind === 'exit') {
-      cellEl(res.index).animate([{ boxShadow: '0 0 0 0 rgba(52,211,153,.8), inset 0 0 0 2px var(--ui-green)' }, { boxShadow: '0 0 0 12px rgba(52,211,153,0), inset 0 0 0 2px var(--ui-green)' }], { duration: T.exitGlow, easing: 'ease-out' });
+      cellEl(res.index).animate([{ boxShadow: '0 0 0 0 rgba(238,242,248,.8), inset 0 0 0 2px var(--ui-text)' }, { boxShadow: '0 0 0 12px rgba(238,242,248,0), inset 0 0 0 2px var(--ui-text)' }], { duration: T.exitGlow, easing: 'ease-out' });
       vibrate([10, 40, 10]);
     }
     flyGold(res.index, res.gained, state.gold);

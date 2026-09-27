@@ -19,11 +19,11 @@ export const glyph = {
   star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4L2.8 9.5l6.4-.8z" fill="currentColor"/></svg>',
   spikes: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20 6.5 8 10 20zM8.5 20 12 4l3.5 16zM14 20l3.5-12L21 20z" fill="currentColor"/></svg>',
   cracks: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9l5 2 3-4M13 17l4-3 3 1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
-  // Вход — круглый лаз, которым спустились в гробницу: кольцо и стрелка вниз.
-  arch: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M8 10.5 12 14.5 16 10.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  // Выход — прямоугольная дверь на полу: рамка, ручка и линия пола под ней —
-  // силуэт нарочно не похож на круглый лаз входа.
-  exit: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="17.5" rx="1.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="14.5" cy="11.5" r="1.2" fill="currentColor"/><path d="M3 21.5h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  // Вход — квадратная дверь со стрелкой, входящей в неё справа.
+  arch: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M1.5 12H9m0 0-3.4-3.4M9 12l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  // Выход — та же квадратная дверь, зеркально: стрелка выходит из неё влево.
+  // Общая форма роднит пару, направление стрелки различает их без чтения текста.
+  exit: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="12" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M22.5 12H15m0 0 3.4-3.4M15 12l3.4 3.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
 /** Ряд монеток под цифрой: столько же штук, сколько число (§7). */

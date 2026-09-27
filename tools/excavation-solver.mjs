@@ -8,8 +8,10 @@
  * - every safe tile shows its clue = traps among its 8 neighbours, and pays exactly
  *   that much gold when opened (0 → 0 gold);
  * - the entrance tile is opened at start, its clue is 0, it pays nothing;
+ * - the exit is a hidden safe tile on the edge; it is "found" once opened, pays its clue as usual;
  * - opening a trap burns all gold of the attempt → fail `trap`;
- * - the player may exit at any time once gold >= quota (1★); 2★ / 3★ are higher thresholds;
+ * - the player may leave at any time once the exit is found and gold >= quota (1★);
+ *   2★ / 3★ are higher thresholds;
  * - opening the last safe tile exits automatically.
  *
  * Usage:
@@ -61,6 +63,7 @@ export const LEVELS = [
 
 export const LAYOUTS_PER_LEVEL = 20;
 export const MAX_CLUE = 5;
+export const MIN_EXIT_DISTANCE = 3;
 
 /**
  * One room from a seed. Traps are placed uniformly, then the layout is rejected unless
@@ -116,7 +119,7 @@ export function safeOnly(room) {
       s = c;
       break;
     }
-    if (s < 0) return { gold, cleared: opened === n - room.traps };
+    if (s < 0) return { gold, cleared: opened === n - room.traps, open };
     open[s] = true;
     opened++;
     gold += room.clue[s];
@@ -132,8 +135,35 @@ export function safeOnly(room) {
 export function isValid(level, room) {
   const s = safeOnly(room);
   if (roomTotal(room) < level.stars[2]) return false;
+  room.exit = placeExit(room, s.open);
+  if (room.exit < 0) return false;
   if (level.clearable) return s.cleared;
   return !s.cleared && s.gold >= level.safeBand[0] && s.gold <= level.safeBand[1];
+}
+
+/**
+ * Exit: a safe tile on the edge of the room that logic alone opens (so finding it never
+ * needs a guess), not the entrance; the farthest from the entrance by Manhattan distance,
+ * ties → lowest index. -1 if there is none or it is closer than MIN_EXIT_DISTANCE (layout rejected).
+ */
+export function placeExit(room, logicOpen) {
+  const { rows, cols, entrance } = room;
+  const er = Math.floor(entrance / cols);
+  const ec = entrance % cols;
+  let exit = -1;
+  let best = -1;
+  for (let i = 0; i < rows * cols; i++) {
+    if (i === entrance || room.trap[i] || !logicOpen[i]) continue;
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+    if (r !== 0 && c !== 0 && r !== rows - 1 && c !== cols - 1) continue;
+    const d = Math.abs(r - er) + Math.abs(c - ec);
+    if (d > best) {
+      best = d;
+      exit = i;
+    }
+  }
+  return best >= MIN_EXIT_DISTANCE ? exit : -1;
 }
 
 /** Frozen layouts of a level: first `count` valid seeds from `base`. Attempt k plays layouts[k % count]. */
@@ -146,14 +176,14 @@ export function layoutsFor(level, count = LAYOUTS_PER_LEVEL, base = level.id * 1
   return out;
 }
 
-/** Map strings: `*` trap, `.` safe tile, `E` entrance. Clues are derived, never stored. */
+/** Map strings: `*` trap, `.` safe tile, `E` entrance, `X` exit. Clues are derived, never stored. */
 export function toMap(room) {
   const out = [];
   for (let r = 0; r < room.rows; r++) {
     let line = '';
     for (let c = 0; c < room.cols; c++) {
       const i = r * room.cols + c;
-      line += i === room.entrance ? 'E' : room.trap[i] ? '*' : '.';
+      line += i === room.entrance ? 'E' : i === room.exit ? 'X' : room.trap[i] ? '*' : '.';
     }
     out.push(line);
   }
@@ -268,7 +298,7 @@ export function play(room, level, policy, rnd) {
     if (opened === safeTotal) return { gold, stars: stars(gold), failed: false, guesses, decisions };
     let pick;
     if (policy.kind === 'random') {
-      if (gold >= policy.target) return { gold, stars: stars(gold), failed: false, guesses, decisions };
+      if (gold >= policy.target && open[room.exit]) return { gold, stars: stars(gold), failed: false, guesses, decisions };
       const closed = [];
       for (let i = 0; i < n; i++) if (!open[i]) closed.push(i);
       pick = closed[Math.floor(rnd() * closed.length)];
@@ -285,7 +315,7 @@ export function play(room, level, policy, rnd) {
           best = c;
         }
         decisions++;
-        const enough = gold >= level.stars[0];
+        const enough = gold >= level.stars[0] && open[room.exit];
         if (enough && gold >= policy.target) return { gold, stars: stars(gold), failed: false, guesses, decisions };
         if (enough && policy.maxRisk !== undefined && bp > policy.maxRisk)
           return { gold, stars: stars(gold), failed: false, guesses, decisions };
@@ -424,7 +454,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         let line = '';
         for (let c = 0; c < room.cols; c++) {
           const i = r * room.cols + c;
-          line += i === room.entrance ? 'E' : room.trap[i] ? '*' : String(room.clue[i]);
+          line += i === room.entrance ? 'E' : i === room.exit ? 'X' : room.trap[i] ? '*' : String(room.clue[i]);
         }
         console.log('  ' + line);
       }

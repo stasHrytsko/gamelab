@@ -18,13 +18,13 @@
   body.gray { filter: grayscale(1); }
   .app { width: 390px; height: 664px; padding: 16px 12px; display: flex; flex-direction: column; gap: 12px; }
 
-  /* шапка 44 px */
+  /* шапка */
   .head { height: 48px; display: grid; grid-template-columns: 48px 1fr 48px 48px; gap: 8px; align-items: center; }
   .head h1 { margin: 0; text-align: center; font-size: 20px; font-weight: 700; }
   .ibtn { width: 48px; height: 48px; border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; }
   .ibtn svg { width: 22px; height: 22px; }
 
-  /* очередь: текущий + 3 следующих */
+  /* очередь: текущая + 3 следующих */
   .queue { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 8px 16px; display: flex; align-items: center; gap: 16px; }
   .now { display: grid; justify-items: center; gap: 4px; }
   .label { font-size: 11px; font-weight: 500; color: var(--ui-text-muted); }
@@ -32,27 +32,8 @@
   .next .row { display: flex; gap: 16px; align-items: center; }
   .sep { width: 1px; align-self: stretch; background: var(--ui-border); }
 
-  /* шар: цвет — тело, форма — белый знак */
-  .ball {
-    --c: var(--ui-blue);
-    width: var(--s, 56px); height: var(--s, 56px); border-radius: var(--ui-radius-pill);
-    background:
-      radial-gradient(circle at 35% 28%, rgba(255,255,255,.55) 0 18%, transparent 19%),
-      radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--c) 78%, white), var(--c) 70%);
-    box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, black);
-    display: grid; place-items: center;
-  }
-  .ball svg { width: 42%; height: 42%; fill: #fff; opacity: .95; }
-  .B { --c: var(--ui-blue); } .Y { --c: var(--ui-yellow); } .C { --c: var(--ui-coral); }
-  /* второй канал цвета — узор: синий гладкий, коралловый в полоску, жёлтый в точку */
-  .ball.C, .cell.rC { --pat: repeating-linear-gradient(135deg, rgba(255,255,255,.34) 0 4px, transparent 4px 10px); }
-  .ball.Y, .cell.rY { --pat: radial-gradient(circle, rgba(255,255,255,.55) 0 2px, transparent 2.5px) 0 0 / 9px 9px; }
-  .ball.C, .ball.Y {
-    background:
-      radial-gradient(circle at 35% 28%, rgba(255,255,255,.55) 0 18%, transparent 19%),
-      var(--pat),
-      radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--c) 78%, white), var(--c) 70%);
-  }
+  /* фигура: силуэт — форма, заливка — цвет с узором */
+  .piece { width: var(--s, 56px); height: var(--s, 56px); display: block; filter: drop-shadow(0 7px 7px rgba(31, 41, 55, 0.16)); overflow: visible; }
 
   /* поле 4×4 */
   .board { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -61,24 +42,35 @@
     background: var(--ui-surface-muted);
     display: grid; place-items: center; position: relative;
   }
-  /* правило-цвет: клетка подкрашена цветом */
+  /* правило-цвет: клетка подкрашена цветом, с тем же узором */
   .cell.rB, .cell.rY, .cell.rC { background: var(--pat, none), color-mix(in srgb, var(--c) 26%, white); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--c) 60%, white); }
-  .cell.rB { --c: var(--ui-blue); } .cell.rY { --c: var(--ui-yellow); } .cell.rC { --c: var(--ui-coral); }
-  .cell.rC { --pat: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 30%, transparent) 0 4px, transparent 4px 10px); }
-  .cell.rY { --pat: radial-gradient(circle, color-mix(in srgb, var(--c) 55%, transparent) 0 2px, transparent 2.5px) 0 0 / 9px 9px; }
-  /* правило-форма: выдавленный контур */
-  .cell .emboss { width: 46%; height: 46%; fill: none; stroke: var(--ui-disabled); stroke-width: 9; stroke-linejoin: round; filter: drop-shadow(0 2px 0 #fff); }
+  .cell.rB { --c: var(--ui-blue); }
+  .cell.rY { --c: var(--ui-yellow); --pat: radial-gradient(circle, color-mix(in srgb, var(--c) 55%, transparent) 0 2px, transparent 2.5px) 0 0 / 9px 9px; }
+  .cell.rC { --c: var(--ui-coral); --pat: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 30%, transparent) 0 4px, transparent 4px 10px); }
+  /* правило-форма: выдавленный контур, фигура в него «вкладывается» */
+  .cell .emboss { width: 70%; height: 70%; fill: none; stroke: var(--ui-disabled); stroke-width: 6; stroke-dasharray: none; stroke-linejoin: round; filter: drop-shadow(0 2px 0 #fff); }
   /* джокер: точка, как «Пустая» клетка кита */
   .cell.joker::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ui-disabled); }
-  /* шару текущего хода сюда нельзя — клетка приглушена */
+  /* текущей фигуре сюда нельзя — клетка приглушена */
   .cell.off { opacity: .38; }
-  .cell .ball { --s: 78%; position: absolute; }
+  .cell .piece { --s: 74%; position: absolute; }
 
   .hint { text-align: center; font-size: 13px; font-weight: 500; color: var(--ui-text-muted); }
   .hint b { color: var(--ui-text); font-weight: 600; }
 </style>
 </head>
 <body>
+<!-- общие градиенты и узоры фигур: цвет из токенов, узор — белый полупрозрачный -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="gB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-blue) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-blue)"/></linearGradient>
+    <linearGradient id="gY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-yellow) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-yellow)"/></linearGradient>
+    <linearGradient id="gC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-coral) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-coral)"/></linearGradient>
+    <pattern id="pC" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="12" fill="rgba(255,255,255,.34)"/></pattern>
+    <pattern id="pY" width="11" height="11" patternUnits="userSpaceOnUse"><circle cx="5.5" cy="5.5" r="2.4" fill="rgba(255,255,255,.6)"/></pattern>
+  </defs>
+</svg>
+
 <div class="app">
   <div class="head">
     <div class="ibtn"><svg viewBox="0 0 24 24" fill="none" stroke="#1f2937" stroke-width="2.4"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></div>
@@ -93,13 +85,25 @@
 </div>
 
 <script>
+  // Силуэты в поле 100×100, подобраны на глаз под одинаковый визуальный вес:
+  // треугольник крупнее квадрата, круг чуть крупнее квадрата.
   const SHAPE = {
-    o: '<circle cx="50" cy="50" r="40"/>',
-    s: '<rect x="12" y="12" width="76" height="76" rx="12"/>',
-    t: '<path d="M50 8 L92 86 L8 86 Z"/>',
+    o: (a) => `<circle cx="50" cy="50" r="45" ${a}/>`,
+    s: (a) => `<rect x="9" y="9" width="82" height="82" rx="18" ${a}/>`,
+    t: (a) => `<path d="M50 9 L93 86 L7 86 Z" stroke-linejoin="round" stroke-width="14" ${a}/>`,
   };
-  const glyph = (s, cls = '') => `<svg viewBox="0 0 100 100" class="${cls}">${SHAPE[s]}</svg>`;
-  const ball = (b, size) => `<div class="ball ${b[0]}" style="${size ? `--s:${size}px` : ''}">${glyph(b[1])}</div>`;
+  const HIGHLIGHT = { o: [34, 30, 13, 8], s: [32, 28, 14, 7], t: [46, 40, 8, 5] };
+  const PAT = { B: '', Y: 'url(#pY)', C: 'url(#pC)' };
+
+  function piece(p, size) {
+    const [c, s] = p;
+    const edge = SHAPE[s](`transform="translate(0 5)" fill="color-mix(in srgb, var(--ui-${{ B: 'blue', Y: 'yellow', C: 'coral' }[c]}) 70%, black)" stroke="color-mix(in srgb, var(--ui-${{ B: 'blue', Y: 'yellow', C: 'coral' }[c]}) 70%, black)"`);
+    const body = SHAPE[s](`fill="url(#g${c})" stroke="url(#g${c})"`);
+    const pat = PAT[c] ? SHAPE[s](`fill="${PAT[c]}" stroke="${PAT[c]}"`) : '';
+    const [hx, hy, rx, ry] = HIGHLIGHT[s];
+    return `<svg class="piece" viewBox="0 0 100 100" style="${size ? `--s:${size}px` : ''}">${edge}${body}${pat}<ellipse cx="${hx}" cy="${hy}" rx="${rx}" ry="${ry}" fill="rgba(255,255,255,.5)"/></svg>`;
+  }
+  const outline = (s) => `<svg viewBox="0 0 100 100" class="emboss">${SHAPE[s]('')}</svg>`;
 
   // уровень 3 из tools/tight-shelf-levels.json, середина партии
   const rules = ['BBB.', 'Bs.o', '.tsB', 'C.YB'].join('').split('');
@@ -109,16 +113,16 @@
   const fits = (r) => r === '.' || r === cur[0] || r === cur[1];
 
   document.getElementById('queue').innerHTML =
-    `<div class="now">${ball(cur, 64)}<div class="label">Сейчас</div></div><div class="sep"></div>` +
-    `<div class="next"><div class="row">${queue.slice(1).map((b) => ball(b, 44)).join('')}</div><div class="label">Дальше</div></div>`;
+    `<div class="now">${piece(cur, 64)}<div class="label">Сейчас</div></div><div class="sep"></div>` +
+    `<div class="next"><div class="row">${queue.slice(1).map((p) => piece(p, 44)).join('')}</div><div class="label">Дальше</div></div>`;
 
   document.getElementById('board').innerHTML = rules.map((r, i) => {
     const cls = ['cell'];
     let inner = '';
     if (r === '.') cls.push('joker');
     else if ('BYC'.includes(r)) cls.push('r' + r);
-    else inner = glyph(r, 'emboss');
-    if (board[i]) inner += ball(board[i]);
+    else inner = outline(r);
+    if (board[i]) inner += piece(board[i]);
     else if (!fits(r)) cls.push('off');
     return `<div class="${cls.join(' ')}">${inner}</div>`;
   }).join('');

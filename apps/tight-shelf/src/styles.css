@@ -169,7 +169,7 @@ svg { display: block; }
 @keyframes shake-x { 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
 
 
-/* ---------- фигура: силуэт — форма, заливка — цвет с узором (§7.1) ---------- */
+/* ---------- фигура: силуэт — форма, заливка — чистый цвет (§7.1) ---------- */
 .piece { display: block; overflow: visible; filter: drop-shadow(0 6px 6px rgba(31, 41, 55, 0.16)); }
 
 /* ---------- игровой экран: шапка, очередь, поле, подсказка ---------- */
@@ -191,11 +191,11 @@ svg { display: block; }
 .stage { flex: 1; min-height: 0; display: grid; place-items: center; }
 .board { position: relative; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 12px; display: grid; grid-template-columns: repeat(4, var(--cell)); gap: 8px; }
 .cell { position: relative; width: var(--cell); height: var(--cell); border-radius: var(--ui-radius-large); background: var(--ui-surface-muted); display: grid; place-items: center; cursor: pointer; transition: opacity 140ms ease; }
-/* правило-цвет: подкраска, рамка и узор цвета */
-.cell.rB, .cell.rY, .cell.rC { background: var(--pat, none), color-mix(in srgb, var(--c) 26%, white); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--c) 60%, white); }
+/* правило-цвет: подкраска и рамка цвета */
+.cell.rB, .cell.rY, .cell.rC { background: color-mix(in srgb, var(--c) 26%, white); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--c) 60%, white); }
 .cell.rB { --c: var(--ui-blue); }
-.cell.rY { --c: var(--ui-yellow); --pat: radial-gradient(circle, color-mix(in srgb, var(--c) 55%, transparent) 0 2px, transparent 2.5px) 0 0 / 9px 9px; }
-.cell.rC { --c: var(--ui-coral); --pat: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 30%, transparent) 0 4px, transparent 4px 10px); }
+.cell.rY { --c: var(--ui-yellow); }
+.cell.rC { --c: var(--ui-coral); }
 /* правило-форма: выдавленный контур */
 .cell .emboss { position: absolute; width: 70%; height: 70%; fill: none; stroke: var(--ui-disabled); stroke-width: 6; stroke-linejoin: round; filter: drop-shadow(0 2px 0 #fff); }
 /* джокер: точка, как «Пустая» клетка кита */

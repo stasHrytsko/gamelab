@@ -1,7 +1,6 @@
 import type { Color, Piece, Rule, Shape } from '../engine/types.ts';
 
-// Фигура и клетка-правило (§7, §7.1): силуэт — форма, заливка — цвет из токенов,
-// узор — второй канал цвета (синий гладкий, коралловый в полоску, жёлтый в точку).
+// Фигура и клетка-правило (§7, §7.1): силуэт — форма, заливка — чистый цвет из токенов.
 
 /** Силуэты в поле 100×100, подобраны на глаз под одинаковый визуальный вес (§7.1). */
 const SHAPE: Record<Shape, (attrs: string) => string> = {
@@ -11,11 +10,10 @@ const SHAPE: Record<Shape, (attrs: string) => string> = {
 };
 const HIGHLIGHT: Record<Shape, readonly [number, number, number, number]> = { o: [34, 30, 13, 8], s: [32, 28, 14, 7], t: [46, 40, 8, 5] };
 const TOKEN: Record<Color, string> = { B: 'blue', Y: 'yellow', C: 'coral' };
-const PATTERN: Record<Color, string> = { B: '', Y: 'url(#ts-pY)', C: 'url(#ts-pC)' };
 export const COLOR_NAME: Record<Color, string> = { B: 'синий', Y: 'жёлтый', C: 'коралловый' };
 export const SHAPE_NAME: Record<Shape, string> = { o: 'круг', s: 'квадрат', t: 'треугольник' };
 
-/** Градиенты и узоры фигур — один раз на документ. */
+/** Градиенты фигур — один раз на документ. */
 export function ensureDefs(): void {
   if (document.getElementById('ts-defs') !== null) return;
   const stops = (c: Color): string =>
@@ -24,8 +22,6 @@ export function ensureDefs(): void {
     'afterbegin',
     `<svg id="ts-defs" width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
       ${stops('B')}${stops('Y')}${stops('C')}
-      <pattern id="ts-pC" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="12" fill="rgba(255,255,255,.34)"/></pattern>
-      <pattern id="ts-pY" width="11" height="11" patternUnits="userSpaceOnUse"><circle cx="5.5" cy="5.5" r="2.4" fill="rgba(255,255,255,.6)"/></pattern>
     </defs></svg>`,
   );
 }
@@ -37,9 +33,8 @@ export function pieceSvg(piece: Piece, cls = ''): string {
   const dark = `color-mix(in srgb, var(--ui-${TOKEN[c]}) 70%, black)`;
   const edge = SHAPE[s](`transform="translate(0 5)" fill="${dark}" stroke="${dark}"`);
   const body = SHAPE[s](`fill="url(#ts-g${c})" stroke="url(#ts-g${c})"`);
-  const pat = PATTERN[c] === '' ? '' : SHAPE[s](`fill="${PATTERN[c]}" stroke="${PATTERN[c]}"`);
   const [hx, hy, rx, ry] = HIGHLIGHT[s];
-  return `<svg class="piece ${cls}" viewBox="0 0 100 100" role="img" aria-label="${COLOR_NAME[c]} ${SHAPE_NAME[s]}" data-piece="${piece}">${edge}${body}${pat}<ellipse cx="${String(hx)}" cy="${String(hy)}" rx="${String(rx)}" ry="${String(ry)}" fill="rgba(255,255,255,.5)"/></svg>`;
+  return `<svg class="piece ${cls}" viewBox="0 0 100 100" role="img" aria-label="${COLOR_NAME[c]} ${SHAPE_NAME[s]}" data-piece="${piece}">${edge}${body}<ellipse cx="${String(hx)}" cy="${String(hy)}" rx="${String(rx)}" ry="${String(ry)}" fill="rgba(255,255,255,.5)"/></svg>`;
 }
 
 /** Выдавленный контур для клетки-правила формы: фигура в него «вкладывается». */

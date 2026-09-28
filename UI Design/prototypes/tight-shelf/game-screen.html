@@ -32,7 +32,7 @@
   .next .row { display: flex; gap: 16px; align-items: center; }
   .sep { width: 1px; align-self: stretch; background: var(--ui-border); }
 
-  /* фигура: силуэт — форма, заливка — цвет с узором */
+  /* фигура: силуэт — форма, заливка — чистый цвет */
   .piece { width: var(--s, 56px); height: var(--s, 56px); display: block; filter: drop-shadow(0 7px 7px rgba(31, 41, 55, 0.16)); overflow: visible; }
 
   /* поле 4×4 */
@@ -42,11 +42,11 @@
     background: var(--ui-surface-muted);
     display: grid; place-items: center; position: relative;
   }
-  /* правило-цвет: клетка подкрашена цветом, с тем же узором */
-  .cell.rB, .cell.rY, .cell.rC { background: var(--pat, none), color-mix(in srgb, var(--c) 26%, white); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--c) 60%, white); }
+  /* правило-цвет: клетка подкрашена цветом */
+  .cell.rB, .cell.rY, .cell.rC { background: color-mix(in srgb, var(--c) 26%, white); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--c) 60%, white); }
   .cell.rB { --c: var(--ui-blue); }
-  .cell.rY { --c: var(--ui-yellow); --pat: radial-gradient(circle, color-mix(in srgb, var(--c) 55%, transparent) 0 2px, transparent 2.5px) 0 0 / 9px 9px; }
-  .cell.rC { --c: var(--ui-coral); --pat: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 30%, transparent) 0 4px, transparent 4px 10px); }
+  .cell.rY { --c: var(--ui-yellow); }
+  .cell.rC { --c: var(--ui-coral); }
   /* правило-форма: выдавленный контур, фигура в него «вкладывается» */
   .cell .emboss { width: 70%; height: 70%; fill: none; stroke: var(--ui-disabled); stroke-width: 6; stroke-dasharray: none; stroke-linejoin: round; filter: drop-shadow(0 2px 0 #fff); }
   /* джокер: точка, как «Пустая» клетка кита */
@@ -60,14 +60,12 @@
 </style>
 </head>
 <body>
-<!-- общие градиенты и узоры фигур: цвет из токенов, узор — белый полупрозрачный -->
+<!-- общие градиенты фигур: чистый цвет из токенов -->
 <svg width="0" height="0" style="position:absolute">
   <defs>
     <linearGradient id="gB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-blue) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-blue)"/></linearGradient>
     <linearGradient id="gY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-yellow) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-yellow)"/></linearGradient>
     <linearGradient id="gC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-coral) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-coral)"/></linearGradient>
-    <pattern id="pC" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="12" fill="rgba(255,255,255,.34)"/></pattern>
-    <pattern id="pY" width="11" height="11" patternUnits="userSpaceOnUse"><circle cx="5.5" cy="5.5" r="2.4" fill="rgba(255,255,255,.6)"/></pattern>
   </defs>
 </svg>
 
@@ -93,15 +91,13 @@
     t: (a) => `<path d="M50 9 L93 86 L7 86 Z" stroke-linejoin="round" stroke-width="14" ${a}/>`,
   };
   const HIGHLIGHT = { o: [34, 30, 13, 8], s: [32, 28, 14, 7], t: [46, 40, 8, 5] };
-  const PAT = { B: '', Y: 'url(#pY)', C: 'url(#pC)' };
 
   function piece(p, size) {
     const [c, s] = p;
     const edge = SHAPE[s](`transform="translate(0 5)" fill="color-mix(in srgb, var(--ui-${{ B: 'blue', Y: 'yellow', C: 'coral' }[c]}) 70%, black)" stroke="color-mix(in srgb, var(--ui-${{ B: 'blue', Y: 'yellow', C: 'coral' }[c]}) 70%, black)"`);
     const body = SHAPE[s](`fill="url(#g${c})" stroke="url(#g${c})"`);
-    const pat = PAT[c] ? SHAPE[s](`fill="${PAT[c]}" stroke="${PAT[c]}"`) : '';
     const [hx, hy, rx, ry] = HIGHLIGHT[s];
-    return `<svg class="piece" viewBox="0 0 100 100" style="${size ? `--s:${size}px` : ''}">${edge}${body}${pat}<ellipse cx="${hx}" cy="${hy}" rx="${rx}" ry="${ry}" fill="rgba(255,255,255,.5)"/></svg>`;
+    return `<svg class="piece" viewBox="0 0 100 100" style="${size ? `--s:${size}px` : ''}">${edge}${body}<ellipse cx="${hx}" cy="${hy}" rx="${rx}" ry="${ry}" fill="rgba(255,255,255,.5)"/></svg>`;
   }
   const outline = (s) => `<svg viewBox="0 0 100 100" class="emboss">${SHAPE[s]('')}</svg>`;
 

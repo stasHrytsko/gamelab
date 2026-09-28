@@ -79,7 +79,7 @@ test('все пять уровней проходятся, после пятог
   }
 });
 
-test('недопустимый тап не тратит ход; неподходящие клетки приглушены', async ({ page }) => {
+test('недопустимый тап не тратит ход; подсказок «куда можно» нет', async ({ page }) => {
   await page.goto('/?unlock=all#/level/3');
   const game = page.getByTestId('game');
   const lv = level(3);
@@ -87,8 +87,8 @@ test('недопустимый тап не тратит ход; неподход
   const first = lv.queue[0] ?? 'Bo';
   const bad = rules.findIndex((r) => r !== '.' && r !== first[0] && r !== first[1]);
   const good = rules.findIndex((r) => r === '.' || r === first[0] || r === first[1]);
-  await expect(page.getByTestId(`cell-${String(bad)}`)).toHaveClass(/off/);
-  await expect(page.getByTestId(`cell-${String(good)}`)).not.toHaveClass(/off/);
+  // Клетки не приглушаются и не подсвечиваются под текущую фигуру.
+  await expect(page.locator('.cell.off, .cell.dead')).toHaveCount(0);
   await page.getByTestId(`cell-${String(bad)}`).click();
   await expect(game).toHaveAttribute('data-turn', '0');
 

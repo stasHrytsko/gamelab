@@ -1,4 +1,4 @@
-import { createState, current, fits, legalNow, tapCell } from '../engine/shelfEngine.ts';
+import { createState, current, legalNow, tapCell } from '../engine/shelfEngine.ts';
 import { PREVIEW, SIZE, type GameState, type Move } from '../engine/types.ts';
 import { getLevel, LEVEL_COUNT } from '../levels/levels.ts';
 import { reducedMotion, vibrate, wait } from './feedback.ts';
@@ -98,13 +98,11 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   }
 
   function render(): void {
-    const piece = current(state);
+    // Подсказок «куда можно» нет: игрок сам сверяет фигуру с правилом клетки (§7, решение автора 2026-09-28).
     cellEls.forEach((d, i) => {
       const occupied = state.board[i] !== null;
       if (!occupied) pieceIn(i)?.remove();
       else if (pieceIn(i) === null) d.insertAdjacentHTML('beforeend', pieceSvg(state.board[i] ?? 'Bo'));
-      // Клетки, куда текущая фигура не встаёт, приглушены (§7).
-      d.classList.toggle('off', state.status === 'playing' && !occupied && piece !== null && !fits(state.rules[i] ?? '.', piece));
     });
     renderQueue();
     el.dataset['status'] = state.status;
@@ -262,7 +260,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     if (state.status === 'failed') {
       log({ type: 'level_fail', level: levelNumber, reason: 'no_moves', turn: state.turn });
       shake(nowEl);
-      cellEls.forEach((d, i) => d.classList.toggle('off', state.board[i] === null));
+      cellEls.forEach((d, i) => d.classList.toggle('dead', state.board[i] === null));
       vibrate([30, 60, 30]);
       await wait(900);
       busy = false;

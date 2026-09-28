@@ -51,8 +51,6 @@
   .cell .emboss { width: 70%; height: 70%; fill: none; stroke: var(--ui-disabled); stroke-width: 6; stroke-dasharray: none; stroke-linejoin: round; filter: drop-shadow(0 2px 0 #fff); }
   /* джокер: точка, как «Пустая» клетка кита */
   .cell.joker::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ui-disabled); }
-  /* текущей фигуре сюда нельзя — клетка приглушена */
-  .cell.off { opacity: .38; }
   .cell .piece { --s: 74%; position: absolute; }
 
   .hint { text-align: center; font-size: 13px; font-weight: 500; color: var(--ui-text-muted); }
@@ -106,7 +104,6 @@
   const board = { 0: 'Bo', 1: 'Bt', 5: 'Ys', 7: 'Yo', 10: 'Cs', 11: 'Bs', 12: 'Ct' };
   const queue = ['Bt', 'Ct', 'Bs', 'Yt'];
   const cur = queue[0];
-  const fits = (r) => r === '.' || r === cur[0] || r === cur[1];
 
   document.getElementById('queue').innerHTML =
     `<div class="now">${piece(cur, 64)}<div class="label">Сейчас</div></div><div class="sep"></div>` +
@@ -119,7 +116,6 @@
     else if ('BYC'.includes(r)) cls.push('r' + r);
     else inner = outline(r);
     if (board[i]) inner += piece(board[i]);
-    else if (!fits(r)) cls.push('off');
     return `<div class="${cls.join(' ')}">${inner}</div>`;
   }).join('');
   if (location.hash === '#gray') document.body.classList.add('gray');

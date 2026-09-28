@@ -201,8 +201,8 @@ svg { display: block; }
 /* джокер: точка, как «Пустая» клетка кита */
 .cell.joker::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ui-disabled); }
 .cell.joker:has(.piece)::after { display: none; }
-/* текущей фигуре сюда нельзя */
-.cell.off { opacity: .38; }
+/* поражение: пустые клетки гаснут */
+.cell.dead { opacity: .38; }
 .cell .piece { position: absolute; width: 74%; height: 74%; }
 .cell .piece.land { animation: land 220ms cubic-bezier(.3,1.6,.5,1); }
 @keyframes land { 0% { transform: scale(.8); } 100% { transform: none; } }

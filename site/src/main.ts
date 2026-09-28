@@ -1,26 +1,19 @@
 import { GAMES } from './games.ts';
 import './styles.css';
 
-const QUEUE_SLOTS = 5;
-
-function heroCard(game: (typeof GAMES)[number]): string {
-  const cta = game.url === '' ? '' : `<a class="btn btn-hero-primary" href="${game.url}" target="_blank" rel="noopener">Play</a>`;
+function tile(game: (typeof GAMES)[number]): string {
   return `
-    <article class="hero">
-      <div class="hero-content">
-        <span class="tag-new">New game</span>
-        <h2>${game.title}</h2>
-        <div class="meta">${game.date} · ${game.genre}</div>
-        <p class="pitch">${game.pitch}</p>
-        ${cta}
+    <a class="tile" href="${game.play}" target="_blank" rel="noopener" data-testid="tile-${game.slug}">
+      <img class="tile-icon" src="${game.icon}" alt="" width="72" height="72">
+      <div class="tile-body">
+        <div class="tile-head">
+          <h3>${game.title}</h3>
+          <span class="tag-genre">${game.genre}</span>
+        </div>
+        <p class="tile-pitch">${game.pitch}</p>
       </div>
-      <div class="hero-image" style="background-image:url('${game.banner}')"></div>
-    </article>`;
-}
-
-/** Generic gradient art — not a real screenshot, so it never reads as a game. */
-function queueSlots(count: number): string {
-  return `<div class="queue">${'<div class="queue-card"><span class="status">Soon</span></div>'.repeat(count)}</div>`;
+      <span class="tile-play">Play →</span>
+    </a>`;
 }
 
 const root = document.getElementById('app');
@@ -30,16 +23,13 @@ root.innerHTML = `
   <div class="page">
     <div class="head">
       <h1>Prototype Validation Project</h1>
-      <p>Playable game prototypes, one link away on your phone. Each one tests a single idea, not a finished game.</p>
+      <p>Five playable prototypes, one tap away. Each tests a single idea, not a finished game — pick one and play.</p>
     </div>
 
     <div class="section">
-      <span class="section-label">Prototype log</span>
-      ${GAMES.map(heroCard).join('')}
-    </div>
-
-    <div class="section">
-      <span class="section-label">Coming up</span>
-      ${queueSlots(QUEUE_SLOTS)}
+      <span class="section-label">Games — ${String(GAMES.length)}</span>
+      <div class="grid">
+        ${GAMES.map(tile).join('')}
+      </div>
     </div>
   </div>`;

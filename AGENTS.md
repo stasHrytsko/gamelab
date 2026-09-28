@@ -19,7 +19,7 @@ If a prototype needs an object that does not exist yet:
 4. Provide the states required by its behavior, such as `default`, `selected`, `disabled`, `locked`, or `success`.
 5. Ask for explicit user approval before introducing a new color, font family, radius system, shadow style, or substantially different art direction. After approval, update the tokens and documentation before using the new rule.
 
-The files in `UI Design/` are the canonical source of truth and may grow as approved reusable objects are added. If a screenshot and a token disagree, follow the token. Production application code belongs in `apps/` (one folder per game prototype); prototype source files and preview images belong in `UI Design/prototypes/`. The one exception is `site/` at the repo root — the Prototype Validation Project hub that links out to each game — which is not a game and doesn't use the PuzzleKit tokens (see `UI Design/prototypes/hub/README.md`).
+The files in `UI Design/` are the canonical source of truth and may grow as approved reusable objects are added. If a screenshot and a token disagree, follow the token. Production application code belongs in `apps/` (one folder per game prototype); prototype source files and preview images belong in `UI Design/prototypes/`. The one exception is `site/` at the repo root — the Prototype Validation Project hub, which lists every game and serves each one playable from `site/public/games/` (a copy of its own build artifact, see `site/README.md`) — which is not a game and doesn't use the PuzzleKit tokens (see `UI Design/prototypes/hub/README.md`).
 
 ## Game prototypes
 

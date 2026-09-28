@@ -3,7 +3,7 @@
 // take_share и careless_taps считает солвер по выгруженному логу:
 // `node tools/excavation-solver.mjs log <file.json>`.
 const KEY = 'excavation:log';
-const LIMIT = 3000;
+const LIMIT = 1000;
 
 export type LogEvent =
   | { type: 'level_start'; level: number; attempt: number; layout: number; seed: number }

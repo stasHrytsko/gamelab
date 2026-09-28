@@ -1,7 +1,7 @@
 // Лог для §8 спеки: пишется только на устройство. Посмотреть — в консоли
 // браузера `JSON.parse(localStorage['arrow-flip:log'])`.
 const KEY = 'arrow-flip:log';
-const LIMIT = 3000;
+const LIMIT = 1000;
 
 export type LogEvent =
   | { type: 'level_start'; level: number }

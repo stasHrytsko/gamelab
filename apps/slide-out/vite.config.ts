@@ -6,12 +6,16 @@ const uiDesign = fileURLToPath(new URL('../../UI Design', import.meta.url));
 
 // Превью ссылки в мессенджерах требует абсолютный адрес картинки. Vercel
 // отдаёт боевой домен проекта в VERCEL_PROJECT_PRODUCTION_URL во время сборки.
+// На витрине игра живёт по подпути (`--base /the-dig/`), он входит в адрес.
 function siteUrl(): Plugin {
   const host = process.env['VERCEL_PROJECT_PRODUCTION_URL'];
-  const origin = host ? `https://${host}` : '';
+  let url = '';
   return {
     name: 'site-url',
-    transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', origin),
+    configResolved(config) {
+      url = host ? `https://${host}${config.base.replace(/\/$/, '')}` : '';
+    },
+    transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', url),
   };
 }
 

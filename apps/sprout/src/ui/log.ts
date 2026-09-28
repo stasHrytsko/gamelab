@@ -2,7 +2,7 @@
 // браузера `JSON.parse(localStorage['sprout:log'])`. Метрику step_lost
 // считает солвер по выгруженному логу: `node tools/sprout-solver.mjs log <file>`.
 const KEY = 'sprout:log';
-const LIMIT = 3000;
+const LIMIT = 1000;
 
 export type LogEvent =
   | { type: 'level_start'; level: number; attempt: number }

@@ -1,0 +1,24 @@
+{
+  "name": "gamelab",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "site"
+  ],
+  "scripts": {
+    "build": "node tools/build-site.mjs",
+    "preview": "vite preview --outDir dist --port 4190"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/node": "22.20.4",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "8.3.1",
+    "vitest": "5.0.1"
+  }
+}

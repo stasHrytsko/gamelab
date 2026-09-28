@@ -25,11 +25,13 @@
 
 ```
 apps/<slug>/
+  game.json                  карточка на витрине: idea, path, title, genre, pitch (§8)
   index.html                 мета, og, manifest, <div id="app">
-  package.json               те же версии и скрипты, меняется только name и порт preview
-  tsconfig.json vite.config.ts vercel.json .gitignore     — копия без изменений
+  package.json               те же скрипты, меняется только name и порт preview; зависимостей нет
+  tsconfig.json vite.config.ts .gitignore     — копия без изменений
   playwright.config.ts       копия, меняется только порт
   public/                    icon-192, icon-512, apple-touch-icon, og.png, manifest.webmanifest
+                             (пути в manifest относительные: игра живёт по подпути)
   src/
     main.ts                  hash-роутер: #/  #/levels  #/level/N; VITE_ROUTER=memory для артефакта
     styles.css               @import "@ui/design-tokens.css" + общая оболочка + стили игры
@@ -47,14 +49,16 @@ apps/<slug>/
 ```
 
 **Копировать без изменений** (проверено, что у всех трёх игр они совпадают
-побайтно): `ui/popup.ts`, `ui/feedback.ts`, `tsconfig.json`, `vercel.json`,
+побайтно): `ui/popup.ts`, `ui/feedback.ts`, `tsconfig.json`,
 `vite.config.ts`, `tools/make-images.ts`. Из `main.ts` и `ui/storage.ts`
 меняется только ключ `localStorage` (`<slug>:progress:v1`) и импорт уровней.
 Проще всего начать с `cp -r` последней игры и удалить из неё механику.
 
 Стек фиксирован: TypeScript strict + Vite, без фреймворка, экран на HTML/CSS,
 анимации через Web Animations API и CSS. Тесты — Vitest и Playwright. Новые
-зависимости не добавляем.
+зависимости не добавляем. Версии Vite, TypeScript, Vitest и Playwright одни на
+весь репо: `devDependencies` корневого `package.json`, игры — npm workspaces.
+В `package.json` игры их не дублируем.
 
 ## 2. Экраны — одинаковые у всех
 
@@ -153,7 +157,8 @@ apps/<slug>/
 ## 6. Для проверки на игроках (§8 спеки)
 
 - `ui/log.ts` пишет события только на устройство
-  (`localStorage['<slug>:log']`, до 3000 штук): `level_start`, событие хода
+  (`localStorage['<slug>:log']`, до 1000 штук — все игры на одном домене
+  делят ~5 МБ хранилища браузера): `level_start`, событие хода
   со всем, что нужно метрикам §8, `help_open`, `level_win`, `level_fail` с
   кодом причины.
 - Коды причин поражения стабильны и совпадают со спекой.
@@ -163,8 +168,8 @@ apps/<slug>/
 ## 7. Проверка перед показом
 
 ```sh
-npm install
-npm run check        # typecheck + vitest + build + playwright
+npm install          # в корне репо, один раз на все игры
+npm run check        # в папке игры: typecheck + vitest + build + playwright
 ```
 
 e2e обязательно проверяют:
@@ -188,10 +193,32 @@ e2e обязательно проверяют:
 - В артефакте нет соседних файлов: все картинки встраиваются как `data:`,
   нужны `<meta charset>` и `<title>` (это однажды сломало Slide Out).
 - `npx tsx tools/make-images.ts` — иконки и `og.png` из `tools/brand.html`.
-  Картинки коммитятся, на Vercel браузера нет.
-- Vercel: Root Directory `apps/<slug>`, опция «Include files outside the
-  Root Directory» включена, потому что сборка читает `../../UI Design`.
-- README игры повторяет структуру README соседних игр: ссылки, Vercel,
+  Картинки коммитятся, на Vercel браузера нет. `icon-192.png` — это же и
+  иконка карточки на витрине.
+- **Витрина.** Все игры живут на одном сайте: `https://<домен>/` — витрина,
+  `https://<домен>/<path>/` — игра. Отдельного Vercel-проекта у игры нет.
+  Игра попадает на витрину сама, как только в `main` есть её папка с
+  `game.json`:
+
+  ```json
+  {
+    "idea": 24,
+    "path": "the-dig",
+    "title": "The Dig",
+    "genre": "Reveal",
+    "pitch": "pitch_en из спеки"
+  }
+  ```
+
+  `idea` — номер идеи (порядок карточек), `path` — адрес игры (английское
+  название, строчными через дефис), `genre` — family из спеки одним словом
+  по-английски. Пуш в `main` → Vercel запускает `npm run build` в корне
+  (`tools/build-site.mjs`): собирает каждую игру в `dist/<path>/`, витрину — в
+  `dist/`. Неизменённые игры берутся из кэша. Игра, которая не собралась,
+  пропускается, а сайт выходит с остальными, поэтому **проверь локально**:
+  `npm run build && npm run preview` в корне → `http://localhost:4190/`,
+  карточка есть, игра открывается по своему `path`.
+- README игры повторяет структуру README соседних игр: ссылки, витрина,
   команды, устройство.
 
 ## 9. После правок автора
@@ -215,7 +242,10 @@ e2e обязательно проверяют:
 - [ ] Анимации из спеки, `fill: 'forwards'` на движении, ввод заблокирован на время хода
 - [ ] Лог §8 пишет всё, что нужно метрикам
 - [ ] `npm run check` зелёный, скриншоты просмотрены
-- [ ] Артефакт опубликован, README написан, изменения запушены
+- [ ] `game.json` заполнен, `npm run build` в корне показывает игру в «На сайте»,
+      карточка и игра открываются на локальной витрине
+- [ ] Артефакт опубликован, README написан, изменения запушены в `main` —
+      с этого пуша игра на витрине
 - [ ] Идея переложена из `ideas/backlog/` в `ideas/approved/` (`git mv`,
       поле `gate1` не трогать — оно уже `approved`) — это последний шаг,
       им игра считается собранной (`ideas/gate1.md`)

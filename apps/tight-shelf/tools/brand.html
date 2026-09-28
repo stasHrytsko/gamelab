@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../UI Design/design-tokens.css">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--ui-font); background: transparent; }
+  .piece { display: block; overflow: visible; filter: drop-shadow(0 8px 8px rgba(31, 41, 55, 0.16)); }
+  .board { position: relative; display: grid; grid-template-columns: repeat(3, var(--c)); gap: calc(var(--c) * .12); padding: calc(var(--c) * .16); border-radius: calc(var(--c) * .3); background: var(--ui-surface); box-shadow: var(--ui-shadow-card); }
+  .cell { width: var(--c); height: var(--c); border-radius: calc(var(--c) * .2); background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .cell .piece { width: 76%; height: 76%; }
+  .bar { position: absolute; height: calc(var(--c) * .11); border-radius: 999px; background: rgba(255,255,255,.95); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-blue) 30%, transparent), 0 0 22px color-mix(in srgb, var(--ui-blue) 55%, transparent); transform-origin: 0 50%; transform: rotate(45deg); }
+
+  #icon { width: 512px; height: 512px; background: radial-gradient(90% 90% at 30% 20%, #fff, var(--ui-background)); display: grid; place-items: center; }
+  #icon .board { --c: 120px; }
+  #og { width: 1200px; height: 630px; background: radial-gradient(80% 90% at 20% 10%, #fff, var(--ui-background) 70%); display: flex; align-items: center; gap: 80px; padding: 0 96px; }
+  #og .board { --c: 132px; flex: none; }
+  #og h1 { font-size: 88px; font-weight: 700; line-height: 1.05; color: var(--ui-text); }
+  #og p { margin-top: 24px; font-size: 32px; color: var(--ui-text-muted); }
+  #og .cta { margin-top: 36px; display: inline-flex; align-items: center; gap: 14px; height: 76px; padding: 0 40px; border-radius: 22px; color: #fff; font-size: 32px; font-weight: 600; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 10px 24px rgba(79,126,255,.35); }
+  #og .cta svg { width: 30px; height: 30px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="gB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-blue) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-blue)"/></linearGradient>
+    <linearGradient id="gY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-yellow) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-yellow)"/></linearGradient>
+    <linearGradient id="gC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--ui-coral) 72%, white)"/><stop offset="1" style="stop-color:var(--ui-coral)"/></linearGradient>
+    <pattern id="pC" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="12" fill="rgba(255,255,255,.34)"/></pattern>
+    <pattern id="pY" width="11" height="11" patternUnits="userSpaceOnUse"><circle cx="5.5" cy="5.5" r="2.4" fill="rgba(255,255,255,.6)"/></pattern>
+  </defs>
+</svg>
+<div id="icon"><div class="board" data-hero></div></div>
+<div id="og">
+  <div class="board" data-hero></div>
+  <div>
+    <h1>Tight<br>Shelf</h1>
+    <p>Цвет или форма — три в ряд исчезают</p>
+    <div class="cta"><svg viewBox="0 0 24 24"><path d="M7 4.5v15c0 .8.9 1.3 1.6.8l11-7.5c.6-.4.6-1.2 0-1.6l-11-7.5C7.9 3.2 7 3.7 7 4.5z" fill="currentColor"/></svg>Играть</div>
+  </div>
+</div>
+<script>
+  // Та же композиция, что на главном экране игры (src/ui/screens.ts).
+  const SHAPE = {
+    o: (a) => `<circle cx="50" cy="50" r="45" ${a}/>`,
+    s: (a) => `<rect x="9" y="9" width="82" height="82" rx="18" ${a}/>`,
+    t: (a) => `<path d="M50 9 L93 86 L7 86 Z" stroke-linejoin="round" stroke-width="14" ${a}/>`,
+  };
+  const HL = { o: [34, 30, 13, 8], s: [32, 28, 14, 7], t: [46, 40, 8, 5] };
+  const TOK = { B: 'blue', Y: 'yellow', C: 'coral' };
+  const PAT = { B: '', Y: 'url(#pY)', C: 'url(#pC)' };
+  const piece = (p) => {
+    const [c, s] = p;
+    const dark = `color-mix(in srgb, var(--ui-${TOK[c]}) 70%, black)`;
+    const [hx, hy, rx, ry] = HL[s];
+    return `<svg class="piece" viewBox="0 0 100 100">${SHAPE[s](`transform="translate(0 5)" fill="${dark}" stroke="${dark}"`)}${SHAPE[s](`fill="url(#g${c})" stroke="url(#g${c})"`)}${PAT[c] ? SHAPE[s](`fill="${PAT[c]}" stroke="${PAT[c]}"`) : ''}<ellipse cx="${hx}" cy="${hy}" rx="${rx}" ry="${ry}" fill="rgba(255,255,255,.5)"/></svg>`;
+  };
+  const HERO = ['Bo', 'Ys', 'Ct', 'Yt', 'Bs', 'Co', 'Cs', null, 'Bt'];
+  for (const board of document.querySelectorAll('[data-hero]')) {
+    board.innerHTML = HERO.map((p) => `<div class="cell">${p ? piece(p) : ''}</div>`).join('');
+    const c = parseFloat(getComputedStyle(board).getPropertyValue('--c'));
+    const start = c * 0.16 + c / 2;
+    const bar = document.createElement('i');
+    bar.className = 'bar';
+    bar.style.left = `${start}px`;
+    bar.style.top = `${start - c * 0.055}px`;
+    bar.style.width = `${Math.SQRT2 * 2 * c * 1.12}px`;
+    board.append(bar);
+  }
+</script>
+</body>
+</html>

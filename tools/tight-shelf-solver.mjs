@@ -14,6 +14,7 @@
  *
  * node tools/tight-shelf-solver.mjs            — подобрать 5 уровней и напечатать JSON
  * node tools/tight-shelf-solver.mjs --report   — метрики уровней из tools/tight-shelf-levels.json
+ * node tools/tight-shelf-solver.mjs --log F     — kill-метрика §8 по логу игры (JSON из localStorage)
  * node tools/tight-shelf-solver.mjs --ab       — A/B вариантов геометрии (история решения)
  */
 
@@ -78,6 +79,21 @@ export function makeSolver(level) {
     return ok;
   };
   return { rules, solvable, memo };
+}
+
+/** Одно решение уровня: клетка для каждой фигуры очереди по порядку, или null. */
+export function solution(level) {
+  const { rules, solvable } = makeSolver(level);
+  let board = empty();
+  if (!solvable(board, 0)) return null;
+  const cells = [];
+  for (let t = 0; t < level.queue.length; t++) {
+    const piece = level.queue[t];
+    const c = legal(rules, board, piece).find((x) => solvable(place(board, x, piece).board, t + 1));
+    cells.push(c);
+    board = place(board, c, piece).board;
+  }
+  return cells;
 }
 
 /** Переживёт ли игрок следующие k фигур очереди при лучшей игре. */
@@ -253,6 +269,31 @@ export function findLevel(spec, maxSeed = 3000) {
 
 async function main() {
   const arg = process.argv[2];
+  if (arg === '--log') {
+    // Лог игры: localStorage['tight-shelf:log'] одного или нескольких игроков, склеенный в массив.
+    const { readFile } = await import('node:fs/promises');
+    const levels = JSON.parse(await readFile('tools/tight-shelf-levels.json', 'utf8'));
+    const events = JSON.parse(await readFile(process.argv[3], 'utf8'));
+    const stat = new Map();
+    let level = null, board = empty();
+    for (const e of events) {
+      if (e.type === 'level_start') { level = levels.find((l) => l.id === e.level) ?? null; board = empty(); continue; }
+      if (e.type !== 'place' || level === null || level.id !== e.level) continue;
+      const traps = visibleTraps(level, board, e.turn);
+      const s = stat.get(level.id) ?? { moves: 0, chances: 0, hits: 0 };
+      s.moves++;
+      if (traps.length) { s.chances++; if (traps.includes(e.cell)) s.hits++; }
+      stat.set(level.id, s);
+      board = place(board, e.cell, level.queue[e.turn]).board;
+    }
+    for (const l of levels) {
+      const s = stat.get(l.id);
+      if (!s) continue;
+      const rate = s.chances ? s.hits / s.chances : 0;
+      console.log(`уровень ${l.id}: ходов ${s.moves}, видимых ловушек ${s.chances}, попаданий ${s.hits} (${(100 * rate).toFixed(0)}%), случайный ${(100 * randomTrapRate(l)).toFixed(0)}%`);
+    }
+    return;
+  }
   if (arg === '--report') {
     const { readFile } = await import('node:fs/promises');
     const levels = JSON.parse(await readFile(process.argv[3] ?? 'tools/tight-shelf-levels.json', 'utf8'));

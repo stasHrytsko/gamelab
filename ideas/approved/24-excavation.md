@@ -1,5 +1,5 @@
 ---
-slug: the dig
+slug: excavation
 number: 24
 title_ru: Раскоп
 title_en: The Dig

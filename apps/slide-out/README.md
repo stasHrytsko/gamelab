@@ -1,6 +1,6 @@
 # Slide Out — прототип
 
-Спека — `specs/done/02-two-moves-later.md`, макеты — `UI Design/prototypes/slide-out/`.
+Спека — `specs/02-two-moves-later.md`, макеты — `UI Design/prototypes/slide-out/`.
 Веб-игра под телефон: TypeScript + Vite, без фреймворка, экран на HTML/CSS,
 стиль — токены и шрифт из `UI Design/` (подключаются напрямую, не копией).
 

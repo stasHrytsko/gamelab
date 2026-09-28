@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tight Shelf — игровой экран</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ui-background);
+    font-family: var(--ui-font);
+    color: var(--ui-text);
+    display: flex;
+    justify-content: center;
+  }
+  body.gray { filter: grayscale(1); }
+  .app { width: 390px; height: 664px; padding: 16px 12px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* шапка 44 px */
+  .head { height: 48px; display: grid; grid-template-columns: 48px 1fr 48px 48px; gap: 8px; align-items: center; }
+  .head h1 { margin: 0; text-align: center; font-size: 20px; font-weight: 700; }
+  .ibtn { width: 48px; height: 48px; border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; }
+  .ibtn svg { width: 22px; height: 22px; }
+
+  /* очередь: текущий + 3 следующих */
+  .queue { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 8px 16px; display: flex; align-items: center; gap: 16px; }
+  .now { display: grid; justify-items: center; gap: 4px; }
+  .label { font-size: 11px; font-weight: 500; color: var(--ui-text-muted); }
+  .next { display: grid; justify-items: center; gap: 4px; flex: 1; }
+  .next .row { display: flex; gap: 16px; align-items: center; }
+  .sep { width: 1px; align-self: stretch; background: var(--ui-border); }
+
+  /* шар: цвет — тело, форма — белый знак */
+  .ball {
+    --c: var(--ui-blue);
+    width: var(--s, 56px); height: var(--s, 56px); border-radius: var(--ui-radius-pill);
+    background:
+      radial-gradient(circle at 35% 28%, rgba(255,255,255,.55) 0 18%, transparent 19%),
+      radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--c) 78%, white), var(--c) 70%);
+    box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, black);
+    display: grid; place-items: center;
+  }
+  .ball svg { width: 42%; height: 42%; fill: #fff; opacity: .95; }
+  .B { --c: var(--ui-blue); } .Y { --c: var(--ui-yellow); } .C { --c: var(--ui-coral); }
+  /* второй канал цвета — узор: синий гладкий, коралловый в полоску, жёлтый в точку */
+  .ball.C, .cell.rC { --pat: repeating-linear-gradient(135deg, rgba(255,255,255,.34) 0 4px, transparent 4px 10px); }
+  .ball.Y, .cell.rY { --pat: radial-gradient(circle, rgba(255,255,255,.55) 0 2px, transparent 2.5px) 0 0 / 9px 9px; }
+  .ball.C, .ball.Y {
+    background:
+      radial-gradient(circle at 35% 28%, rgba(255,255,255,.55) 0 18%, transparent 19%),
+      var(--pat),
+      radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--c) 78%, white), var(--c) 70%);
+  }
+
+  /* поле 4×4 */
+  .board { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .cell {
+    aspect-ratio: 1; border-radius: var(--ui-radius-large);
+    background: var(--ui-surface-muted);
+    display: grid; place-items: center; position: relative;
+  }
+  /* правило-цвет: клетка подкрашена цветом */
+  .cell.rB, .cell.rY, .cell.rC { background: var(--pat, none), color-mix(in srgb, var(--c) 26%, white); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--c) 60%, white); }
+  .cell.rB { --c: var(--ui-blue); } .cell.rY { --c: var(--ui-yellow); } .cell.rC { --c: var(--ui-coral); }
+  .cell.rC { --pat: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 30%, transparent) 0 4px, transparent 4px 10px); }
+  .cell.rY { --pat: radial-gradient(circle, color-mix(in srgb, var(--c) 55%, transparent) 0 2px, transparent 2.5px) 0 0 / 9px 9px; }
+  /* правило-форма: выдавленный контур */
+  .cell .emboss { width: 46%; height: 46%; fill: none; stroke: var(--ui-disabled); stroke-width: 9; stroke-linejoin: round; filter: drop-shadow(0 2px 0 #fff); }
+  /* джокер: точка, как «Пустая» клетка кита */
+  .cell.joker::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ui-disabled); }
+  /* шару текущего хода сюда нельзя — клетка приглушена */
+  .cell.off { opacity: .38; }
+  .cell .ball { --s: 78%; position: absolute; }
+
+  .hint { text-align: center; font-size: 13px; font-weight: 500; color: var(--ui-text-muted); }
+  .hint b { color: var(--ui-text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <div class="ibtn"><svg viewBox="0 0 24 24" fill="none" stroke="#1f2937" stroke-width="2.4"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></div>
+    <h1>Уровень 3</h1>
+    <div class="ibtn"><svg viewBox="0 0 24 24"><text x="12" y="18" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="18" fill="#4f7eff">?</text></svg></div>
+    <div class="ibtn"><svg viewBox="0 0 24 24" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg></div>
+  </div>
+
+  <div class="queue" id="queue"></div>
+  <div class="board" id="board"></div>
+  <div class="hint">Три в ряд с общим <b>цветом</b> или общей <b>формой</b> исчезают</div>
+</div>
+
+<script>
+  const SHAPE = {
+    o: '<circle cx="50" cy="50" r="40"/>',
+    s: '<rect x="12" y="12" width="76" height="76" rx="12"/>',
+    t: '<path d="M50 8 L92 86 L8 86 Z"/>',
+  };
+  const glyph = (s, cls = '') => `<svg viewBox="0 0 100 100" class="${cls}">${SHAPE[s]}</svg>`;
+  const ball = (b, size) => `<div class="ball ${b[0]}" style="${size ? `--s:${size}px` : ''}">${glyph(b[1])}</div>`;
+
+  // уровень 3 из tools/tight-shelf-levels.json, середина партии
+  const rules = ['BBB.', 'Bs.o', '.tsB', 'C.YB'].join('').split('');
+  const board = { 0: 'Bo', 1: 'Bt', 5: 'Ys', 7: 'Yo', 10: 'Cs', 11: 'Bs', 12: 'Ct' };
+  const queue = ['Bt', 'Ct', 'Bs', 'Yt'];
+  const cur = queue[0];
+  const fits = (r) => r === '.' || r === cur[0] || r === cur[1];
+
+  document.getElementById('queue').innerHTML =
+    `<div class="now">${ball(cur, 64)}<div class="label">Сейчас</div></div><div class="sep"></div>` +
+    `<div class="next"><div class="row">${queue.slice(1).map((b) => ball(b, 44)).join('')}</div><div class="label">Дальше</div></div>`;
+
+  document.getElementById('board').innerHTML = rules.map((r, i) => {
+    const cls = ['cell'];
+    let inner = '';
+    if (r === '.') cls.push('joker');
+    else if ('BYC'.includes(r)) cls.push('r' + r);
+    else inner = glyph(r, 'emboss');
+    if (board[i]) inner += ball(board[i]);
+    else if (!fits(r)) cls.push('off');
+    return `<div class="${cls.join(' ')}">${inner}</div>`;
+  }).join('');
+  if (location.hash === '#gray') document.body.classList.add('gray');
+</script>
+</body>
+</html>

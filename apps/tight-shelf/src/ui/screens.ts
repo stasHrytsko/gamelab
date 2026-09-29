@@ -1,27 +1,21 @@
-import type { Piece } from '../engine/types.ts';
 import { LEVELS } from '../levels/levels.ts';
 import { icon } from './icons.ts';
-import { ensureDefs, pieceSvg } from './pieces.ts';
+import art from '@ui/prototypes/tight-shelf/assets/home-art.webp';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
 
-// Главный: арта автора пока нет (apps/CLAUDE.md §2) — композиция из фигур игры:
-// поле 3×3, где по диагонали собирается синяя линия. Заменится артом, когда он будет.
-const HERO: readonly (Piece | null)[] = ['Bo', 'Ys', 'Ct', 'Yt', 'Bs', 'Co', 'Cs', null, 'Bt'];
-
 export function homeScreen(go: Go): HTMLElement {
-  ensureDefs();
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
+  // Арт автора (§7.1): название, поле и фигуры. Нарисованные кнопки обрезаны;
+  // низ арта растворяется в размытой копии, кнопка — настоящая, под артом.
+  el.style.setProperty('--art', `url("${art}")`);
   el.innerHTML = `
-    <div class="hero" aria-hidden="true">
-      ${HERO.map((p, i) => `<div class="hero-cell" style="animation-delay:${String(80 + i * 45)}ms">${p === null ? '' : pieceSvg(p)}</div>`).join('')}
-      <i class="hero-bar"></i>
-    </div>
-    <h1 class="title">Tight Shelf</h1>
-    <p class="tagline">Цвет или форма — три в ряд исчезают</p>
+    <div class="home-bg" aria-hidden="true"></div>
+    <img class="home-art" src="${art}" alt="" width="941" height="1160">
+    <h1 class="sr-only">Tight Shelf</h1>
     <button class="play-btn" data-testid="play">Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;

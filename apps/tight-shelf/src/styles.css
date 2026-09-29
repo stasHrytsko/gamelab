@@ -102,21 +102,23 @@ svg { display: block; }
 .c-yellow { --c: var(--ui-yellow); }
 .c-green { --c: var(--ui-success); }
 
-/* ---------- главный: композиция из фигур и живая кнопка ---------- */
-.home { align-items: center; justify-content: center; gap: var(--ui-space-3); overflow: hidden; }
-.hero { position: relative; display: grid; grid-template-columns: repeat(3, var(--hc)); gap: calc(var(--hc) * .12); padding: calc(var(--hc) * .16); border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-card); --hc: min(26vw, 21dvh, 112px); margin-bottom: var(--ui-space-3); }
-.hero-cell { width: var(--hc); height: var(--hc); border-radius: var(--ui-radius-large); background: var(--ui-surface-muted); display: grid; place-items: center; animation: hero-in 420ms cubic-bezier(.3,1.5,.5,1) both; }
-.hero-cell .piece { width: 76%; height: 76%; }
-@keyframes hero-in { from { opacity: 0; transform: scale(.6); } }
-.hero-bar { position: absolute; left: 18%; top: 18%; width: 90%; height: 10px; border-radius: 999px; background: rgba(255,255,255,.9); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-blue) 35%, transparent), 0 0 18px color-mix(in srgb, var(--ui-blue) 60%, transparent); transform-origin: 0 50%; transform: rotate(45deg); animation: hero-bar 2.8s ease-in-out 900ms infinite; opacity: 0; }
-@keyframes hero-bar { 0%, 20% { opacity: 0; width: 0; } 40%, 70% { opacity: 1; width: 90%; } 100% { opacity: 0; width: 90%; } }
-.home .title { font-size: 40px; font-weight: 700; letter-spacing: -.01em; }
-.home .tagline { font-size: 15px; color: var(--ui-text-muted); margin-top: -8px; }
+/* ---------- главный: арт автора во весь экран и живая кнопка ---------- */
+.home { align-items: center; justify-content: center; overflow: hidden; background: var(--ui-background); padding: env(safe-area-inset-top) 0 0; }
+.home > * { position: relative; z-index: 1; }
+.home .home-bg { position: absolute; inset: -60px; z-index: 0; background: var(--art) center / cover no-repeat; filter: blur(36px) saturate(1.1); opacity: .45; transform: scale(1.2); }
+.home-art { width: 100%; max-width: 480px; height: auto; max-height: calc(100dvh - 130px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); min-height: 0; flex: 0 1 auto; object-fit: contain; object-position: bottom;
+  /* Края и низ растворяются в размытой копии; сверху почти без маски — там название. */
+  -webkit-mask-image: linear-gradient(transparent, #000 3%, #000 82%, transparent), linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(transparent, #000 3%, #000 82%, transparent), linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-composite: intersect;
+  animation: art-in 480ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes art-in { from { opacity: 0; transform: translateY(-10px); } }
 
 /* Кнопка «Играть»: пилюля, дышит, светится, раз в 3 с пробегает блик (apps/CLAUDE.md §2). */
 .play-btn {
   position: relative; overflow: hidden; flex: none;
-  width: calc(100% - 2 * var(--ui-space-5)); max-width: 360px; height: 72px; margin-top: var(--ui-space-4);
+  width: calc(100% - 2 * var(--ui-space-5)); max-width: 360px; height: 72px; margin: var(--ui-space-2) 0 calc(var(--ui-space-4) + env(safe-area-inset-bottom));
   border-radius: 999px; color: #fff; font-size: 26px; font-weight: 700; letter-spacing: .01em;
   background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 72%, #fff) 0%, var(--ui-blue) 55%, color-mix(in srgb, var(--ui-blue) 85%, #1f2937) 100%);
   box-shadow: inset 0 2px 0 rgba(255,255,255,.45), inset 0 -4px 0 color-mix(in srgb, var(--ui-blue) 70%, #1f2937), 0 12px 28px rgba(79,126,255,.4);

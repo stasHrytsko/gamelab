@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { LEVELS } from '../src/levels/levels.ts';
-import type { Action } from '../src/engine/types.ts';
+import { apply, createState } from '../src/engine/gapEngine.ts';
+import type { Action, GameState, Level } from '../src/engine/types.ts';
 
 async function idle(page: Page): Promise<void> {
   await expect(page.locator('[data-testid="game"]:not([data-busy]), [data-testid="game"][data-status="won"], [data-testid="game"][data-status="failed"]')).toHaveCount(1);
@@ -65,6 +66,107 @@ test('все пять уровней проходятся, после пятог
     await solveLevel(page, id);
     await expect(page.getByTestId(id === 5 ? 'popup-final' : 'popup-win')).toBeVisible();
   }
+});
+
+test('счётчики целей и запас звёзд следуют за игрой', async ({ page }) => {
+  await page.goto('/?unlock=all#/level/1');
+  await page.locator('[data-action="ok"]').click();
+  await expect(page.getByTestId('goals').locator('.goal')).toHaveCount(2);
+  await expect(page.getByTestId('game')).toHaveAttribute('data-stars-left', '3');
+  await solveLevel(page, 1);
+  await expect(page.getByTestId('popup-win')).toBeVisible();
+  await expect(page.locator('.goal[data-done="true"]')).toHaveCount(2);
+});
+
+test('призрак показывает назначение, пока квадрат ведут', async ({ page }) => {
+  await page.goto('/?unlock=all#/level/1');
+  await page.locator('[data-action="ok"]').click();
+  const level = LEVELS[0];
+  const first = level?.solution[0];
+  if (first === undefined || first.type !== 'swipe') throw new Error('первый ход уровня 1 не свайп');
+  const box = await page.getByTestId(`sq-${String(first.x)}-${String(first.y)}`).boundingBox();
+  if (box === null) throw new Error('нет квадрата');
+  const [dx, dy] = VEC[first.dir];
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + dx * 40, cy + dy * 40, { steps: 4 });
+  await expect(page.getByTestId('ghost')).toHaveCount(1);
+  await page.mouse.move(cx, cy, { steps: 4 }); // вернули палец — ход отменён
+  await page.mouse.up();
+  await expect(page.getByTestId('ghost')).toHaveCount(0);
+  await expect(page.getByTestId('game')).toHaveAttribute('data-moves', '0');
+});
+
+/** Все допустимые действия из позиции — для поиска обходного пути в тесте. */
+function actionsOf(level: Level, state: GameState): Action[] {
+  const list: Action[] = [];
+  for (let y = 0; y < level.h; y += 1) {
+    for (let x = 0; x < level.w; x += 1) {
+      for (const dir of ['up', 'down', 'left', 'right'] as const) list.push({ type: 'swipe', x, y, dir });
+    }
+  }
+  for (let n = 1; n <= 4; n += 1) list.push({ type: 'tap-flask', n });
+  return list.filter((action) => apply(level, state, action) !== null);
+}
+
+/** Кратчайший путь до победы из позиции (поиск в ширину по движку игры). */
+function shortest(level: Level, from: GameState): Action[] | null {
+  const key = (s: GameState): string => `${s.field.join('')}|${s.flasks.map((f) => f.join('')).join(',')}`;
+  const seen = new Map<string, { prev: string | null; action: Action | null }>([[key(from), { prev: null, action: null }]]);
+  let frontier: GameState[] = [from];
+  while (frontier.length > 0) {
+    const next: GameState[] = [];
+    for (const s of frontier) {
+      for (const action of actionsOf(level, s)) {
+        const out = apply(level, s, action);
+        if (out === null || seen.has(key(out.state))) continue;
+        seen.set(key(out.state), { prev: key(s), action });
+        if (out.state.status === 'won') {
+          const path: Action[] = [];
+          for (let k: string | null = key(out.state); k !== null; k = seen.get(k)?.prev ?? null) {
+            const step = seen.get(k)?.action;
+            if (step !== null && step !== undefined) path.unshift(step);
+          }
+          return path;
+        }
+        if (out.state.status === 'playing') next.push({ ...out.state, moves: 0 });
+      }
+    }
+    frontier = next;
+  }
+  return null;
+}
+
+test('после нелучшей победы: лишние ходы, разбор образцом и рекорд на карточке', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.goto('/?unlock=all#/level/1');
+  await page.locator('[data-action="ok"]').click();
+  const level = LEVELS[0];
+  const best = level?.solution[0];
+  if (level === undefined || best === undefined) throw new Error('no level 1');
+  // отклоняемся от образца первым же ходом, потом идём кратчайшим путём — итог длиннее образца
+  const start = createState(level);
+  let plan: Action[] | null = null;
+  for (const detour of actionsOf(level, start)) {
+    if (JSON.stringify(detour) === JSON.stringify(best)) continue;
+    const out = apply(level, start, detour);
+    const rest = out === null ? null : shortest(level, { ...out.state, moves: 0 });
+    if (rest !== null && 1 + rest.length > level.opt) {
+      plan = [detour, ...rest];
+      break;
+    }
+  }
+  if (plan === null) throw new Error('не нашёл обходной путь');
+  for (const action of plan) await play(page, action);
+  await expect(page.getByTestId('popup-win')).toBeVisible();
+  await expect(page.getByTestId('diverge')).toHaveText('С образцом разошлись на ходу 1');
+  await page.locator('[data-action="review"]').click();
+  await expect(page.getByTestId('demo-banner')).toBeVisible();
+  await expect(page.getByTestId('popup-demo')).toBeVisible({ timeout: 40_000 });
+  await page.locator('[data-action="levels"]').click();
+  await expect(page.getByTestId('best-1')).toBeVisible();
 });
 
 test('недопустимое действие не тратит ход', async ({ page }) => {

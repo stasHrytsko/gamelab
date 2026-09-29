@@ -1,4 +1,4 @@
-import { createState, planReturn, planSwipe, swipeDir, swipe as engineSwipe, tapFlask as engineTap } from '../engine/gapEngine.ts';
+import { colorProgress, createState, planReturn, planSwipe, swipeDir, swipe as engineSwipe, tapFlask as engineTap } from '../engine/gapEngine.ts';
 import type { Action, Color, Dir, GameState, Move, Outcome } from '../engine/types.ts';
 import { DELTA } from '../engine/gapEngine.ts';
 import { getLevel, LEVEL_COUNT } from '../levels/levels.ts';
@@ -7,7 +7,7 @@ import { vibrate, wait } from './feedback.ts';
 import { log } from './log.ts';
 import { openPopup } from './popup.ts';
 import type { Go } from './screens.ts';
-import { loadProgress, markHowToPlaySeen, markPassed } from './storage.ts';
+import { loadProgress, markHowToPlaySeen, markPassed, recordResult } from './storage.ts';
 
 export interface Screen {
   readonly el: HTMLElement;
@@ -16,7 +16,7 @@ export interface Screen {
 
 // Тайминги хода — §7 спеки: скольжение 80 мс на клетку, но не дольше 320 мс
 // на ход; въезд в колбу и выезд из неё по 220 мс; покачивание 160 мс.
-const T = { cell: 80, maxSlide: 320, dive: 220, shake: 160, deny: 300 } as const;
+const T = { cell: 80, maxSlide: 320, dive: 220, shake: 160, deny: 300, demoPause: 850 } as const;
 const GAP = 6;
 const PAD = 10;
 /** Поле вокруг доски под бейджи выходов, px. */
@@ -37,7 +37,7 @@ const HOW_TO_PLAY = `
     <li><b>1</b><span>Свайпни квадрат — он скользит до упора.</span></li>
     <li><b>2</b><span>Доехал до выхода с цифрой — упал в колбу с той же цифрой.</span></li>
     <li><b>3</b><span>Тап по колбе достаёт верхний квадрат на поле, если клетка у выхода свободна.</span></li>
-    <li><b>4</b><span>Собери каждый цвет в одной колбе. Чем меньше ходов, тем больше звёзд.</span></li>
+    <li><b>4</b><span>Собери каждый цвет в одной колбе, счётчики над полем показывают прогресс. Чем меньше ходов, тем больше звёзд.</span></li>
   </ol>`;
 
 interface Sprite {
@@ -47,7 +47,8 @@ interface Sprite {
   y: number;
 }
 
-export function gameScreen(levelNumber: number, go: Go): Screen {
+export function gameScreen(levelNumber: number, go: Go, opts: { demo?: boolean } = {}): Screen {
+  const demo = opts.demo === true;
   const level = getLevel(levelNumber);
   let state: GameState = createState(level);
   let busy = false;
@@ -56,6 +57,8 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   let returns = 0;
   let onPath = true;
   let pathIndex = 0;
+  /** Номер хода, на котором путь игрока впервые разошёлся с сохранённым образцом (§7). */
+  let divergedAt: number | null = null;
   const attempt = (attempts.get(levelNumber) ?? 0) + 1;
   attempts.set(levelNumber, attempt);
 
@@ -74,8 +77,11 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     </div>
     <div class="meta">
       <div class="moves-pill" data-testid="moves">Ходы <b>0</b><span>/ ${String(level.limit)}</span></div>
-      <div class="moves-pill stars-pill" data-testid="stars-goal" title="Три звезды">${star}<span>≤ ${String(level.stars3)}</span></div>
+      <div class="moves-pill stars-pill" data-testid="stars-live" title="Звёзды за текущий счёт">${[1, 2, 3].map((i) => `<span class="st on" data-star="${String(i)}">${star}</span>`).join('')}<span class="lim">≤ ${String(level.stars3)}</span></div>
     </div>
+    <div class="budget" data-testid="budget" aria-hidden="true"><i class="fill"></i><b class="tick" style="left:${String((level.stars3 / level.limit) * 100)}%"></b><b class="tick" style="left:${String((level.stars2 / level.limit) * 100)}%"></b></div>
+    <div class="goals" data-testid="goals"></div>
+    ${demo ? '<div class="demo-banner" data-testid="demo-banner">Образец решения</div>' : ''}
     <div class="stage"><div class="field" data-testid="field"><div class="board" data-testid="board"></div></div></div>
     <div class="flasks" data-testid="flasks"></div>
     ${level.tutorial ? '<div class="hint-card" data-testid="hint">Свайп — квадрат скользит до упора.<br><b>Тап по колбе — верхний квадрат выходит на поле.</b></div>' : ''}`;
@@ -90,6 +96,10 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   const boardEl = q('.board');
   const flasksEl = q('.flasks');
   const movesEl = q('[data-testid="moves"]');
+  const budgetFill = q('.budget .fill');
+  const goalsEl = q('.goals');
+  const starEls = [...el.querySelectorAll<HTMLElement>('.stars-pill .st')];
+  const demoBanner = el.querySelector<HTMLElement>('.demo-banner');
 
   // ---------- доска: клетки, стены, выходы ----------
   for (let i = 0; i < level.w * level.h; i += 1) {
@@ -132,25 +142,56 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     if (c > 0) makeSprite(c as Color, i % level.w, Math.floor(i / level.w));
   });
 
-  /** Свайп по квадрату (§4): направление — по доминирующей оси, порог 24 px. */
+  /** Призрак назначения (§7): пока палец ведёт квадрат, видно, где он остановится и в какую колбу упадёт. */
+  let ghost: HTMLElement | null = null;
+  let targetFlask: HTMLElement | null = null;
+  function clearGhost(): void {
+    ghost?.remove();
+    ghost = null;
+    targetFlask?.classList.remove('target');
+    targetFlask = null;
+  }
+  function showGhost(sprite: Sprite, dir: Dir | null): void {
+    clearGhost();
+    if (dir === null || locked()) return;
+    const plan = planSwipe(level, state, sprite.x, sprite.y, dir);
+    if (plan === null) return;
+    const [gx, gy] = xy(plan.move.to.x, plan.move.to.y);
+    ghost = document.createElement('div');
+    ghost.className = `ghost${plan.move.kind === 'in' ? ' into' : ''}`;
+    ghost.dataset['testid'] = 'ghost';
+    ghost.style.setProperty('--c', COLOR[sprite.color]);
+    ghost.style.transform = tr(gx, gy);
+    boardEl.append(ghost);
+    if (plan.move.kind === 'in') {
+      targetFlask = flaskEls[(plan.move.flask ?? 1) - 1] ?? null;
+      targetFlask?.classList.add('target');
+    }
+  }
+
+  /** Свайп по квадрату (§4): направление — по доминирующей оси, порог 24 px; ход совершается при отпускании. */
   function attach(sprite: Sprite): void {
     sprite.el.addEventListener('pointerdown', (event) => {
-      if (event.button > 0) return;
+      if (demo || event.button > 0) return;
       const sx = event.clientX;
       const sy = event.clientY;
-      let fired = false;
+      let shown: Dir | null = null;
+      let commit: Dir | null = null;
       sprite.el.setPointerCapture(event.pointerId);
       const move = (e: PointerEvent): void => {
-        if (fired) return;
-        const dir = swipeDir(e.clientX - sx, e.clientY - sy);
-        if (dir === null) return;
-        fired = true;
-        void doSwipe(sprite, dir);
+        const preview = swipeDir(e.clientX - sx, e.clientY - sy, 12);
+        commit = swipeDir(e.clientX - sx, e.clientY - sy);
+        if (preview !== shown) {
+          shown = preview;
+          showGhost(sprite, preview);
+        }
       };
-      const end = (): void => {
+      const end = (e: PointerEvent): void => {
         sprite.el.removeEventListener('pointermove', move);
         sprite.el.removeEventListener('pointerup', end);
         sprite.el.removeEventListener('pointercancel', end);
+        clearGhost();
+        if (e.type === 'pointerup' && commit !== null) void doSwipe(sprite, commit);
       };
       sprite.el.addEventListener('pointermove', move);
       sprite.el.addEventListener('pointerup', end);
@@ -168,7 +209,9 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     flask.dataset['testid'] = `flask-${String(i + 1)}`;
     flask.setAttribute('aria-label', `Колба ${String(i + 1)}`);
     flask.innerHTML = Array.from({ length: cap }, () => '<div class="slot"></div>').join('');
-    flask.addEventListener('pointerdown', () => void doReturn(i + 1));
+    flask.addEventListener('pointerdown', () => {
+      if (!demo) void doReturn(i + 1);
+    });
     const badge = document.createElement('div');
     badge.className = 'badge';
     badge.textContent = String(i + 1);
@@ -250,6 +293,31 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     el.dataset['moves'] = String(state.moves);
     el.toggleAttribute('data-busy', busy);
     renderFlasks();
+    renderBudget();
+    renderGoals();
+  }
+
+  /** Запас ходов (§7): заливка растёт с ходами, метки — пороги трёх и двух звёзд. */
+  function renderBudget(): void {
+    const share = Math.min(state.moves / level.limit, 1);
+    budgetFill.style.transform = `scaleX(${String(share)})`;
+    budgetFill.dataset['tier'] = state.moves >= level.stars2 ? 'low' : state.moves >= level.stars3 ? 'mid' : 'top';
+    // после хода №stars3 без победы третья звезда уже недостижима, после №stars2 — вторая
+    starEls.forEach((s, i) => {
+      const need = i === 2 ? level.stars3 : i === 1 ? level.stars2 : level.limit;
+      s.classList.toggle('on', state.moves < need);
+    });
+    el.dataset['starsLeft'] = String(starEls.filter((s) => s.classList.contains('on')).length);
+  }
+
+  /** Счётчики целей (§7): по значку на цвет, собранный цвет отмечен галочкой. */
+  function renderGoals(): void {
+    goalsEl.innerHTML = colorProgress(level, state)
+      .map(
+        (p) =>
+          `<span class="goal${p.done ? ' done' : ''}" data-testid="goal-${String(p.color)}" data-done="${String(p.done)}"><i class="sq goal-sq" style="--c:${COLOR[p.color]}">${tile(p.color)}</i><b>${String(p.have)}/${String(p.total)}</b>${p.done ? icon.check : ''}</span>`,
+      )
+      .join('');
   }
 
   // ---------- недопустимое действие: покачивание, вспышка клетки выхода (§7) ----------
@@ -345,8 +413,11 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     if (isReturn) returns += 1;
     const expected = level.solution[pathIndex];
     if (onPath && expected !== undefined && JSON.stringify(expected) === JSON.stringify(action)) pathIndex += 1;
-    else onPath = false;
-    log({ type: 'move', level: levelNumber, attempt, n: result.state.moves, kind: isReturn ? 'return' : 'swipe', onSolution: onPath, returns, ms: Math.round(now - lastMoveAt) });
+    else {
+      if (onPath) divergedAt = result.state.moves;
+      onPath = false;
+    }
+    if (!demo) log({ type: 'move', level: levelNumber, attempt, n: result.state.moves, kind: isReturn ? 'return' : 'swipe', onSolution: onPath, returns, ms: Math.round(now - lastMoveAt) });
     lastMoveAt = now;
 
     await animateMove(result, sprite);
@@ -355,15 +426,24 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     renderMoves();
     vibrate(isReturn ? 12 : 8);
 
+    if (demo) {
+      if (demoBanner !== null) demoBanner.textContent = `Образец: ход ${String(state.moves)} из ${String(level.opt)}`;
+      if (state.status === 'won') {
+        await wave();
+        showDemoEnd();
+      }
+      return;
+    }
     if (state.status === 'won') {
       markPassed(levelNumber);
-      log({ type: 'level_win', level: levelNumber, moves: state.moves, stars: state.stars, returns });
+      const record = recordResult(levelNumber, state.moves, state.stars);
+      log({ type: 'level_win', level: levelNumber, moves: state.moves, stars: state.stars, returns, divergedAt });
       await wave();
-      showWin();
+      showWin(record);
       return;
     }
     if (state.status === 'failed' && state.failReason !== null) {
-      log({ type: 'level_fail', level: levelNumber, reason: state.failReason });
+      log({ type: 'level_fail', level: levelNumber, reason: state.failReason, divergedAt });
       for (const s of sprites.values()) {
         s.el.classList.remove('stuck-flash');
         void s.el.offsetWidth;
@@ -438,26 +518,32 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   const starsRow = (n: number): string => `<div class="stars" data-testid="stars" data-count="${String(n)}">${[1, 2, 3].map((i) => `<span class="${i <= n ? 'on' : ''}" style="animation-delay:${String(200 * i)}ms">${star}</span>`).join('')}</div>`;
 
-  function showWin(): void {
-    const sub = `${String(state.moves)} ${state.moves === 1 ? 'ход' : 'ходов'}, лучший результат — ${String(level.opt)}`;
+  const divergeLine = (): string =>
+    divergedAt !== null && divergedAt <= state.moves ? `<p class="sub diverge" data-testid="diverge">С образцом разошлись на ходу ${String(divergedAt)}</p>` : '';
+  const toDemo = (): void => go(`#/level/${String(levelNumber)}/demo`);
+  const review = { id: 'review', html: 'Разбор', className: 'btn-secondary btn-half', run: toDemo };
+
+  function showWin(record: boolean): void {
+    const extra = state.moves - level.opt;
+    const sub = extra <= 0 ? `${String(state.moves)} ходов, как в образце` : `${String(state.moves)} ходов, образец — ${String(level.opt)}, лишних: ${String(extra)}`;
+    const badge = record ? '<p class="sub record" data-testid="record">Новый рекорд!</p>' : '';
+    const body = `${starsRow(state.stars)}<p class="sub">${sub}</p>${badge}${divergeLine()}`;
+    // «Разбор» — образец решения; когда счёт равен образцу, разбирать нечего
+    const secondary = [
+      { id: 'replay', html: `${icon.replay}Переиграть`, className: extra > 0 ? 'btn-secondary btn-half' : 'btn-secondary', run: replay },
+      ...(extra > 0 ? [review] : []),
+    ];
     if (levelNumber === LEVEL_COUNT) {
       popup(
-        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2>${starsRow(state.stars)}<p class="sub">${sub}</p>`,
-        [
-          { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-          { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
-        ],
+        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2>${body}`,
+        [...secondary, { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels }],
         'popup-final',
       );
       return;
     }
     popup(
-      `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень пройден!</h2>${starsRow(state.stars)}<p class="sub">${sub}</p>`,
-      [
-        { id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
-      ],
+      `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень пройден!</h2>${body}`,
+      [{ id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) }, ...secondary, { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels }],
       'popup-win',
     );
   }
@@ -466,13 +552,44 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     const title = reason === 'moves_exhausted' ? 'Ходы закончились' : 'Ходов нет';
     const sub = reason === 'moves_exhausted' ? 'Лимит ходов исчерпан, цвета не собраны' : 'Ни один квадрат не сдвинуть и ни одну колбу не открыть';
     popup(
-      `<div class="badge-big badge-lose">${icon.cross}</div><h2>${title}</h2><p class="sub">${sub}</p>`,
+      `<div class="badge-big badge-lose">${icon.cross}</div><h2>${title}</h2><p class="sub">${sub}</p>${divergeLine()}`,
       [
         { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
+        { ...review, className: 'btn-secondary' },
         { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',
     );
+  }
+
+  function showDemoEnd(): void {
+    popup(
+      `<div class="badge-big badge-win">${icon.check}</div><h2>Образец: ${String(level.opt)} ходов</h2><p class="sub">Так этот уровень проходится за минимум</p>`,
+      [
+        { id: 'play', html: `${icon.replay}Играть`, className: 'btn-primary', run: replay },
+        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+      ],
+      'popup-demo',
+    );
+  }
+
+  /** Разбор: образец (сохранённое оптимальное решение) проигрывается сам, ввод закрыт. */
+  async function runDemo(): Promise<void> {
+    await wait(700);
+    for (const action of level.solution) {
+      if (action.type === 'swipe') {
+        const sprite = sprites.get(keyOf(action.x, action.y));
+        const result = engineSwipe(level, state, action.x, action.y, action.dir);
+        if (sprite === undefined || result === null) return;
+        await commit(result, action, sprite);
+      } else {
+        const result = engineTap(level, state, action.n);
+        if (result === null) return;
+        await commit(result, action, null);
+      }
+      if (state.status !== 'playing') return;
+      await wait(T.demoPause);
+    }
   }
 
   function showHowToPlay(): void {
@@ -484,15 +601,18 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     if (!popupOpen) replay();
   });
   q('[data-testid="help"]').addEventListener('click', () => {
-    if (locked()) return;
+    if (locked() || demo) return;
     log({ type: 'help_open', level: levelNumber });
     showHowToPlay();
   });
 
   renderMoves();
   fit();
-  log({ type: 'level_start', level: levelNumber });
-  if (levelNumber === 1 && !loadProgress().howToPlaySeen) {
+  if (demo) {
+    log({ type: 'demo_open', level: levelNumber });
+    void runDemo();
+  } else log({ type: 'level_start', level: levelNumber });
+  if (!demo && levelNumber === 1 && !loadProgress().howToPlaySeen) {
     popupOpen = true;
     renderMoves();
     setTimeout(showHowToPlay, 350);

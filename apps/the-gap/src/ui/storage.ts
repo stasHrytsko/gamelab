@@ -1,12 +1,19 @@
 import { LEVEL_COUNT } from '../levels/levels.ts';
 
+export interface Best {
+  readonly moves: number;
+  readonly stars: number;
+}
+
 export interface Progress {
   readonly passed: readonly number[];
   readonly howToPlaySeen: boolean;
+  /** Лучший результат по уровню: ходы и звёзды (§7). */
+  readonly best: Readonly<Record<string, Best>>;
 }
 
 const KEY = 'the-gap:progress:v1';
-const EMPTY: Progress = { passed: [], howToPlaySeen: false };
+const EMPTY: Progress = { passed: [], howToPlaySeen: false, best: {} };
 
 // Приватный режим и встроенные браузеры мессенджеров могут запрещать
 // localStorage: тогда прогресс живёт до закрытия вкладки.
@@ -20,6 +27,7 @@ export function loadProgress(): Progress {
     memory = {
       passed: Array.isArray(parsed.passed) ? parsed.passed.filter((n) => Number.isInteger(n)) : [],
       howToPlaySeen: parsed.howToPlaySeen === true,
+      best: parsed.best !== null && typeof parsed.best === 'object' ? parsed.best : {},
     };
   } catch {
     // остаётся то, что в памяти
@@ -41,6 +49,17 @@ export function markPassed(level: number): void {
   if (progress.passed.includes(level)) return;
   save({ ...progress, passed: [...progress.passed, level].sort((a, b) => a - b) });
 }
+
+/** Записывает результат; `true`, если он лучше прежнего (больше звёзд или столько же за меньше ходов). */
+export function recordResult(level: number, moves: number, stars: number): boolean {
+  const progress = loadProgress();
+  const prev = progress.best[String(level)];
+  const better = prev === undefined || stars > prev.stars || (stars === prev.stars && moves < prev.moves);
+  if (better) save({ ...progress, best: { ...progress.best, [String(level)]: { moves, stars } } });
+  return better && prev !== undefined;
+}
+
+export const bestFor = (level: number): Best | undefined => loadProgress().best[String(level)];
 
 export function markHowToPlaySeen(): void {
   save({ ...loadProgress(), howToPlaySeen: true });

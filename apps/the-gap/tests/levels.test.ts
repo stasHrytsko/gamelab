@@ -30,9 +30,9 @@ describe('уровни (§6)', () => {
       expect(s.stars).toBe(3);
     });
 
-    it(`${level.name}: лимит = ceil(2 × opt), звёзды = opt + 1 и ceil(1.5 × opt)`, () => {
+    it(`${level.name}: лимит = ceil(2 × opt), звёзды = opt + 2 и ceil(1.5 × opt)`, () => {
       expect(level.limit).toBe(Math.ceil(2 * level.opt));
-      expect(level.stars3).toBe(level.opt + 1);
+      expect(level.stars3).toBe(level.opt + 2);
       expect(level.stars2).toBe(Math.ceil(1.5 * level.opt));
     });
 

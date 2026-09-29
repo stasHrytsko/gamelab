@@ -292,7 +292,7 @@ if (process.argv[1] && process.argv[1].endsWith('the-gap-solver.mjs') && process
     const limit = Math.ceil(2 * A.opt);
     const row = {
       id: cfg.id, seed, cfg: { ...cfg }, opt: A.opt, limit,
-      stars3: A.opt + 1, stars2: Math.ceil(1.5 * A.opt), minReturns: A.minRet,
+      stars3: A.opt + 2, stars2: Math.ceil(1.5 * A.opt), minReturns: A.minRet,
       deadShare: A.deadShare, states: A.states,
       w: level.w, h: level.h, exits: level.exits, caps: level.caps, field: level.field, flasks: level.flasks,
     };
@@ -315,7 +315,7 @@ if (process.argv[1] && process.argv[1].endsWith('the-gap-solver.mjs') && process
     const B = analyse(level, false);
     if (A.opt === Infinity || B.opt !== Infinity || A.minRet < cfg.minRet || A.deadShare !== 0) throw new Error(cfg.id + ' не проходит фильтры');
     out.push({
-      id: cfg.id, seed, cfg, opt: A.opt, limit: Math.ceil(2 * A.opt), stars3: A.opt + 1, stars2: Math.ceil(1.5 * A.opt),
+      id: cfg.id, seed, cfg, opt: A.opt, limit: Math.ceil(2 * A.opt), stars3: A.opt + 2, stars2: Math.ceil(1.5 * A.opt),
       minReturns: A.minRet, states: A.states,
       w: level.w, h: level.h, exits: level.exits, caps: level.caps, field: level.field, flasks: level.flasks, solution: A.solution,
     });

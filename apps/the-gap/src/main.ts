@@ -26,10 +26,10 @@ function go(next: string): void {
 }
 
 function screenFor(hash: string): Screen {
-  const match = /^#\/level\/(\d+)$/.exec(hash);
+  const match = /^#\/level\/(\d+)(\/demo)?$/.exec(hash);
   if (match !== null) {
     const n = Number(match[1]);
-    if (n >= 1 && n <= LEVEL_COUNT && isUnlocked(n)) return gameScreen(n, go);
+    if (n >= 1 && n <= LEVEL_COUNT && isUnlocked(n)) return gameScreen(n, go, { demo: match[2] !== undefined });
     if (inMemory) memoryRoute = '#/levels';
     else history.replaceState(null, '', '#/levels');
     return { el: levelsScreen(go), destroy: () => undefined };

@@ -1,7 +1,7 @@
 import { LEVELS } from '../levels/levels.ts';
 import art from '@ui/prototypes/the-gap/assets/home-art.webp';
-import { icon } from './icons.ts';
-import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
+import { icon, star } from './icons.ts';
+import { bestFor, currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
 
@@ -37,10 +37,15 @@ export function levelsScreen(go: Go): HTMLElement {
       : `<div class="lock">${icon.lock}</div>`;
     const badge = done ? `<div class="check">${icon.check}</div>` : state === 'current' ? `<div class="play-mini">${icon.play}</div>` : '';
     const squares = level.field.filter((c) => c > 0).length + level.flasks.reduce((sum, f) => sum + f.length, 0);
-    const sub = `${String(squares)} ${squaresWord(squares)} · ${String(level.limit)} ${movesWord(level.limit)}`;
+    const best = bestFor(n);
+    // пройденный уровень показывает лучший результат: звёзды и ходы (§7)
+    const sub =
+      best !== undefined
+        ? `<span class="best" data-testid="best-${String(n)}" data-stars="${String(best.stars)}">${[1, 2, 3].map((i) => `<span class="st${i <= best.stars ? ' on' : ''}">${star}</span>`).join('')}</span>${String(best.moves)} ${movesWord(best.moves)}`
+        : `${icon.moves}${String(squares)} ${squaresWord(squares)} · ${String(level.limit)} ${movesWord(level.limit)}`;
     return `<button class="level-card ${state === 'open' ? '' : state}" data-level="${String(n)}" data-testid="level-${String(n)}" style="animation-delay:${String(n * 50)}ms">
         ${tile}
-        <div><h3>Уровень ${String(n)}</h3><p>${icon.moves}${sub}</p></div>
+        <div><h3>Уровень ${String(n)}</h3><p>${sub}</p></div>
         <div class="state">${badge}</div>
       </button>`;
   });

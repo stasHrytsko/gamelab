@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { apply, createState, hasAnyMove, isWon, planReturn, planSwipe, starsFor, swipe, swipeDir, tapFlask } from '../src/engine/gapEngine.ts';
+import { apply, colorProgress, createState, hasAnyMove, isWon, planReturn, planSwipe, starsFor, swipe, swipeDir, tapFlask } from '../src/engine/gapEngine.ts';
 import type { Cell, Color, Level } from '../src/engine/types.ts';
 
 // Поле 3×2, выход 1 справа в верхней строке (→), выход 2 слева в нижней (←).
@@ -128,9 +128,9 @@ describe('победа, поражение, звёзды (§5)', () => {
     expect(hasAnyMove(level, s)).toBe(false);
   });
 
-  it('звёзды: границы opt + 1 и ceil(1.5 × opt)', () => {
-    const level = base({ opt: 10, stars3: 11, stars2: 15, limit: 20 });
-    expect([10, 11, 12, 15, 16, 20].map((m) => starsFor(level, m))).toEqual([3, 3, 2, 2, 1, 1]);
+  it('звёзды: границы opt + 2 и ceil(1.5 × opt)', () => {
+    const level = base({ opt: 10, stars3: 12, stars2: 15, limit: 20 });
+    expect([10, 12, 13, 15, 16, 20].map((m) => starsFor(level, m))).toEqual([3, 3, 2, 2, 1, 1]);
   });
 
   it('после победы или поражения ходы не принимаются', () => {
@@ -148,5 +148,22 @@ describe('свайп по смещению (§4)', () => {
     expect(swipeDir(-30, 5)).toBe('left');
     expect(swipeDir(5, -30)).toBe('up');
     expect(swipeDir(5, 40)).toBe('down');
+  });
+});
+
+describe('счётчики целей (§7)', () => {
+  it('цвет собран, когда все его квадраты лежат в одной одноцветной колбе', () => {
+    const level = base({ field: [0, 0, 0, 0, 0, 0] as Cell[], flasks: [[1, 1], [2]] as Color[][] });
+    expect(colorProgress(level, createState(level))).toEqual([
+      { color: 1, have: 2, total: 2, done: true },
+      { color: 2, have: 1, total: 1, done: true },
+    ]);
+  });
+
+  it('квадрат на поле или в смешанной колбе не считается собранным', () => {
+    const level = base({ field: [0, 0, 1, 0, 0, 0] as Cell[], flasks: [[2, 1], [2]] as Color[][] });
+    const p = colorProgress(level, createState(level));
+    expect(p.find((c) => c.color === 1)).toEqual({ color: 1, have: 0, total: 2, done: false });
+    expect(p.find((c) => c.color === 2)).toEqual({ color: 2, have: 1, total: 2, done: false });
   });
 });

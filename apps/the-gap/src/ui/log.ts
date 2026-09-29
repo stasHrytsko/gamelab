@@ -20,8 +20,9 @@ export type LogEvent =
       ms: number;
     }
   | { type: 'help_open'; level: number }
-  | { type: 'level_win'; level: number; moves: number; stars: number; returns: number }
-  | { type: 'level_fail'; level: number; reason: 'moves_exhausted' | 'no_moves' };
+  | { type: 'level_win'; level: number; moves: number; stars: number; returns: number; divergedAt: number | null }
+  | { type: 'level_fail'; level: number; reason: 'moves_exhausted' | 'no_moves'; divergedAt: number | null }
+  | { type: 'demo_open'; level: number };
 
 export function log(event: LogEvent): void {
   try {

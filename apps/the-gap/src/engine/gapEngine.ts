@@ -100,7 +100,7 @@ export function hasAnyMove(level: Level, state: Pick<GameState, 'field' | 'flask
   return false;
 }
 
-/** Звёзды (§5): три — не больше opt + 1, две — не больше ceil(1.5 × opt), одна — победа в лимит. */
+/** Звёзды (§5): три — не больше opt + 2, две — не больше ceil(1.5 × opt), одна — победа в лимит. */
 export function starsFor(level: Level, moves: number): 1 | 2 | 3 {
   if (moves <= level.stars3) return 3;
   if (moves <= level.stars2) return 2;
@@ -149,4 +149,30 @@ export function swipeDir(dx: number, dy: number, threshold = 24): Dir | null {
   if (Math.max(Math.abs(dx), Math.abs(dy)) < threshold) return null;
   if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'right' : 'left';
   return dy > 0 ? 'down' : 'up';
+}
+
+export interface ColorProgress {
+  readonly color: Color;
+  /** Сколько квадратов цвета лежит в одной одноцветной колбе. */
+  readonly have: number;
+  readonly total: number;
+  readonly done: boolean;
+}
+
+/** Прогресс по цветам для счётчиков над полем (§7): цвет собран, когда все его квадраты в одной одноцветной колбе. */
+export function colorProgress(level: Level, state: Pick<GameState, 'field' | 'flasks'>): ColorProgress[] {
+  const total = new Map<Color, number>();
+  const bump = (c: number): void => {
+    if (c > 0) total.set(c as Color, (total.get(c as Color) ?? 0) + 1);
+  };
+  level.field.forEach(bump);
+  level.flasks.forEach((f) => f.forEach(bump));
+  const have = new Map<Color, number>();
+  for (const flask of state.flasks) {
+    const first = flask[0];
+    if (first !== undefined && flask.every((c) => c === first)) have.set(first, Math.max(have.get(first) ?? 0, flask.length));
+  }
+  return [...total.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([color, n]) => ({ color, have: have.get(color) ?? 0, total: n, done: (have.get(color) ?? 0) === n }));
 }

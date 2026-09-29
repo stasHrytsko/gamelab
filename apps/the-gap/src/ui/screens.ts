@@ -1,5 +1,5 @@
 import { LEVELS } from '../levels/levels.ts';
-import art from '@ui/prototypes/the-gap/assets/home-art.png';
+import art from '@ui/prototypes/the-gap/assets/home-art.webp';
 import { icon } from './icons.ts';
 import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
@@ -14,9 +14,9 @@ export function homeScreen(go: Go): HTMLElement {
   el.style.setProperty('--art', `url("${art}")`);
   el.innerHTML = `
     <div class="home-bg" aria-hidden="true"></div>
-    <img class="home-art" src="${art}" alt="" width="941" height="1340">
+    <img class="home-art" src="${art}" alt="" width="941" height="1290">
     <h1 class="sr-only">The Gap</h1>
-    <button class="play-btn" data-testid="play">Play</button>`;
+    <button class="play-btn" data-testid="play">Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;
 }

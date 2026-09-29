@@ -156,15 +156,15 @@ const queue = () => `<div class="queue">
 
 const price = (n) => `<span class="price">${COIN}${n}</span>`;
 const buy = (icon, name, p, off = false) => `<button class="buy${off ? ' off' : ''}"><span class="bi">${icon}</span><span class="n">${name}</span>${price(p)}</button>`;
-const shop = () => `<div class="shop">${buy(I.rot, 'Поворот 90°', 2)}${buy(I.mirror, 'Зеркало', 2)}${buy(I.swap, 'Замена', 'от 4')}${buy(I.dice, 'Пересдача', 2)}</div>`;
+const shop = () => `<div class="shop">${buy(I.rot, 'Поворот 90°', 2)}${buy(I.mirror, 'Зеркало', 2)}${buy(I.swap, 'Замена', 'от 5')}${buy(I.dice, 'Пересдача', 2)}</div>`;
 
 $('#p1').innerHTML = `${head('Уровень 3')}${stats()}${board()}${queue()}${shop()}
   <div class="hint">Эта фигура закроет <b>2 линии</b> и вернёт <b>4 монеты</b></div>`;
 
 // экран 2: шторка «Замена»
 const OPTIONS = [
-  ['Точка', ['#'], 'B', 8], ['Домино', ['##'], 'Y', 4], ['Палка', ['####'], 'B', 8],
-  ['Квадрат', ['##', '##'], 'Y', 6], ['T', ['###', '.#.'], 'P', 6], ['Зигзаг', ['.##', '##.'], 'G', 4],
+  ['Точка', ['#'], 'B', 7], ['Домино', ['##'], 'Y', 5], ['Палка', ['####'], 'B', 7],
+  ['Квадрат', ['##', '##'], 'Y', 6], ['T', ['###', '.#.'], 'P', 6], ['Зигзаг', ['.##', '##.'], 'G', 5],
   ['W', ['#..', '##.', '.##'], 'C', 5], ['Крест', ['.#.', '###', '.#.'], 'G', 5], ['Уголок', ['#.', '#.', '##'], 'B', 6],
 ];
 const cards = OPTIONS.map(([n, r, c, p], i) => {

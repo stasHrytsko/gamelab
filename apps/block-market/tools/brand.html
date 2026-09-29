@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../UI Design/design-tokens.css">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--ui-font); background: transparent; }
+  .board { position: relative; display: grid; grid-template-columns: repeat(4, var(--c)); grid-auto-rows: var(--c); gap: calc(var(--c) * .1); padding: calc(var(--c) * .16); border-radius: calc(var(--c) * .3); background: var(--ui-surface); box-shadow: var(--ui-shadow-card); }
+  .board i { display: block; border-radius: calc(var(--c) * .24); background: var(--ui-surface-muted); }
+  .board i.t { background: linear-gradient(160deg, color-mix(in srgb, var(--k) 65%, #fff), var(--k) 55%, color-mix(in srgb, var(--k) 88%, #1f2937)); box-shadow: 0 6px 10px rgba(31,41,55,.14), inset 0 -6px 0 color-mix(in srgb, var(--k) 75%, #1f2937), inset 0 3px 0 rgba(255,255,255,.45); }
+  .coin { position: absolute; right: calc(var(--c) * -.3); top: calc(var(--c) * -.3); display: flex; align-items: center; gap: calc(var(--c) * .1); padding: calc(var(--c) * .1) calc(var(--c) * .3) calc(var(--c) * .1) calc(var(--c) * .12); border-radius: 999px; background: var(--ui-surface); box-shadow: var(--ui-shadow-card); font-weight: 700; font-size: calc(var(--c) * .42); }
+  .coin svg { width: calc(var(--c) * .5); height: calc(var(--c) * .5); }
+  #icon { width: 512px; height: 512px; background: radial-gradient(90% 90% at 30% 20%, #fff, var(--ui-background)); display: grid; place-items: center; }
+  #icon .board { --c: 92px; }
+  #og { width: 1200px; height: 630px; background: radial-gradient(80% 90% at 20% 10%, #fff, var(--ui-background) 70%); display: flex; align-items: center; gap: 96px; padding: 0 110px; }
+  #og .board { --c: 118px; flex: none; }
+  #og h1 { font-size: 88px; font-weight: 700; line-height: 1.05; color: var(--ui-text); }
+  #og p { margin-top: 24px; font-size: 32px; color: var(--ui-text-muted); }
+</style>
+</head>
+<body>
+<template id="coin"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="var(--ui-yellow)"/><circle cx="12" cy="12" r="10.2" fill="none" stroke="color-mix(in srgb, var(--ui-yellow) 70%, #b45309)" stroke-width="1.6"/><circle cx="12" cy="12" r="6.4" fill="none" stroke="color-mix(in srgb, var(--ui-yellow) 55%, #b45309)" stroke-width="1.6"/></svg></template>
+<div id="icon"><div class="board" data-hero></div></div>
+<div id="og">
+  <div class="board" data-hero></div>
+  <div><h1>Block<br>Market</h1><p>Собирай линии. Плати за удобство.</p></div>
+</div>
+<script>
+  const K = ['blue', 'coral', 'yellow', 'green', 'purple'];
+  const HERO = [1, 3, 0, 5, 0, 1, 3, 5, 2, 0, 1, 1, 2, 4, 4, 0];
+  const coin = document.getElementById('coin').innerHTML;
+  for (const b of document.querySelectorAll('[data-hero]')) {
+    b.innerHTML = HERO.map((c) => (c ? `<i class="t" style="--k:var(--ui-${K[c - 1]})"></i>` : '<i></i>')).join('') + `<span class="coin">${coin}+4</span>`;
+  }
+</script>
+</body>
+</html>

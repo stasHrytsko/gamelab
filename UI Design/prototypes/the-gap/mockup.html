@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Gap</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  /* Скетч игрового экрана для specs/40-the-gap.md §7.1.
+     Уровень TG-03 (seed 6), стартовая позиция. Поле 4×3, две стены,
+     четыре выхода с цифрами 1–4 на рамке; ниже четыре колбы с теми же
+     цифрами. Цвет квадрата дублируется значком: синий — круг,
+     коралловый — треугольник (второй канал, §7.1). */
+  :root { --cell: 64px; --gap: 6px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); }
+  button { font: inherit; color: inherit; border: 0; background: none; }
+
+  .app { height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding: 8px 16px 16px; }
+  .top { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px; min-height: 44px; }
+  .top h1 { font-size: 18px; font-weight: 600; text-align: center; }
+  .top-right { display: flex; gap: 8px; }
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 20px; font-weight: 700; color: var(--ui-blue); }
+  .icon-btn svg { width: 22px; height: 22px; color: var(--ui-text); }
+
+  .meta { align-self: center; display: flex; gap: 8px; align-items: center; }
+  .pill { display: flex; align-items: baseline; gap: 8px; padding: 6px 18px; border-radius: var(--ui-radius-pill); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); font-size: 14px; color: var(--ui-text-muted); font-weight: 500; }
+  .pill b { font-size: 22px; color: var(--ui-text); font-weight: 700; }
+  .pill span { font-size: 16px; font-weight: 600; }
+  .pill.stars { align-items: center; font-size: 13px; gap: 4px; }
+  .pill.stars svg { width: 18px; height: 18px; }
+
+  .stage { flex: 1; min-height: 0; display: grid; place-items: center; }
+  .field { position: relative; padding: 30px; }
+  .stage { overflow: visible; }
+  .board { position: relative; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 10px; display: grid; grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(3, var(--cell)); gap: var(--gap); }
+  .cell { border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .cell::before { content: ""; width: 10%; height: 10%; border-radius: 50%; background: var(--ui-disabled); }
+  .cell.wall { background: var(--ui-disabled); }
+  .cell.wall::before { display: none; }
+
+  /* Щель выхода: разрыв в рамке поля + бейдж с цифрой снаружи. */
+  .exit { position: absolute; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ui-text); color: #fff; font-size: 14px; font-weight: 700; box-shadow: var(--ui-shadow-soft); }
+  .gapmark { position: absolute; background: var(--ui-text); border-radius: 4px; opacity: .85; }
+  .gapmark.h { height: 6px; width: 40px; } .gapmark.v { width: 6px; height: 40px; }
+
+  .sq { --c: var(--ui-blue); position: absolute; width: var(--cell); height: var(--cell); border-radius: 26%;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+    display: grid; place-items: center; }
+  .sq svg { width: 50%; height: 50%; filter: drop-shadow(0 1px 2px rgba(31,41,55,.25)); }
+  .sq.a { --c: var(--ui-blue); } .sq.b { --c: var(--ui-coral); }
+
+  .flasks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: end; justify-items: center; padding: 16px 4px 0; }
+  .flask-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .flask { width: 46px; border-radius: 10px 10px 22px 22px; background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); border: 2px solid var(--ui-border); padding: 5px; display: flex; flex-direction: column-reverse; gap: 4px; }
+  .slot { width: 34px; height: 34px; flex: none; border-radius: 26%; background: var(--ui-surface-muted); display: grid; place-items: center; }
+  .slot .sq { position: static; width: 34px; height: 34px; border-radius: 26%; }
+  .badge { width: 28px; height: 28px; border-radius: 50%; background: var(--ui-text); color: #fff; font-size: 14px; font-weight: 700; display: grid; place-items: center; }
+  .cap { font-size: 12px; color: var(--ui-text-muted); }
+
+  .hint-card { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 12px 16px; text-align: center; font-size: 14px; color: var(--ui-text-muted); line-height: 20px; }
+  .hint-card b { color: var(--ui-text); font-weight: 600; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="#fff"/></symbol>
+    <symbol id="tri" viewBox="0 0 24 24"><path d="M12 4 21 19H3z" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+<div class="app">
+  <header class="top">
+    <button class="icon-btn" aria-label="К уровням"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></svg></button>
+    <h1>Уровень 3</h1>
+    <div class="top-right">
+      <button class="icon-btn" aria-label="Как играть">?</button>
+      <button class="icon-btn" aria-label="Заново"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12a7 7 0 1 0 2-5"/><path d="M5 3v4h4"/></svg></button>
+    </div>
+  </header>
+
+  <div class="meta">
+    <div class="pill">Ходы <b>0</b><span>/ 20</span></div>
+    <div class="pill stars" style="color:var(--ui-yellow)"><svg><use href="#star"/></svg><span style="color:var(--ui-text-muted);font-weight:600">≤ 11</span></div>
+  </div>
+
+  <main class="stage">
+    <div class="field" id="field"><div class="board" id="board"></div></div>
+  </main>
+
+  <div class="flasks" id="flasks"></div>
+
+  <div class="hint-card">Свайп — квадрат скользит до упора. <b>Тап по колбе — верхний квадрат выходит на поле.</b></div>
+</div>
+<script>
+  // Уровень TG-03, seed 6 (tools/the-gap-solver.mjs). Клетка — (x, y).
+  const W = 4, H = 3, cell = 64, gap = 6, pad = 10, m = 30;
+  const walls = [[0, 0], [1, 1]];
+  const field = [-1,0,0,0, 0,-1,0,1, 0,2,0,2];
+  const exits = [
+    { n: 1, x: 2, y: 0, dir: 'up' }, { n: 2, x: 2, y: 2, dir: 'down' },
+    { n: 3, x: 0, y: 2, dir: 'left' }, { n: 4, x: 3, y: 1, dir: 'right' },
+  ];
+  const caps = [3, 3, 4, 4];
+  const flasks = [[], ['a'], [], ['b', 'a']]; // снизу вверх
+  const glyph = { a: 'circle', b: 'tri' };
+  const board = document.getElementById('board'), fieldEl = document.getElementById('field');
+  for (let i = 0; i < W * H; i++) {
+    const d = document.createElement('div');
+    d.className = 'cell' + (field[i] === -1 ? ' wall' : '');
+    board.appendChild(d);
+  }
+  const sq = (k) => `<svg><use href="#${glyph[k]}"/></svg>`;
+  field.forEach((v, i) => {
+    if (v <= 0) return;
+    const k = v === 1 ? 'a' : 'b';
+    const el = document.createElement('div');
+    el.className = 'sq ' + k;
+    el.style.left = pad + (i % W) * (cell + gap) + 'px';
+    el.style.top = pad + Math.floor(i / W) * (cell + gap) + 'px';
+    el.innerHTML = sq(k);
+    board.appendChild(el);
+  });
+  // бейджи выходов — на рамке поля снаружи клетки выхода, разрыв — тёмная метка
+  const bw = W * cell + (W - 1) * gap + 2 * pad, bh = H * cell + (H - 1) * gap + 2 * pad;
+  for (const e of exits) {
+    const cx = m + pad + e.x * (cell + gap) + cell / 2, cy = m + pad + e.y * (cell + gap) + cell / 2;
+    const p = { up: [cx, m - 14], down: [cx, m + bh + 14], left: [m - 14, cy], right: [m + bw + 14, cy] }[e.dir];
+    const b = document.createElement('div');
+    b.className = 'exit'; b.textContent = e.n;
+    b.style.left = p[0] - 14 + 'px'; b.style.top = p[1] - 14 + 'px';
+    fieldEl.appendChild(b);
+    const g = document.createElement('div');
+    const horiz = e.dir === 'up' || e.dir === 'down';
+    g.className = 'gapmark ' + (horiz ? 'h' : 'v');
+    const gx = { up: cx, down: cx, left: m, right: m + bw }[e.dir], gy = { up: m, down: m + bh, left: cy, right: cy }[e.dir];
+    g.style.left = gx - (horiz ? 20 : 3) + 'px'; g.style.top = gy - (horiz ? 3 : 20) + 'px';
+    fieldEl.appendChild(g);
+  }
+  const fl = document.getElementById('flasks');
+  flasks.forEach((f, i) => {
+    const w = document.createElement('div'); w.className = 'flask-wrap';
+    let slots = '';
+    for (let s = 0; s < caps[i]; s++) slots += `<div class="slot">${f[s] ? `<div class="sq ${f[s]}">${sq(f[s])}</div>` : ''}</div>`;
+    w.innerHTML = `<div class="flask">${slots}</div><div class="badge">${i + 1}</div><div class="cap">${caps[i]} места</div>`;
+    fl.appendChild(w);
+  });
+</script>
+</body>
+</html>

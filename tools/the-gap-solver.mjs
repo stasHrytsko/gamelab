@@ -6,6 +6,7 @@
 // Запуск: node tools/the-gap-solver.mjs [число_уровней] [seed]
 
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const DIR_NAMES = { '10': 'right', '-10': 'left', '01': 'down', '0-1': 'up' };
 
 function rng(seed) {
   let s = seed >>> 0;
@@ -42,10 +43,10 @@ export function moves(level, st, allowReturn) {
       if (ex >= 0 && flasks[ex].length < caps[ex]) {
         const fl = flasks.map((f) => f.slice());
         fl[ex].push(c);
-        out.push({ field: nf, flasks: fl, kind: 'in' });
+        out.push({ field: nf, flasks: fl, kind: 'in', act: { type: 'swipe', x: x0, y: y0, dir: DIR_NAMES[dx + '' + dy] } });
       } else if (x !== x0 || y !== y0) {
         nf[y * w + x] = c;
-        out.push({ field: nf, flasks, kind: 'slide' });
+        out.push({ field: nf, flasks, kind: 'slide', act: { type: 'swipe', x: x0, y: y0, dir: DIR_NAMES[dx + '' + dy] } });
       }
     }
   }
@@ -57,7 +58,7 @@ export function moves(level, st, allowReturn) {
       const nf = field.slice();
       const fl = flasks.map((f) => f.slice());
       nf[e.y * w + e.x] = fl[k].pop();
-      out.push({ field: nf, flasks: fl, kind: 'ret' });
+      out.push({ field: nf, flasks: fl, kind: 'ret', act: { type: 'tap-flask', n: k + 1 } });
     }
   }
   return out;
@@ -84,6 +85,7 @@ export function explore(level, allowReturn, cap = 250000) {
   const ids = new Map();
   const nodes = [];
   const edges = []; // [{to, kind}]
+  const parent = [null];
   const add = (st) => {
     const k = key(st);
     let id = ids.get(k);
@@ -101,17 +103,20 @@ export function explore(level, allowReturn, cap = 250000) {
     const st = nodes[i];
     const list = [];
     for (const m of moves(level, st, allowReturn)) {
-      list.push({ to: add(m), kind: m.kind });
+      const before = nodes.length;
+      const to = add(m);
+      if (nodes.length > before) parent[to] = { from: i, act: m.act };
+      list.push({ to, kind: m.kind });
     }
     edges[i] = list;
   }
-  return { nodes, edges };
+  return { nodes, edges, parent };
 }
 
 export function analyse(level, allowReturn) {
   const g = explore(level, allowReturn);
   if (!g) return null;
-  const { nodes, edges } = g;
+  const { nodes, edges, parent } = g;
   const n = nodes.length;
   const win = nodes.map((s) => isWin(level, s));
   // BFS от старта — оптимум по ходам
@@ -123,8 +128,10 @@ export function analyse(level, allowReturn) {
       if (dist[e.to] < 0) { dist[e.to] = dist[q[h]] + 1; q.push(e.to); }
     }
   }
-  let opt = Infinity;
-  for (let i = 0; i < n; i++) if (win[i] && dist[i] >= 0 && dist[i] < opt) opt = dist[i];
+  let opt = Infinity, best = -1;
+  for (let i = 0; i < n; i++) if (win[i] && dist[i] >= 0 && dist[i] < opt) { opt = dist[i]; best = i; }
+  const solution = [];
+  for (let v = best; v > 0; v = parent[v].from) solution.unshift(parent[v].act);
   // достижимость победы (для доли тупиков)
   const rev = Array.from({ length: n }, () => []);
   edges.forEach((es, i) => es.forEach((e) => rev[e.to].push(i)));
@@ -159,7 +166,7 @@ export function analyse(level, allowReturn) {
     for (let i = 0; i < n; i++) if (win[i] && d[i] < minRet) minRet = d[i];
     void dq;
   }
-  return { states: n, opt, minRet, deadShare: dead / n, branching: br / n };
+  return { states: n, opt, minRet, deadShare: dead / n, branching: br / n, solution };
 }
 
 // ---------- генератор ----------
@@ -193,8 +200,12 @@ export function genLevel(rand, cfg) {
   const field = new Array(w * h).fill(0);
   const cells = [...Array(w * h).keys()];
   for (let i = cells.length - 1; i > 0; i--) { const j = (rand() * (i + 1)) | 0; [cells[i], cells[j]] = [cells[j], cells[i]]; }
-  const wallCells = cells.splice(0, walls);
+  const exitCells = new Set(exits.map((e) => e.y * w + e.x));
+  const wallCells = cells.filter((c) => !exitCells.has(c)).slice(0, walls);
   for (const wc of wallCells) field[wc] = -1;
+  const free = cells.filter((c) => !wallCells.includes(c));
+  cells.length = 0;
+  cells.push(...free);
   if (cells.length < items.length + 4) return null;
   for (const it of items) field[cells.pop()] = it;
   return { w, h, exits, caps, field, flasks };
@@ -241,7 +252,79 @@ export function experiment(cfg, count, seed) {
   };
 }
 
-if (process.argv[1] && process.argv[1].endsWith('the-gap-solver.mjs')) {
+// Поиск уровней: seed → уровень, проходит фильтры (без возвратов нерешаем,
+// минимум возвратов, диапазон оптимума). Уровень целиком задаётся cfg + seed.
+export const LEVEL_CFGS = [
+  { id: 'TG-01', w: 3, h: 3, colors: 2, perColor: 2, capsPool: [2, 3], walls: 0, prefill: 0.5, minOpt: 4, maxOpt: 9, minRet: 1 },
+  { id: 'TG-02', w: 4, h: 3, colors: 2, perColor: 3, capsPool: [3, 4], walls: 1, prefill: 0.5, minOpt: 6, maxOpt: 12, minRet: 1 },
+  { id: 'TG-03', w: 4, h: 3, colors: 2, perColor: 3, capsPool: [3, 4], walls: 2, prefill: 0.5, minOpt: 8, maxOpt: 16, minRet: 2 },
+  { id: 'TG-04', w: 4, h: 3, colors: 3, perColor: 2, capsPool: [2, 3], walls: 1, prefill: 0.5, minOpt: 8, maxOpt: 18, minRet: 2 },
+  { id: 'TG-05', w: 4, h: 3, colors: 3, perColor: 2, capsPool: [2, 3], walls: 2, prefill: 0.5, minOpt: 10, maxOpt: 22, minRet: 3 },
+];
+
+export function levelFromSeed(cfg, seed) {
+  const lv = genLevel(rng(seed), cfg);
+  return lv;
+}
+
+export function findLevel(cfg, maxSeed = 400) {
+  for (let seed = 1; seed <= maxSeed; seed++) {
+    const lv = levelFromSeed(cfg, seed);
+    if (!lv) continue;
+    const A = analyse(lv, true);
+    if (!A || A.opt === Infinity || A.opt < cfg.minOpt || A.opt > cfg.maxOpt || A.minRet < cfg.minRet) continue;
+    const B = analyse(lv, false);
+    if (!B || B.opt !== Infinity) continue;
+    return { seed, level: lv, A };
+  }
+  return null;
+}
+
+if (process.argv[1] && process.argv[1].endsWith('the-gap-solver.mjs') && process.argv[2] === 'levels') {
+  const only = process.argv[3];
+  const out = [];
+  for (const cfg of LEVEL_CFGS) {
+    if (only && cfg.id !== only) continue;
+    const t = Date.now();
+    const r = findLevel(cfg);
+    if (!r) { console.log(cfg.id, 'NOT FOUND'); continue; }
+    const { seed, level, A } = r;
+    const limit = Math.ceil(2 * A.opt);
+    const row = {
+      id: cfg.id, seed, cfg: { ...cfg }, opt: A.opt, limit,
+      stars3: A.opt + 1, stars2: Math.ceil(1.5 * A.opt), minReturns: A.minRet,
+      deadShare: A.deadShare, states: A.states,
+      w: level.w, h: level.h, exits: level.exits, caps: level.caps, field: level.field, flasks: level.flasks,
+    };
+    out.push(row);
+    console.log(cfg.id, 'seed', seed, 'opt', A.opt, 'minRet', A.minRet, 'dead', A.deadShare, 'states', A.states, ((Date.now() - t) / 1000).toFixed(1) + 's');
+  }
+  console.log(JSON.stringify(out));
+  process.exit(0);
+}
+
+// node tools/the-gap-solver.mjs build TG-01=1 TG-02=1 ... > tools/the-gap-levels.json
+if (process.argv[1] && process.argv[1].endsWith('the-gap-solver.mjs') && process.argv[2] === 'build') {
+  const seeds = Object.fromEntries(process.argv.slice(3).map((a) => a.split('=')));
+  const out = [];
+  for (const cfg of LEVEL_CFGS) {
+    const seed = Number(seeds[cfg.id]);
+    if (!seed) continue;
+    const level = levelFromSeed(cfg, seed);
+    const A = analyse(level, true);
+    const B = analyse(level, false);
+    if (A.opt === Infinity || B.opt !== Infinity || A.minRet < cfg.minRet || A.deadShare !== 0) throw new Error(cfg.id + ' не проходит фильтры');
+    out.push({
+      id: cfg.id, seed, cfg, opt: A.opt, limit: Math.ceil(2 * A.opt), stars3: A.opt + 1, stars2: Math.ceil(1.5 * A.opt),
+      minReturns: A.minRet, states: A.states,
+      w: level.w, h: level.h, exits: level.exits, caps: level.caps, field: level.field, flasks: level.flasks, solution: A.solution,
+    });
+  }
+  console.log(JSON.stringify(out, null, 1));
+  process.exit(0);
+}
+
+if (process.argv[1] && process.argv[1].endsWith('the-gap-solver.mjs') && process.argv[2] !== 'levels' && process.argv[2] !== 'build') {
   const count = Number(process.argv[2] ?? 150);
   const seed = Number(process.argv[3] ?? 1);
   const configs = {

@@ -10,6 +10,8 @@ export type LogEvent =
       level: number;
       /** Сколько фигур уже сыграно или сгорело до этой. */
       turn: number;
+      /** С какого из трёх мест на руке взята фигура. */
+      slot: number;
       piece: string;
       /** Сколько мест было у фигуры как есть. */
       fits: number;
@@ -20,7 +22,7 @@ export type LogEvent =
       coins: number;
       burned: number;
     }
-  | { type: 'buy'; level: number; purchase: 'rotate' | 'mirror' | 'swap' | 'reroll'; piece: string; cost: number; coins: number; burned: number }
+  | { type: 'buy'; level: number; slot: number; purchase: 'rotate' | 'mirror' | 'swap' | 'reroll'; piece: string; cost: number; coins: number; burned: number }
   | { type: 'buy_refused'; level: number; purchase: 'rotate' | 'mirror' | 'swap' | 'reroll'; reason: 'no_coins' | 'no_change' }
   | { type: 'help_open'; level: number }
   | { type: 'level_win'; level: number; lines: number; goal: number; coins: number }

@@ -12,9 +12,9 @@ async function waitIdle(page: Page): Promise<void> {
   });
 }
 
-/** Тащит текущую фигуру в клетку (col, row) поля; true, если ход принят. */
-async function dragTo(page: Page, col: number, row: number): Promise<boolean> {
-  const now = await page.locator('[data-testid="now"]').boundingBox();
+/** Тащит фигуру из места `slot` в клетку (col, row) поля; true, если ход принят. */
+async function dragTo(page: Page, slot: number, col: number, row: number): Promise<boolean> {
+  const now = await page.locator(`[data-testid="slot-${String(slot)}"]`).boundingBox();
   const board = await page.locator('[data-testid="board"]').boundingBox();
   if (now === null || board === null) throw new Error('no boxes');
   const cell = (board.width - 16 - 7 * 3) / 8;
@@ -33,19 +33,22 @@ async function dragTo(page: Page, col: number, row: number): Promise<boolean> {
 async function placeSomewhere(page: Page): Promise<void> {
   await waitIdle(page);
   if ((await attr(page, 'status')) !== 'playing') return;
-  // некуда встать: пересдаём, пока есть монеты; без монет фигура сгорит сама
+  // ни одной фигуре некуда встать: пересдаём, пока есть монеты; без монет фигура сгорит сама
   while ((await attr(page, 'stuck')) === '1' && (await num(page, 'coins')) >= 2) {
-    await page.click('[data-testid="buy-reroll"]');
+    await page.locator('[data-testid="buy-reroll"]').click({ force: true });
     await waitIdle(page);
     if ((await attr(page, 'status')) !== 'playing') return;
   }
   const before = await num(page, 'used');
   const order = [3, 4, 2, 5, 1, 6, 0, 7];
+  const hand = (await attr(page, 'hand')).split(',').length;
   for (const row of order) {
     for (const col of order) {
-      if (await dragTo(page, col, row)) {
-        await waitIdle(page);
-        return;
+      for (let slot = 0; slot < hand; slot += 1) {
+        if (await dragTo(page, slot, col, row)) {
+          await waitIdle(page);
+          return;
+        }
       }
     }
   }
@@ -85,10 +88,34 @@ test('фигура встаёт на поле перетаскиванием и 
   expect(await page.locator('[data-testid="board"] .tile:not(.c-9)').count()).toBeGreaterThanOrEqual(2);
 });
 
+test('на руках три фигуры, любую можно взять сразу; «Дальше» не показывается', async ({ page }) => {
+  await page.goto('/?seed=5#/play');
+  await closeHelp(page);
+  await expect(page.locator('.slot:not(.empty)')).toHaveCount(3);
+  await expect(page.getByText('Дальше')).toHaveCount(0);
+  await page.locator('[data-testid="slot-1"]').click();
+  await expect(game(page)).toHaveAttribute('data-sel', '1');
+  await expect(page.locator('[data-testid="slot-1"]')).toHaveClass(/sel/);
+  // тащим третью фигуру: ход принят, на её месте встала новая
+  const before = (await attr(page, 'hand')).split(',');
+  const board = await page.locator('[data-testid="board"]').boundingBox();
+  const slot = await page.locator('[data-testid="slot-2"]').boundingBox();
+  if (board === null || slot === null) throw new Error('no boxes');
+  await page.mouse.move(slot.x + slot.width / 2, slot.y + slot.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(board.x + board.width / 2, board.y + board.height * 0.65, { steps: 6 });
+  await page.mouse.up();
+  await waitIdle(page);
+  await expect(game(page)).toHaveAttribute('data-used', '1');
+  const after = (await attr(page, 'hand')).split(',');
+  expect(after).toHaveLength(3);
+  expect(after.slice(0, 2)).toEqual(before.slice(0, 2));
+});
+
 test('недопустимая постановка ход не тратит', async ({ page }) => {
   await page.goto('/?seed=5#/play');
   await closeHelp(page);
-  const now = await page.locator('[data-testid="now"]').boundingBox();
+  const now = await page.locator('[data-testid="slot-0"]').boundingBox();
   const board = await page.locator('[data-testid="board"]').boundingBox();
   if (now === null || board === null) throw new Error('no boxes');
   // отпускаем за краем поля
@@ -193,7 +220,7 @@ for (const [w, h] of [[360, 560], [375, 560], [390, 664], [430, 932]] as const) 
     const cell = await page.locator('.cell').first().boundingBox();
     expect(cell?.width ?? 0).toBeGreaterThanOrEqual(18);
     // всё игровое влезает в экран
-    for (const id of ['now', 'buy-swap', 'board']) {
+    for (const id of ['slot-0', 'buy-swap', 'board']) {
       const box = await page.locator(`[data-testid="${id}"]`).boundingBox();
       expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(h);
     }

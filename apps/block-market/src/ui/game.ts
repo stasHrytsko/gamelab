@@ -1,7 +1,7 @@
 import { baseCells, colorOf, swapPrice, TYPES, type PieceType } from '../engine/catalog.ts';
 import { CFG } from '../engine/config.ts';
 import {
-  countFits, fits, MIN_COST, mirrorCurrent, nextLevel, place, preview, rerollCurrent, rotateCurrent, startRun, stuck, swapCurrent,
+  countFits, fits, MIN_COST, mirrorPiece, nextLevel, place, preview, rerollPiece, rotatePiece, startRun, stuck, swapPiece,
   type GameEvent, type GameState, type Outcome, type Purchase,
 } from '../engine/engine.ts';
 import { reducedMotion, vibrate, wait } from './feedback.ts';
@@ -68,9 +68,8 @@ export function gameScreen(go: Go, params: RunParams): Screen {
       <div class="stat" data-testid="stat-coins"><span class="ic coin-ic">${icon.coin}</span><span class="t"><small>Монеты</small><b></b></span></div>
     </div>
     <div class="stage"><div class="board" data-testid="board"></div></div>
-    <div class="queue">
-      <div class="now" data-testid="now"><span class="lab">Сейчас</span><div class="now-slot"></div></div>
-      <div class="next"><span class="lab2">Дальше</span><div class="next-row"><div class="nslot"></div><div class="nslot"></div></div></div>
+    <div class="tray" data-testid="tray">
+      ${[0, 1, 2].map((i) => `<div class="slot" data-slot="${String(i)}" data-testid="slot-${String(i)}"><div class="slot-piece"></div></div>`).join('')}
     </div>
     <div class="shop">
       ${shopButton('rotate', icon.rotate, 'Поворот 90°')}
@@ -83,9 +82,9 @@ export function gameScreen(go: Go, params: RunParams): Screen {
   const $ = <T extends HTMLElement>(sel: string): T => el.querySelector<T>(sel) as T;
   const stage = $('.stage');
   const board = $('.board');
-  const nowSlot = $('.now-slot');
-  const nowBox = $('.now');
-  const nextSlots = [...el.querySelectorAll<HTMLElement>('.nslot')];
+  const slotEls = [...el.querySelectorAll<HTMLElement>('.slot')];
+  /** Выбранная фигура: на неё действуют покупки. */
+  let sel = 0;
   const hint = $('.hint');
   const buttons = new Map<Purchase, HTMLButtonElement>(
     (['rotate', 'mirror', 'swap', 'reroll'] as const).map((k) => [k, $<HTMLButtonElement>(`[data-buy="${k}"]`)]),
@@ -115,9 +114,9 @@ export function gameScreen(go: Go, params: RunParams): Screen {
 
   function defaultHint(): string {
     if (state.status !== 'playing') return '';
-    if (stuck(state) && state.coins >= MIN_COST) return 'Некуда встать: <b>поверни, отзеркаль, замени или пересдай</b>';
+    if (stuck(state) && state.coins >= MIN_COST) return 'Ни одной фигуре некуда встать: <b>поверни, отзеркаль, замени или пересдай</b>';
     if (state.lines >= state.goal) return '<b>Цель выполнена.</b> Доигрывай уровень и копи монеты';
-    return 'Перетащи фигуру на поле';
+    return 'Выбери любую фигуру и перетащи на поле';
   }
 
   function render(): void {
@@ -129,7 +128,10 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     el.dataset['used'] = String(s.used);
     el.dataset['lines'] = String(s.lines);
     el.dataset['goal'] = String(s.goal);
-    el.dataset['piece'] = s.queue[0]?.type ?? '';
+    if (sel >= s.hand.length) sel = Math.max(0, s.hand.length - 1);
+    el.dataset['piece'] = s.hand[sel]?.type ?? '';
+    el.dataset['sel'] = String(sel);
+    el.dataset['hand'] = s.hand.map((p) => p.type).join(',');
     el.dataset['stuck'] = stuck(s) ? '1' : '0';
     $('[data-testid="title"]').textContent = `Уровень ${String(s.level)}`;
     $('[data-testid="stat-pieces"] b').innerHTML = `${String(s.used)}<i>/${String(CFG.PIECES)}</i>`;
@@ -149,19 +151,20 @@ export function gameScreen(go: Go, params: RunParams): Screen {
       }
     });
 
-    const cur = s.queue[0];
-    nowSlot.innerHTML = cur === undefined ? '' : pieceHtml(cur.cells, cur.color);
-    [1, 2].forEach((k, j) => {
-      const p = s.queue[k];
-      (nextSlots[j] as HTMLElement).innerHTML = p === undefined ? '' : pieceHtml(p.cells, p.color);
+    slotEls.forEach((slotEl, i) => {
+      const p = s.hand[i];
+      (slotEl.firstElementChild as HTMLElement).innerHTML = p === undefined ? '' : pieceHtml(p.cells, p.color);
+      slotEl.classList.toggle('empty', p === undefined);
+      slotEl.classList.toggle('sel', p !== undefined && i === sel);
+      slotEl.classList.toggle('lifted', false);
     });
 
     const playing = s.status === 'playing';
     const can: Record<Purchase, boolean> = {
-      rotate: playing && rotateCurrent(s) !== null,
-      mirror: playing && mirrorCurrent(s) !== null,
-      swap: playing && s.coins >= cheapestSwap,
-      reroll: playing && rerollCurrent(s) !== null,
+      rotate: playing && rotatePiece(s, sel) !== null,
+      mirror: playing && mirrorPiece(s, sel) !== null,
+      swap: playing && s.hand[sel] !== undefined && s.coins >= cheapestSwap,
+      reroll: playing && rerollPiece(s, sel) !== null,
     };
     for (const [k, b] of buttons) {
       b.classList.toggle('off', !can[k]);
@@ -179,9 +182,9 @@ export function gameScreen(go: Go, params: RunParams): Screen {
   function showPreview(anchor: { x: number; y: number } | null): void {
     clearPreview();
     if (anchor === null) { setHint(defaultHint()); return; }
-    const pv = preview(state, anchor.x, anchor.y);
+    const pv = preview(state, dragSlot, anchor.x, anchor.y);
     if (pv === null) { setHint(defaultHint()); return; }
-    board.style.setProperty('--pc', `var(--piece-${String(state.queue[0]?.color ?? 1)})`);
+    board.style.setProperty('--pc', `var(--piece-${String(state.hand[dragSlot]?.color ?? 1)})`);
     for (const i of pv.placed) cellEls[i]?.classList.add('ghost');
     for (const r of pv.rows) for (let c = 0; c < N; c += 1) cellEls[r * N + c]?.classList.add('hot');
     for (const c of pv.cols) for (let r = 0; r < N; r += 1) cellEls[r * N + c]?.classList.add('hot');
@@ -192,10 +195,13 @@ export function gameScreen(go: Go, params: RunParams): Screen {
 
   // ---------- перетаскивание фигуры ----------
   let drag: HTMLElement | null = null;
+  let dragSlot = 0;
+  let dragStart = { x: 0, y: 0 };
+  let dragMoved = false;
   let anchor: { x: number; y: number } | null = null;
 
   function anchorAt(clientX: number, clientY: number): { x: number; y: number } | null {
-    const piece = state.queue[0];
+    const piece = state.hand[dragSlot];
     if (piece === undefined || drag === null) return null;
     const rect = board.getBoundingClientRect();
     const box = drag.getBoundingClientRect();
@@ -226,39 +232,54 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     drag?.remove();
     drag = null;
     anchor = null;
-    nowBox.classList.remove('lifted');
+    for (const slotEl of slotEls) slotEl.classList.remove('lifted');
     clearPreview();
   }
 
-  nowBox.addEventListener('pointerdown', (e) => {
-    const piece = state.queue[0];
-    if (busy || sheetOpen || popupOpen || state.status !== 'playing' || piece === undefined) return;
-    e.preventDefault();
-    nowBox.setPointerCapture(e.pointerId);
-    drag = document.createElement('div');
-    drag.className = 'drag';
-    drag.style.setProperty('--u', `${String(cell)}px`);
-    drag.style.setProperty('--g', `${String(GAP)}px`);
-    drag.innerHTML = pieceHtml(piece.cells, piece.color);
-    el.append(drag);
-    nowBox.classList.add('lifted');
-    moveDrag(e);
+  slotEls.forEach((slotEl, i) => {
+    slotEl.addEventListener('pointerdown', (e) => {
+      const piece = state.hand[i];
+      if (busy || sheetOpen || popupOpen || state.status !== 'playing' || piece === undefined) return;
+      e.preventDefault();
+      slotEl.setPointerCapture(e.pointerId);
+      if (sel !== i) {
+        sel = i;
+        render();
+      }
+      dragSlot = i;
+      dragStart = { x: e.clientX, y: e.clientY };
+      dragMoved = false;
+      drag = document.createElement('div');
+      drag.className = 'drag';
+      drag.style.setProperty('--u', `${String(cell)}px`);
+      drag.style.setProperty('--g', `${String(GAP)}px`);
+      drag.innerHTML = pieceHtml(piece.cells, piece.color);
+      drag.style.visibility = 'hidden';
+      el.append(drag);
+      slotEl.classList.add('lifted');
+    });
+    slotEl.addEventListener('pointermove', (e) => {
+      if (drag === null) return;
+      if (!dragMoved && Math.hypot(e.clientX - dragStart.x, e.clientY - dragStart.y) < 6) return;
+      dragMoved = true;
+      drag.style.visibility = 'visible';
+      moveDrag(e);
+    });
+    slotEl.addEventListener('pointerup', (e) => {
+      if (drag === null) return;
+      if (!dragMoved) { endDrag(); return; } // просто тап: выбрали фигуру
+      moveDrag(e);
+      const target = anchor;
+      if (target === null) {
+        const over = board.getBoundingClientRect();
+        if (e.clientY - LIFT > over.top - 20 && e.clientY < over.bottom + 40) { vibrate(20); shake(board); }
+        endDrag();
+        return;
+      }
+      void commitPlace(dragSlot, target.x, target.y);
+    });
+    slotEl.addEventListener('pointercancel', endDrag);
   });
-  nowBox.addEventListener('pointermove', (e) => { if (drag !== null) moveDrag(e); });
-  nowBox.addEventListener('pointerup', (e) => {
-    if (drag === null) return;
-    moveDrag(e);
-    const target = anchor;
-    if (target === null) {
-      const over = board.getBoundingClientRect();
-      if (e.clientY - LIFT > over.top - 20 && e.clientY < over.bottom + 40) { vibrate(20); shake(board); }
-      endDrag();
-      return;
-    }
-    const held = drag;
-    void commitPlace(target.x, target.y, held);
-  });
-  nowBox.addEventListener('pointercancel', endDrag);
 
   // ---------- анимации ----------
   function shake(node: HTMLElement): void {
@@ -292,15 +313,14 @@ export function gameScreen(go: Go, params: RunParams): Screen {
   // ---------- действия ----------
   const setBusy = (v: boolean): void => { busy = v; el.dataset['busy'] = v ? '1' : '0'; };
 
-  async function commitPlace(x: number, y: number, held: HTMLElement | null): Promise<void> {
-    const piece = state.queue[0];
+  async function commitPlace(slot: number, x: number, y: number): Promise<void> {
+    const piece = state.hand[slot];
     const fitsBefore = piece === undefined ? 0 : countFits(state.board, piece.cells);
-    const out = place(state, x, y);
+    const out = place(state, slot, x, y);
     if (out === null || piece === undefined) { endDrag(); return; }
     const ev = out.event as Extract<GameEvent, { kind: 'place' }>;
     setBusy(true);
     endDrag();
-    void held;
     // 1. фигура встаёт на поле
     for (const i of ev.placed) {
       const c = cellEls[i] as HTMLElement;
@@ -309,7 +329,7 @@ export function gameScreen(go: Go, params: RunParams): Screen {
       c.append(t);
       t.animate([{ transform: 'scale(.7)' }, { transform: 'scale(1.06)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: dur(180), easing: 'ease-out' });
     }
-    log({ type: 'place', level: state.level, turn: state.used, piece: piece.type, fits: fitsBefore, lines: ev.lines, income: ev.income, gained: ev.gained, coins: out.state.coins, burned: ev.burned.length });
+    log({ type: 'place', level: state.level, turn: state.used, slot, piece: piece.type, fits: fitsBefore, lines: ev.lines, income: ev.income, gained: ev.gained, coins: out.state.coins, burned: ev.burned.length });
     await wait(ev.cleared.length > 0 ? 170 : 90);
     // 2. линии исчезают волной от поставленной фигуры
     if (ev.cleared.length > 0) {
@@ -344,10 +364,10 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     if (busy || sheetOpen || popupOpen || state.status !== 'playing') return;
     const button = buttons.get(kind) as HTMLButtonElement;
     const out: Outcome | null =
-      kind === 'rotate' ? rotateCurrent(state)
-      : kind === 'mirror' ? mirrorCurrent(state)
-      : kind === 'reroll' ? rerollCurrent(state)
-      : type === undefined ? null : swapCurrent(state, type);
+      kind === 'rotate' ? rotatePiece(state, sel)
+      : kind === 'mirror' ? mirrorPiece(state, sel)
+      : kind === 'reroll' ? rerollPiece(state, sel)
+      : type === undefined ? null : swapPiece(state, sel, type);
     if (out === null) {
       const cost = kind === 'swap' ? cheapestSwap : COSTS[kind];
       const reason = state.coins < cost ? 'no_coins' : 'no_change';
@@ -358,12 +378,12 @@ export function gameScreen(go: Go, params: RunParams): Screen {
       return;
     }
     const ev = out.event as Extract<GameEvent, { kind: 'buy' }>;
-    const wasType = state.queue[0]?.type ?? '';
+    const wasType = state.hand[sel]?.type ?? '';
     setBusy(true);
     state = out.state;
     render();
-    log({ type: 'buy', level: state.level, purchase: kind, piece: wasType, cost: ev.cost, coins: state.coins, burned: ev.burned.length });
-    const slot = nowSlot.firstElementChild as HTMLElement | null;
+    log({ type: 'buy', level: state.level, slot: ev.slot, purchase: kind, piece: wasType, cost: ev.cost, coins: state.coins, burned: ev.burned.length });
+    const slot = (slotEls[sel]?.firstElementChild?.firstElementChild ?? null) as HTMLElement | null;
     const frames: Keyframe[] =
       kind === 'rotate' ? [{ transform: 'rotate(-90deg) scale(.85)', opacity: 0.4 }, { transform: 'none', opacity: 1 }]
       : kind === 'mirror' ? [{ transform: 'scaleX(-1)', opacity: 0.4 }, { transform: 'none', opacity: 1 }]
@@ -389,7 +409,7 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     if (busy || sheetOpen || popupOpen || state.status !== 'playing') return;
     if (state.coins < cheapestSwap) { void buy('swap'); return; }
     sheetOpen = true;
-    const cur = state.queue[0];
+    const cur = state.hand[sel];
     const types = [...TYPES].sort((a, b) => swapPrice(a) - swapPrice(b) || TYPES.indexOf(a) - TYPES.indexOf(b));
     const scrim = document.createElement('div');
     scrim.className = 'scrim sheet-scrim';
@@ -489,10 +509,10 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     log({ type: 'help_open', level: state.level });
     openPopup(el, `<h2>Как играть?</h2>
       <ol class="rules">
-        <li><b>1</b><span>Перетащи фигуру на поле. Полная строка или столбец исчезает и платит монеты: <b>1, 4, 9</b> за 1, 2, 3 линии сразу.</span></li>
-        <li><b>2</b><span>Фигура неудобная? За монеты можно <b>повернуть</b>, <b>отзеркалить</b>, <b>заменить</b> или <b>пересдать</b> её. В кошельке до ${String(CFG.CAP)}.</span></li>
+        <li><b>1</b><span>Выбери любую из трёх фигур и перетащи на поле. Полная строка или столбец исчезает и платит монеты: <b>1, 4, 9</b> за 1, 2, 3 линии сразу.</span></li>
+        <li><b>2</b><span>Фигура неудобная? За монеты можно <b>повернуть</b>, <b>отзеркалить</b>, <b>заменить</b> или <b>пересдать</b> выбранную. В кошельке до ${String(CFG.CAP)}.</span></li>
         <li><b>3</b><span>На уровне ${String(CFG.PIECES)} фигур. Собери нужное число линий.</span></li>
-        <li><b>4</b><span>Фигура, которой некуда встать, когда монет меньше ${String(MIN_COST)}, сгорает.</span></li>
+        <li><b>4</b><span>Если ни одной из трёх некуда встать, а монет меньше ${String(MIN_COST)}, одна фигура сгорает.</span></li>
       </ol>`, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => { popupOpen = false; } }], 'popup-help');
   }
 

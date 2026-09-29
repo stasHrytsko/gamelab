@@ -25,8 +25,8 @@ export interface GameState {
   readonly goalOverride: number | null;
   /** 64 клетки, ряд за рядом: 0 пусто, 1–5 цвет фигуры, 9 камень. */
   readonly board: readonly number[];
-  /** [текущая, следующая, через одну]. */
-  readonly queue: readonly Piece[];
+  /** Фигуры на руках (до трёх): любую можно ставить сразу. Что выйдет дальше, не показывается. */
+  readonly hand: readonly Piece[];
   /** Сыграно или сгорело на этом уровне. */
   readonly used: number;
   readonly lines: number;
@@ -34,6 +34,7 @@ export interface GameState {
   readonly status: Status;
   readonly dealRng: Rng;
   readonly rerollRng: Rng;
+  /** Сколько фигур уже сдано на этом уровне (не больше PIECES). */
   readonly dealIdx: number;
   readonly levelsCleared: number;
   /** Монет, сгоревших о потолок кошелька, за весь забег. */
@@ -45,6 +46,7 @@ export type Purchase = 'rotate' | 'mirror' | 'swap' | 'reroll';
 export type GameEvent =
   | {
       kind: 'place';
+      slot: number;
       /** Индексы клеток, которые исчезли (в т.ч. только что поставленные). */
       cleared: readonly number[];
       rows: readonly number[];
@@ -56,7 +58,7 @@ export type GameEvent =
       burned: readonly Piece[];
       placed: readonly number[];
     }
-  | { kind: 'buy'; purchase: Purchase; cost: number; burned: readonly Piece[] };
+  | { kind: 'buy'; slot: number; purchase: Purchase; cost: number; burned: readonly Piece[] };
 
 export interface Outcome {
   readonly state: GameState;
@@ -111,8 +113,8 @@ export function applyPlacement(board: readonly number[], cells: Cells, color: nu
 }
 
 /** Что будет, если поставить текущую фигуру в (x, y): для подсказки на поле. */
-export function preview(state: GameState, x: number, y: number): (Placement & { lines: number; income: number }) | null {
-  const piece = state.queue[0];
+export function preview(state: GameState, slot: number, x: number, y: number): (Placement & { lines: number; income: number }) | null {
+  const piece = state.hand[slot];
   if (state.status !== 'playing' || piece === undefined || !fits(state.board, piece.cells, x, y)) return null;
   const placement = applyPlacement(state.board, piece.cells, piece.color, x, y);
   const lines = placement.rows.length + placement.cols.length;
@@ -151,10 +153,10 @@ export function deal(level: number, board: readonly number[], rng: Rng, hostile:
 }
 
 // ---------- уровень и забег ----------
-type Draft = { -readonly [K in keyof GameState]: GameState[K] } & { board: number[]; queue: Piece[] };
+type Draft = { -readonly [K in keyof GameState]: GameState[K] } & { board: number[]; hand: Piece[] };
 
 const draft = (s: GameState): Draft => ({
-  ...s, board: s.board.slice(), queue: s.queue.slice(), dealRng: { ...s.dealRng }, rerollRng: { ...s.rerollRng },
+  ...s, board: s.board.slice(), hand: s.hand.slice(), dealRng: { ...s.dealRng }, rerollRng: { ...s.rerollRng },
 });
 
 function dealNext(d: Draft): Piece {
@@ -172,11 +174,11 @@ function buildLevel(seed: number, level: number, coins: number, goalOverride: nu
   }
   for (let y = 0; y < N; y += 1) if (board.slice(y * N, y * N + N).every((v) => v !== 0)) board.fill(0, y * N, y * N + N);
   const d: Draft = {
-    seed, level, goal: goalOverride ?? goalFor(level), goalOverride, board, queue: [], used: 0, lines: 0, coins,
+    seed, level, goal: goalOverride ?? goalFor(level), goalOverride, board, hand: [], used: 0, lines: 0, coins,
     status: 'playing', dealRng: makeRng(hash(seed, level, 2)), rerollRng: makeRng(hash(seed, level, 3)), dealIdx: 0,
     levelsCleared: carry.levelsCleared, capLost: carry.capLost,
   };
-  d.queue = [dealNext(d), dealNext(d), dealNext(d)];
+  d.hand = [dealNext(d), dealNext(d), dealNext(d)];
   settle(d, []);
   return d;
 }
@@ -196,7 +198,14 @@ export function nextLevel(state: GameState): GameState | null {
   return buildLevel(state.seed, state.level + 1, state.coins, state.goalOverride, state);
 }
 
-/** Сжигает фигуры, которым некуда встать и нечем платить; закрывает уровень после 20-й. */
+/** Фигура ушла с руки (поставлена или сгорела): на её место встаёт новая, пока сданы не все 20. */
+function useSlot(d: Draft, slot: number): void {
+  d.used += 1;
+  if (d.dealIdx < CFG.PIECES) d.hand[slot] = dealNext(d);
+  else d.hand.splice(slot, 1);
+}
+
+/** Сжигает фигуры, когда ни одной из трёх некуда встать, а монет нет; закрывает уровень после 20-й. */
 function settle(d: Draft, burned: Piece[]): void {
   while (d.status === 'playing') {
     if (d.used >= CFG.PIECES) {
@@ -209,12 +218,9 @@ function settle(d: Draft, burned: Piece[]): void {
       } else d.status = 'lost';
       return;
     }
-    const current = d.queue[0] as Piece;
-    if (countFits(d.board, current.cells) === 0 && d.coins < MIN_COST) {
-      burned.push(current);
-      d.used += 1;
-      d.queue.shift();
-      d.queue.push(dealNext(d));
+    if (d.hand.every((p) => countFits(d.board, p.cells) === 0) && d.coins < MIN_COST) {
+      burned.push(d.hand[0] as Piece);
+      useSlot(d, 0);
       continue;
     }
     return;
@@ -222,8 +228,8 @@ function settle(d: Draft, burned: Piece[]): void {
 }
 
 // ---------- действия ----------
-export function place(state: GameState, x: number, y: number): Outcome | null {
-  const current = state.queue[0];
+export function place(state: GameState, slot: number, x: number, y: number): Outcome | null {
+  const current = state.hand[slot];
   if (state.status !== 'playing' || current === undefined || !fits(state.board, current.cells, x, y)) return null;
   const d = draft(state);
   const placement = applyPlacement(d.board, current.cells, current.color, x, y);
@@ -235,62 +241,55 @@ export function place(state: GameState, x: number, y: number): Outcome | null {
   const gained = d.coins - before;
   d.capLost += income - gained;
   d.lines += lines;
-  d.used += 1;
-  d.queue.shift();
-  d.queue.push(dealNext(d));
+  useSlot(d, slot);
   const burned: Piece[] = [];
   settle(d, burned);
   return {
     state: d,
-    event: { kind: 'place', cleared: placement.cleared, rows: placement.rows, cols: placement.cols, lines, income, gained, burned, placed: placement.placed },
+    event: { kind: 'place', slot, cleared: placement.cleared, rows: placement.rows, cols: placement.cols, lines, income, gained, burned, placed: placement.placed },
   };
 }
 
-function buy(state: GameState, cost: number, purchase: Purchase, replacement: (d: Draft) => Piece | null): Outcome | null {
-  if (state.status !== 'playing' || state.coins < cost) return null;
+function buy(state: GameState, slot: number, cost: number, purchase: Purchase, replacement: (d: Draft, piece: Piece) => Piece | null): Outcome | null {
+  if (state.status !== 'playing' || state.coins < cost || state.hand[slot] === undefined) return null;
   const d = draft(state);
-  const next = replacement(d);
+  const next = replacement(d, d.hand[slot] as Piece);
   if (next === null) return null;
   d.coins -= cost;
-  d.queue[0] = next;
+  d.hand[slot] = next;
   const burned: Piece[] = [];
   settle(d, burned);
-  return { state: d, event: { kind: 'buy', purchase, cost, burned } };
+  return { state: d, event: { kind: 'buy', slot, purchase, cost, burned } };
 }
 
-/** Поворот текущей фигуры на 90° по часовой стрелке; у симметричной, где ничего не меняется, — недопустим. */
-export function rotateCurrent(state: GameState): Outcome | null {
-  return buy(state, CFG.ROTATE_COST, 'rotate', (d) => {
-    const p = d.queue[0] as Piece;
+/** Поворот фигуры на руке на 90° по часовой стрелке; у симметричной, где ничего не меняется, — недопустим. */
+export function rotatePiece(state: GameState, slot: number): Outcome | null {
+  return buy(state, slot, CFG.ROTATE_COST, 'rotate', (_d, p) => {
     const cells = rotate(p.cells);
     return cellsKey(cells) === cellsKey(normalize(p.cells)) ? null : { ...p, cells };
   });
 }
 
-export function mirrorCurrent(state: GameState): Outcome | null {
-  return buy(state, CFG.MIRROR_COST, 'mirror', (d) => {
-    const p = d.queue[0] as Piece;
+export function mirrorPiece(state: GameState, slot: number): Outcome | null {
+  return buy(state, slot, CFG.MIRROR_COST, 'mirror', (_d, p) => {
     const cells = mirror(p.cells);
     return cellsKey(cells) === cellsKey(normalize(p.cells)) ? null : { ...p, cells };
   });
 }
 
-export function swapCurrent(state: GameState, type: PieceType): Outcome | null {
-  return buy(state, swapPrice(type), 'swap', (d) => {
-    const p = d.queue[0] as Piece;
+export function swapPiece(state: GameState, slot: number, type: PieceType): Outcome | null {
+  return buy(state, slot, swapPrice(type), 'swap', (_d, p) => {
     const cells = baseCells(type);
     if (p.type === type && cellsKey(cells) === cellsKey(normalize(p.cells))) return null;
     return { type, cells, color: colorOf(type) };
   });
 }
 
-/** Пересдача: новая случайная фигура, без «неудобности». */
-export function rerollCurrent(state: GameState): Outcome | null {
-  return buy(state, CFG.REROLL_COST, 'reroll', (d) => deal(d.level, d.board, d.rerollRng, false));
+/** Пересдача: новая случайная фигура на это место, без «неудобности». */
+export function rerollPiece(state: GameState, slot: number): Outcome | null {
+  return buy(state, slot, CFG.REROLL_COST, 'reroll', (d) => deal(d.level, d.board, d.rerollRng, false));
 }
 
-/** Нет ни одной постановки текущей фигуры как есть (для подсказки игроку). */
-export const stuck = (state: GameState): boolean => {
-  const current = state.queue[0];
-  return current !== undefined && countFits(state.board, current.cells) === 0;
-};
+/** Ни одной из фигур на руках некуда встать (для подсказки игроку). */
+export const stuck = (state: GameState): boolean =>
+  state.hand.length > 0 && state.hand.every((p) => countFits(state.board, p.cells) === 0);

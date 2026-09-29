@@ -3,8 +3,8 @@ import * as sim from '../../../tools/block-market-sim.mjs';
 import { baseCells, colorOf, dealtForms, STONE, swapPrice, TYPES, type PieceType } from '../src/engine/catalog.ts';
 import { blockersFor, CFG, goalFor, hostileK, incomeFor } from '../src/engine/config.ts';
 import {
-  applyPlacement, countFits, deal, fits, mirrorCurrent, nextLevel, place, rerollCurrent, rotateCurrent, startRun,
-  swapCurrent, type GameState, type Piece,
+  applyPlacement, countFits, deal, fits, mirrorPiece, nextLevel, place, rerollPiece, rotatePiece, startRun, stuck,
+  swapPiece, type GameState, type Piece,
 } from '../src/engine/engine.ts';
 import { hash, makeRng, nextFloat } from '../src/engine/rng.ts';
 
@@ -12,6 +12,12 @@ const piece = (type: PieceType): Piece => ({ type, cells: baseCells(type), color
 const boardFrom = (rows: string[]): number[] => rows.flatMap((r) => [...r].map((ch) => (ch === '.' ? 0 : ch === '#' ? STONE : Number(ch))));
 const withState = (over: Partial<GameState>): GameState => ({ ...startRun(7), ...over });
 const empty = (): number[] => new Array<number>(64).fill(0);
+// действия над первой фигурой на руке — короткие обёртки для тестов
+const put = (s: GameState, x: number, y: number) => place(s, 0, x, y);
+const rot = (s: GameState) => rotatePiece(s, 0);
+const mir = (s: GameState) => mirrorPiece(s, 0);
+const swp = (s: GameState, t: PieceType) => swapPiece(s, 0, t);
+const rer = (s: GameState) => rerollPiece(s, 0);
 
 describe('константы: те же, что в симуляторе', () => {
   it('совпадают с tools/block-market-sim.mjs', () => {
@@ -52,7 +58,7 @@ describe('начало забега', () => {
   it('5 монет, очередь из трёх, камни на поле, цель 5', () => {
     const s = startRun(1);
     expect(s.coins).toBe(5);
-    expect(s.queue).toHaveLength(3);
+    expect(s.hand).toHaveLength(3);
     expect(s.board.filter((v) => v === STONE)).toHaveLength(blockersFor(1));
     expect([s.level, s.goal, s.used, s.lines, s.status]).toEqual([1, 5, 0, 0, 'playing']);
   });
@@ -82,16 +88,16 @@ describe('начало забега', () => {
 
 describe('постановка и линии', () => {
   it('недопустимая постановка ход не тратит', () => {
-    const s = withState({ board: boardFrom(['#.......', ...Array(7).fill('........')] as string[]), queue: [piece('domino'), piece('I3'), piece('O')] });
-    expect(place(s, 0, 0)).toBeNull();
-    expect(place(s, 7, 0)).toBeNull(); // домино выходит за край
-    expect(place(s, 0, 7)).not.toBeNull();
+    const s = withState({ board: boardFrom(['#.......', ...Array(7).fill('........')] as string[]), hand: [piece('domino'), piece('I3'), piece('O')] });
+    expect(put(s, 0, 0)).toBeNull();
+    expect(put(s, 7, 0)).toBeNull(); // домино выходит за край
+    expect(put(s, 0, 7)).not.toBeNull();
   });
 
   it('строка и столбец закрываются одновременно и платят как две линии', () => {
     const rows = ['.1111111', '1.......', '1.......', '1.......', '1.......', '1.......', '1.......', '1.......'];
-    const s = withState({ board: boardFrom(rows), queue: [piece('mono'), piece('O'), piece('O')], coins: 0 });
-    const out = place(s, 0, 0);
+    const s = withState({ board: boardFrom(rows), hand: [piece('mono'), piece('O'), piece('O')], coins: 0 });
+    const out = put(s, 0, 0);
     expect(out).not.toBeNull();
     expect(out!.event).toMatchObject({ kind: 'place', lines: 2, income: 4, gained: 4 });
     expect(out!.state.coins).toBe(4);
@@ -105,8 +111,8 @@ describe('постановка и линии', () => {
 
   it('монеты сверх потолка сгорают и считаются', () => {
     const rows = ['1111111.', ...Array(7).fill('........')] as string[];
-    const s = withState({ board: boardFrom(rows), queue: [piece('mono'), piece('O'), piece('O')], coins: 10, capLost: 0 });
-    const out = place(s, 7, 0)!;
+    const s = withState({ board: boardFrom(rows), hand: [piece('mono'), piece('O'), piece('O')], coins: 10, capLost: 0 });
+    const out = put(s, 7, 0)!;
     expect(out.state.coins).toBe(CFG.CAP);
     expect(out.event).toMatchObject({ income: 1, gained: 0 });
     expect(out.state.capLost).toBe(1);
@@ -118,129 +124,171 @@ describe('постановка и линии', () => {
     expect(p.board.filter((v) => v === 2)).toHaveLength(4);
   });
 
-  it('очередь сдвигается, следующая фигура становится текущей', () => {
+  it('на место поставленной фигуры встаёт новая, остальные остаются на своих местах', () => {
     const s = startRun(3);
-    const spot = [...Array(64).keys()].map((i) => [i % 8, Math.floor(i / 8)] as const).find(([x, y]) => fits(s.board, s.queue[0]!.cells, x, y))!;
-    const out = place(s, spot[0], spot[1])!;
-    expect(out.state.queue[0]).toBe(s.queue[1]);
-    expect(out.state.queue[1]).toBe(s.queue[2]);
+    const spot = [...Array(64).keys()].map((i) => [i % 8, Math.floor(i / 8)] as const).find(([x, y]) => fits(s.board, s.hand[1]!.cells, x, y))!;
+    const out = place(s, 1, spot[0], spot[1])!;
+    expect(out.state.hand).toHaveLength(3);
+    expect(out.state.hand[0]).toBe(s.hand[0]);
+    expect(out.state.hand[2]).toBe(s.hand[2]);
+    expect(out.state.hand[1]).not.toBe(s.hand[1]);
     expect(out.state.used).toBe(1);
+    expect(out.state.dealIdx).toBe(4);
+  });
+
+  it('любую из трёх фигур можно поставить сразу', () => {
+    const s = withState({ board: empty(), hand: [piece('T'), piece('O'), piece('I4')] });
+    for (const slot of [0, 1, 2]) expect(place(s, slot, 0, 0)).not.toBeNull();
+    expect(place(s, 3, 0, 0)).toBeNull();
+  });
+
+  it('что дальше, не показывается: рука всегда ровно три фигуры, пока есть что сдавать', () => {
+    let s = startRun(11);
+    for (let i = 0; i < 10; i += 1) {
+      expect(s.hand).toHaveLength(3);
+      const slot = i % 3;
+      const cur = s.hand[slot]!;
+      const spot = [...Array(64).keys()].map((k) => [k % 8, Math.floor(k / 8)] as const).find(([x, y]) => fits(s.board, cur.cells, x, y));
+      if (spot === undefined) break;
+      s = place(s, slot, spot[0], spot[1])!.state;
+    }
+  });
+
+  it('в конце уровня рука сокращается: всего 20 фигур', () => {
+    let s = withState({ board: empty(), hand: [piece('mono'), piece('mono'), piece('mono')], used: 17, dealIdx: 20 });
+    s = place(s, 0, 0, 0)!.state;
+    expect(s.hand).toHaveLength(2);
+    s = place(s, 0, 1, 0)!.state;
+    expect(s.hand).toHaveLength(1);
+    s = place(s, 0, 2, 0)!.state;
+    expect(s.hand).toHaveLength(0);
+    expect(s.used).toBe(20);
+    expect(['level_won', 'lost']).toContain(s.status);
   });
 });
 
 describe('покупки', () => {
-  const s0 = withState({ board: empty(), queue: [piece('L'), piece('T'), piece('O')], coins: 5 });
+  const s0 = withState({ board: empty(), hand: [piece('L'), piece('T'), piece('O')], coins: 5 });
 
   it('поворот стоит 2 и вращает на 90°', () => {
-    const out = rotateCurrent(s0)!;
+    const out = rot(s0)!;
     expect(out.state.coins).toBe(3);
-    expect(out.state.queue[0]!.cells).not.toEqual(s0.queue[0]!.cells);
+    expect(out.state.hand[0]!.cells).not.toEqual(s0.hand[0]!.cells);
     let s = s0;
-    for (let i = 0; i < 4; i += 1) s = { ...rotateCurrent({ ...s, coins: 5 })!.state, coins: 5 };
-    expect(s.queue[0]!.cells).toEqual(s0.queue[0]!.cells);
+    for (let i = 0; i < 4; i += 1) s = { ...rot({ ...s, coins: 5 })!.state, coins: 5 };
+    expect(s.hand[0]!.cells).toEqual(s0.hand[0]!.cells);
   });
 
   it('зеркало стоит 2 и меняет L на J', () => {
-    const out = mirrorCurrent(s0)!;
+    const out = mir(s0)!;
     expect(out.state.coins).toBe(3);
-    expect(out.state.queue[0]!.cells).toEqual(baseCells('J'));
+    expect(out.state.hand[0]!.cells).toEqual(baseCells('J'));
   });
 
   it('там, где поворот или зеркало ничего не меняют, покупка недопустима и монеты целы', () => {
-    const o = { ...s0, queue: [piece('O'), piece('T'), piece('O')] };
-    expect(rotateCurrent(o)).toBeNull();
-    expect(mirrorCurrent(o)).toBeNull();
-    const x = { ...s0, queue: [piece('X5'), piece('T'), piece('O')] };
-    expect(rotateCurrent(x)).toBeNull();
-    const i4 = { ...s0, queue: [piece('I4'), piece('T'), piece('O')] };
-    expect(mirrorCurrent(i4)).toBeNull();
-    expect(rotateCurrent(i4)).not.toBeNull();
+    const o = { ...s0, hand: [piece('O'), piece('T'), piece('O')] };
+    expect(rot(o)).toBeNull();
+    expect(mir(o)).toBeNull();
+    const x = { ...s0, hand: [piece('X5'), piece('T'), piece('O')] };
+    expect(rot(x)).toBeNull();
+    const i4 = { ...s0, hand: [piece('I4'), piece('T'), piece('O')] };
+    expect(mir(i4)).toBeNull();
+    expect(rot(i4)).not.toBeNull();
   });
 
   it('замена стоит по каталогу 5–8 и ставит фигуру в исходной ориентации', () => {
     const prices = TYPES.map(swapPrice);
     expect(Math.min(...prices)).toBe(5);
     expect(Math.max(...prices)).toBe(8);
-    const out = swapCurrent({ ...s0, coins: 10 }, 'W5')!;
+    const out = swp({ ...s0, coins: 10 }, 'W5')!;
     expect(out.state.coins).toBe(10 - swapPrice('W5'));
-    expect(out.state.queue[0]).toMatchObject({ type: 'W5', cells: baseCells('W5') });
+    expect(out.state.hand[0]).toMatchObject({ type: 'W5', cells: baseCells('W5') });
   });
 
   it('замена на ту же фигуру в той же ориентации и без денег недопустима', () => {
-    expect(swapCurrent({ ...s0, coins: 10 }, 'L')).toBeNull();
-    expect(swapCurrent({ ...s0, coins: 4 }, 'domino')).toBeNull();
-    expect(swapCurrent({ ...s0, coins: 10 }, 'domino')).not.toBeNull();
+    expect(swp({ ...s0, coins: 10 }, 'L')).toBeNull();
+    expect(swp({ ...s0, coins: 4 }, 'domino')).toBeNull();
+    expect(swp({ ...s0, coins: 10 }, 'domino')).not.toBeNull();
   });
 
   it('пересдача стоит 2, даёт другую фигуру и идёт детерминированно', () => {
-    const out = rerollCurrent(s0)!;
+    const out = rer(s0)!;
     expect(out.state.coins).toBe(3);
-    const again = rerollCurrent(s0)!;
-    expect(again.state.queue[0]).toEqual(out.state.queue[0]);
-    const second = rerollCurrent({ ...out.state, coins: 5 })!;
+    const again = rer(s0)!;
+    expect(again.state.hand[0]).toEqual(out.state.hand[0]);
+    const second = rer({ ...out.state, coins: 5 })!;
     expect(second.state.rerollRng.a).not.toBe(out.state.rerollRng.a);
   });
 
   it('без денег ни одна покупка не проходит', () => {
     const poor = { ...s0, coins: 1 };
-    expect(rotateCurrent(poor)).toBeNull();
-    expect(mirrorCurrent(poor)).toBeNull();
-    expect(rerollCurrent(poor)).toBeNull();
-    expect(swapCurrent(poor, 'domino')).toBeNull();
+    expect(rot(poor)).toBeNull();
+    expect(mir(poor)).toBeNull();
+    expect(rer(poor)).toBeNull();
+    expect(swp(poor, 'domino')).toBeNull();
   });
 });
 
 describe('сгорание фигуры', () => {
-  // всё занято, кроме одиночных дыр по диагонали и (0,0), (0,1): моно в (0,0) закроет только столбец 0,
-  // а O и T в полосу шириной 1 и в одиночные дыры не влезут
-  const almostFull = (): number[] => {
+  // всё занято, кроме одиночных дыр по диагонали: T и O не влезают никуда, влезла бы только точка
+  const holes = (): number[] => {
     const board = new Array<number>(64).fill(1);
-    for (const [y, x] of [[0, 0], [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 2]] as const) board[y * 8 + x] = 0;
+    for (const [y, x] of [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 2]] as const) board[y * 8 + x] = 0;
     return board;
   };
+  const three = (): Piece[] => [piece('T'), piece('O'), piece('I3')];
 
-  it('фигура без места и кошелёк меньше 2: сгорает бесплатно и занимает ход', () => {
-    const s = withState({ board: almostFull(), queue: [piece('mono'), piece('O'), piece('T')], coins: 0, used: 3 });
-    const out = place(s, 0, 0)!;
-    expect(out.event.kind === 'place' && out.event.burned.map((p) => p.type)).toContain('O');
-    expect(out.state.used).toBeGreaterThanOrEqual(3 + 1 + 1);
-    expect(out.state.coins).toBe(1);
+  it('если ни одной фигуре некуда встать, а монет меньше 2, одна сгорает бесплатно и занимает ход', () => {
+    const s = withState({ board: holes(), hand: three(), coins: 2, used: 3 });
+    expect(stuck(s)).toBe(true);
+    const out = rot(s)!; // платим последние 2 монеты: кошелёк 0, всё по-прежнему не встаёт
+    expect(out.state.coins).toBe(0);
+    expect(out.event.kind === 'buy' && out.event.burned.length).toBeGreaterThanOrEqual(1);
+    expect(out.state.used).toBeGreaterThanOrEqual(4);
   });
 
-  it('с 2+ монетами фигура не сгорает сама: игрок может заплатить', () => {
-    const s = withState({ board: almostFull(), queue: [piece('mono'), piece('O'), piece('T')], coins: 5, used: 3 });
-    const out = place(s, 0, 0)!;
-    expect(out.event.kind === 'place' && out.event.burned).toHaveLength(0);
-    expect(out.state.queue[0]!.type).toBe('O');
-    expect(countFits(out.state.board, out.state.queue[0]!.cells)).toBe(0);
+  it('с 2+ монетами ничего не сгорает: игрок может заплатить', () => {
+    const s = withState({ board: holes(), hand: three(), coins: 5, used: 3 });
+    const out = rot(s)!;
+    expect(out.event.kind === 'buy' && out.event.burned).toHaveLength(0);
+    expect(out.state.used).toBe(3);
+    expect(stuck(out.state)).toBe(true);
+  });
+
+  it('если хотя бы одна фигура встаёт, ничего не сгорает даже без монет', () => {
+    const s = withState({ board: holes(), hand: [piece('T'), piece('mono'), piece('O')], coins: 0, used: 3 });
+    expect(stuck(s)).toBe(false);
+    const out = place(s, 1, 2, 1)!;
+    expect(out.event.kind).toBe('place');
+    expect(out.state.used).toBe(4);
   });
 });
 
 describe('конец уровня и забега', () => {
-  const last = (over: Partial<GameState>): GameState => withState({ board: empty(), queue: [piece('mono'), piece('O'), piece('O')], used: 19, ...over });
+  const last = (over: Partial<GameState>): GameState => withState({ board: empty(), hand: [piece('mono')], used: 19, dealIdx: 20, ...over });
 
   it('20-я фигура и цель набрана — уровень пройден, +1 монета', () => {
-    const out = place(last({ lines: 5, goal: 5, coins: 3 }), 0, 0)!;
+    const out = put(last({ lines: 5, goal: 5, coins: 3 }), 0, 0)!;
     expect(out.state.status).toBe('level_won');
     expect(out.state.coins).toBe(4);
     expect(out.state.levelsCleared).toBe(1);
   });
 
   it('20-я фигура и цели нет — поражение', () => {
-    const out = place(last({ lines: 4, goal: 5 }), 0, 0)!;
+    const out = put(last({ lines: 4, goal: 5 }), 0, 0)!;
     expect(out.state.status).toBe('lost');
   });
 
   it('линии, собранные последней фигурой, засчитываются', () => {
     const rows = ['.1111111', ...Array(7).fill('........')] as string[];
-    const out = place(last({ board: boardFrom(rows), lines: 4, goal: 5 }), 0, 0)!;
+    const out = put(last({ board: boardFrom(rows), lines: 4, goal: 5 }), 0, 0)!;
     expect(out.state.status).toBe('level_won');
   });
 
   it('после победы нельзя ходить, следующий уровень переносит кошелёк', () => {
-    const won = place(last({ lines: 5, goal: 5, coins: 6 }), 0, 0)!.state;
-    expect(place(won, 3, 3)).toBeNull();
-    expect(rotateCurrent(won)).toBeNull();
+    const won = put(last({ lines: 5, goal: 5, coins: 6 }), 0, 0)!.state;
+    expect(put(won, 3, 3)).toBeNull();
+    expect(rot(won)).toBeNull();
     const next = nextLevel({ ...won, goalOverride: null })!;
     expect([next.level, next.coins, next.used, next.lines, next.status]).toEqual([2, 7, 0, 0, 'playing']);
     expect(next.goal).toBe(goalFor(2));
@@ -248,12 +296,12 @@ describe('конец уровня и забега', () => {
   });
 
   it('12-й уровень пройден — забег пройден', () => {
-    const out = place(last({ level: 12, lines: 9, goal: 9 }), 0, 0)!;
+    const out = put(last({ level: 12, lines: 9, goal: 9 }), 0, 0)!;
     expect(out.state.status).toBe('run_won');
   });
 
   it('бонус за уровень тоже упирается в потолок', () => {
-    const out = place(last({ lines: 5, goal: 5, coins: 10, capLost: 0 }), 0, 0)!;
+    const out = put(last({ lines: 5, goal: 5, coins: 10, capLost: 0 }), 0, 0)!;
     expect(out.state.coins).toBe(10);
     expect(out.state.capLost).toBe(1);
   });
@@ -300,28 +348,31 @@ describe('инварианты на случайных партиях', () => {
       let s = startRun(seed);
       let income = 0, spent = 0, bonus = 0;
       let guard = 0;
-      while ((s.status === 'playing' || s.status === 'level_won') && guard < 2000) {
+      while ((s.status === 'playing' || s.status === 'level_won') && guard < 3000) {
         guard += 1;
         if (s.status === 'level_won') {
-          const n = nextLevel(s)!;
-          bonus += 0; // бонус учтён при победе
-          s = n;
+          s = nextLevel(s)!;
           continue;
         }
         const before = s;
+        const slot = Math.floor(nextFloat(pick) * s.hand.length);
         const u = nextFloat(pick);
         let out = null;
-        if (u < 0.12) out = rotateCurrent(s);
-        else if (u < 0.18) out = mirrorCurrent(s);
-        else if (u < 0.22) out = rerollCurrent(s);
-        else if (u < 0.25) out = swapCurrent(s, TYPES[Math.floor(nextFloat(pick) * TYPES.length)]!);
+        if (u < 0.12) out = rotatePiece(s, slot);
+        else if (u < 0.18) out = mirrorPiece(s, slot);
+        else if (u < 0.22) out = rerollPiece(s, slot);
+        else if (u < 0.25) out = swapPiece(s, slot, TYPES[Math.floor(nextFloat(pick) * TYPES.length)]!);
         if (out === null) {
-          const cur = s.queue[0]!;
-          const spots: [number, number][] = [];
-          for (let y = 0; y < 8; y += 1) for (let x = 0; x < 8; x += 1) if (fits(s.board, cur.cells, x, y)) spots.push([x, y]);
-          if (spots.length === 0) { out = rerollCurrent(s) ?? rotateCurrent(s) ?? mirrorCurrent(s); if (out === null) break; } else {
-            const [x, y] = spots[Math.floor(nextFloat(pick) * spots.length)]!;
-            out = place(s, x, y);
+          const spots: [number, number, number][] = [];
+          s.hand.forEach((cur, k) => {
+            for (let y = 0; y < 8; y += 1) for (let x = 0; x < 8; x += 1) if (fits(s.board, cur.cells, x, y)) spots.push([k, x, y]);
+          });
+          if (spots.length === 0) {
+            out = rerollPiece(s, 0) ?? rotatePiece(s, 0) ?? mirrorPiece(s, 0);
+            if (out === null) break;
+          } else {
+            const [k, x, y] = spots[Math.floor(nextFloat(pick) * spots.length)]!;
+            out = place(s, k, x, y);
           }
         }
         if (out === null) break;
@@ -332,6 +383,8 @@ describe('инварианты на случайных партиях', () => {
         expect(s.coins).toBeGreaterThanOrEqual(0);
         expect(s.coins).toBeLessThanOrEqual(CFG.CAP);
         expect(s.used).toBeLessThanOrEqual(CFG.PIECES);
+        expect(s.hand.length).toBeLessThanOrEqual(3);
+        expect(s.hand.length).toBe(Math.min(3, CFG.PIECES - s.used));
       }
       expect(CFG.START_COINS + income + bonus - spent).toBe(s.coins);
       if (s.status === 'lost' || s.status === 'run_won') expect(s.used).toBe(CFG.PIECES);

@@ -179,14 +179,13 @@ svg { display: block; }
 .pc i { display: block; width: var(--u); height: var(--u); }
 .pc .tile { box-shadow: 0 2px 4px rgba(31,41,55,.14), inset 0 -2px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 1px 0 rgba(255,255,255,.45); }
 
-.queue { flex: none; display: flex; align-items: center; gap: 14px; padding: 12px 14px 8px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); }
-.now { --u: 15px; --g: 2px; position: relative; width: 106px; height: 92px; border-radius: var(--ui-radius-large); background: color-mix(in srgb, var(--ui-blue) 8%, white); box-shadow: inset 0 0 0 2px var(--ui-blue); display: grid; place-items: center; touch-action: none; cursor: grab; flex: none; }
-.now.lifted .now-slot { opacity: .3; }
-.now .lab { position: absolute; top: -9px; left: 10px; padding: 1px 8px; border-radius: 999px; background: var(--ui-blue); color: #fff; font-size: 11px; font-weight: 600; }
-.next { --u: 9px; --g: 2px; flex: 1; position: relative; display: grid; align-items: center; height: 84px; min-width: 0; }
-.next .lab2 { position: absolute; left: 0; top: -2px; font-size: 11px; font-weight: 500; color: var(--ui-text-muted); }
-.next-row { display: flex; align-items: center; justify-content: space-around; gap: 8px; padding-top: 14px; }
-.nslot { min-width: 40px; display: grid; place-items: center; }
+/* три фигуры на руках: любую можно взять сразу; выбранная подсвечена, на неё действуют покупки */
+.tray { --u: 13px; --g: 2px; flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ui-space-2); padding: 10px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); }
+.slot { position: relative; height: 92px; border-radius: var(--ui-radius-large); background: var(--ui-background); box-shadow: inset 0 0 0 2px transparent; display: grid; place-items: center; touch-action: none; cursor: grab; transition: box-shadow 140ms ease, background 140ms ease; min-width: 0; }
+.slot.sel { background: color-mix(in srgb, var(--ui-blue) 8%, white); box-shadow: inset 0 0 0 2px var(--ui-blue); }
+.slot.empty { background: none; box-shadow: inset 0 0 0 2px var(--ui-border); cursor: default; }
+.slot.lifted .slot-piece { opacity: .3; }
+.slot-piece { display: grid; place-items: center; }
 
 .shop { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ui-space-2); }
 .buy { display: grid; justify-items: center; align-content: space-between; gap: 2px; height: 88px; padding: 8px 2px; border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); transition: transform 120ms ease; min-width: 0; }
@@ -230,9 +229,8 @@ svg { display: block; }
   .topbar .spacer { width: 40px; }
   .stat { height: 40px; }
   .stat .ic { width: 26px; height: 26px; }
-  .queue { padding: 10px 12px 6px; }
-  .now { --u: 12px; width: 92px; height: 74px; }
-  .next { --u: 8px; height: 68px; }
+  .tray { --u: 11px; padding: 8px; }
+  .slot { height: 74px; }
   .buy { height: 66px; padding: 5px 2px; }
   .buy .bi { width: 28px; height: 28px; }
   .buy .bi svg { width: 18px; height: 18px; }

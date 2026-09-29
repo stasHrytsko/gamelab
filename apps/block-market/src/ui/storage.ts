@@ -1,11 +1,12 @@
+import { LEVEL_COUNT } from '../levels/levels.ts';
+
 export interface Progress {
-  /** Больше всего пройденных уровней подряд за один забег. */
-  readonly best: number;
+  readonly passed: readonly number[];
   readonly howToPlaySeen: boolean;
 }
 
-const KEY = 'block-market:progress:v1';
-const EMPTY: Progress = { best: 0, howToPlaySeen: false };
+const KEY = 'block-market:progress:v2';
+const EMPTY: Progress = { passed: [], howToPlaySeen: false };
 
 // Приватный режим и встроенные браузеры мессенджеров могут запрещать
 // localStorage: тогда прогресс живёт до закрытия вкладки.
@@ -16,7 +17,10 @@ export function loadProgress(): Progress {
     const raw = localStorage.getItem(KEY);
     if (raw === null) return memory;
     const parsed = JSON.parse(raw) as Partial<Progress>;
-    memory = { best: Number.isInteger(parsed.best) ? Math.max(0, parsed.best as number) : 0, howToPlaySeen: parsed.howToPlaySeen === true };
+    memory = {
+      passed: Array.isArray(parsed.passed) ? parsed.passed.filter((n) => Number.isInteger(n)) : [],
+      howToPlaySeen: parsed.howToPlaySeen === true,
+    };
   } catch {
     // остаётся то, что в памяти
   }
@@ -32,11 +36,29 @@ function save(next: Progress): void {
   }
 }
 
-export function recordBest(levelsCleared: number): void {
+export function markPassed(level: number): void {
   const progress = loadProgress();
-  if (levelsCleared > progress.best) save({ ...progress, best: levelsCleared });
+  if (progress.passed.includes(level)) return;
+  save({ ...progress, passed: [...progress.passed, level].sort((a, b) => a - b) });
 }
 
 export function markHowToPlaySeen(): void {
   save({ ...loadProgress(), howToPlaySeen: true });
+}
+
+/** `?unlock=all` в адресе открывает все уровни на эту вкладку, для проверки. */
+const unlockAll = new URLSearchParams(location.search).get('unlock') === 'all';
+
+export function isUnlocked(level: number): boolean {
+  if (unlockAll || level === 1) return true;
+  return loadProgress().passed.includes(level - 1);
+}
+
+/** Первый непройденный уровень; когда все пройдены — последний. */
+export function currentLevel(): number {
+  const { passed } = loadProgress();
+  for (let level = 1; level <= LEVEL_COUNT; level += 1) {
+    if (!passed.includes(level)) return level;
+  }
+  return LEVEL_COUNT;
 }

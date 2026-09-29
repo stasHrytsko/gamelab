@@ -22,12 +22,11 @@ export type LogEvent =
       coins: number;
       burned: number;
     }
-  | { type: 'buy'; level: number; slot: number; purchase: 'rotate' | 'mirror' | 'swap' | 'reroll'; piece: string; cost: number; coins: number; burned: number }
-  | { type: 'buy_refused'; level: number; purchase: 'rotate' | 'mirror' | 'swap' | 'reroll'; reason: 'no_coins' | 'no_change' }
+  | { type: 'buy'; level: number; slot: number; purchase: 'rotate' | 'mirror' | 'swap'; piece: string; cost: number; coins: number; burned: number }
+  | { type: 'buy_refused'; level: number; purchase: 'rotate' | 'mirror' | 'swap'; reason: 'no_coins' | 'no_change' }
   | { type: 'help_open'; level: number }
   | { type: 'level_win'; level: number; lines: number; goal: number; coins: number }
-  | { type: 'level_fail'; level: number; reason: 'goal_missed'; lines: number; goal: number; levelsCleared: number }
-  | { type: 'run_win'; levelsCleared: number };
+  | { type: 'level_fail'; level: number; reason: 'goal_missed'; lines: number; goal: number };
 
 export function log(event: LogEvent): void {
   try {

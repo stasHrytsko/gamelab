@@ -1,22 +1,68 @@
+import art from '@ui/prototypes/block-market/assets/home-art.webp';
+import { LEVELS } from '../levels/levels.ts';
 import { icon } from './icons.ts';
-import { loadProgress } from './storage.ts';
+import { currentLevel, isUnlocked, loadProgress } from './storage.ts';
 
 export type Go = (route: string) => void;
 
-const HERO = [1, 3, 0, 5, 0, 1, 3, 5, 2, 0, 1, 1, 2, 4, 4, 0];
-
 export function homeScreen(go: Go): HTMLElement {
-  const best = loadProgress().best;
   const el = document.createElement('main');
   el.className = 'screen home';
   el.dataset['testid'] = 'home';
-  const tiles = HERO.map((c, i) => (c === 0 ? '<i></i>' : `<i class="tile c-${String(c)}" style="animation-delay:${String(i * 45)}ms"></i>`)).join('');
+  // Арт автора: название, поле и монеты. Нарисованная кнопка обрезана;
+  // низ арта растворяется в размытой копии, кнопка — настоящая, под артом.
+  el.style.setProperty('--art', `url("${art}")`);
   el.innerHTML = `
-    <div class="home-hero" aria-hidden="true"><div class="hero-board">${tiles}</div><span class="hero-coin">${icon.coin}<b>+4</b></span></div>
-    <h1 class="home-title">Block Market</h1>
-    <p class="home-sub">Собирай линии. Плати за удобство.</p>
-    <button class="play-btn" data-testid="play">Играть</button>
-    <p class="home-best" data-testid="best">${best > 0 ? `Рекорд: ${String(best)} ${best === 1 ? 'уровень' : [2, 3, 4].includes(best % 10) && ![12, 13, 14].includes(best % 100) ? 'уровня' : 'уровней'} подряд` : '12 уровней по 20 фигур'}</p>`;
-  el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/play'));
+    <div class="home-bg" aria-hidden="true"></div>
+    <img class="home-art" src="${art}" alt="" width="941" height="1262">
+    <h1 class="sr-only">Block Market</h1>
+    <button class="play-btn" data-testid="play">Играть</button>`;
+  el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
+  return el;
+}
+
+const word = (n: number, one: string, few: string, many: string): string =>
+  n % 10 === 1 && n % 100 !== 11 ? one : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? few : many;
+
+export function levelsScreen(go: Go): HTMLElement {
+  const { passed } = loadProgress();
+  const current = currentLevel();
+  const el = document.createElement('main');
+  el.className = 'screen';
+  el.dataset['testid'] = 'levels';
+  const cards = LEVELS.map((level) => {
+    const n = level.id;
+    const done = passed.includes(n);
+    const open = isUnlocked(n);
+    const state = done ? 'done' : open && n === current ? 'current' : open ? 'open' : 'locked';
+    const tile = open
+      ? `<div class="num"><div class="tile ${done ? 'c-4' : 'c-1'}"><span>${String(n)}</span></div></div>`
+      : `<div class="lock">${icon.lock}</div>`;
+    const badge = done ? `<div class="check">${icon.check}</div>` : state === 'current' ? `<div class="play-mini">${icon.play}</div>` : '';
+    return `<button class="level-card ${state === 'open' ? '' : state}" data-level="${String(n)}" data-testid="level-${String(n)}" style="animation-delay:${String(n * 50)}ms">
+        ${tile}
+        <div><h3>Уровень ${String(n)}</h3><p>${icon.lines}${String(level.goal)} ${word(level.goal, 'линия', 'линии', 'линий')} · ${String(level.stones)} ${word(level.stones, 'камень', 'камня', 'камней')}</p></div>
+        <div class="state">${badge}</div>
+      </button>`;
+  });
+  el.innerHTML = `
+    <div class="topbar">
+      <button class="icon-btn" data-testid="to-home" aria-label="На главный">${icon.back}</button>
+      <h2>Уровни</h2><div class="spacer"></div>
+    </div>
+    <div class="levels">${cards.join('')}</div>`;
+  el.querySelector('[data-testid="to-home"]')?.addEventListener('click', () => go('#/'));
+  el.querySelectorAll<HTMLElement>('.level-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const n = Number(card.dataset['level']);
+      if (isUnlocked(n)) {
+        go(`#/level/${String(n)}`);
+        return;
+      }
+      card.classList.remove('shake-x');
+      void card.offsetWidth;
+      card.classList.add('shake-x');
+    });
+  });
   return el;
 }

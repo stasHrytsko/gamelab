@@ -4,7 +4,8 @@ import {
   baseCells, cellsKey, colorOf, dealtForms, mirror, normalize, rotate, STONE, swapPrice, TYPES, weightOf,
   type Cells, type PieceType,
 } from './catalog.ts';
-import { blockersFor, CFG, goalFor, hostileK, incomeFor } from './config.ts';
+import { CFG, incomeFor } from './config.ts';
+import type { LevelDef } from '../levels/levels.ts';
 import { hash, makeRng, nextFloat, type Rng } from './rng.ts';
 
 export interface Piece {
@@ -13,16 +14,15 @@ export interface Piece {
   readonly color: number;
 }
 
-export type Status = 'playing' | 'level_won' | 'lost' | 'run_won';
+export type Status = 'playing' | 'won' | 'lost';
 /** Стабильные коды причин поражения (для лога). */
 export type LoseReason = 'goal_missed';
 
 export interface GameState {
   readonly seed: number;
+  readonly def: LevelDef;
   readonly level: number;
   readonly goal: number;
-  /** ?goal=N в адресе: одна цель на все уровни, для проверки. */
-  readonly goalOverride: number | null;
   /** 64 клетки, ряд за рядом: 0 пусто, 1–5 цвет фигуры, 9 камень. */
   readonly board: readonly number[];
   /** Фигуры на руках (до трёх): любую можно ставить сразу. Что выйдет дальше, не показывается. */
@@ -33,15 +33,13 @@ export interface GameState {
   readonly coins: number;
   readonly status: Status;
   readonly dealRng: Rng;
-  readonly rerollRng: Rng;
   /** Сколько фигур уже сдано на этом уровне (не больше PIECES). */
   readonly dealIdx: number;
-  readonly levelsCleared: number;
-  /** Монет, сгоревших о потолок кошелька, за весь забег. */
+  /** Монет, сгоревших о потолок кошелька, на этом уровне. */
   readonly capLost: number;
 }
 
-export type Purchase = 'rotate' | 'mirror' | 'swap' | 'reroll';
+export type Purchase = 'rotate' | 'mirror' | 'swap';
 
 export type GameEvent =
   | {
@@ -68,7 +66,7 @@ export interface Outcome {
 const N = CFG.SIZE;
 export const CELLS = N * N;
 /** Самое дешёвое платное действие: с меньшим кошельком фигура, что не встала, сгорает. */
-export const MIN_COST = Math.min(CFG.ROTATE_COST, CFG.MIRROR_COST, CFG.REROLL_COST, Math.min(...TYPES.map(swapPrice)));
+export const MIN_COST = Math.min(CFG.ROTATE_COST, CFG.MIRROR_COST, Math.min(...TYPES.map(swapPrice)));
 
 // ---------- поле ----------
 export function fits(board: readonly number[], cells: Cells, x: number, y: number): boolean {
@@ -122,8 +120,8 @@ export function preview(state: GameState, slot: number, x: number, y: number): (
 }
 
 // ---------- сдача ----------
-function drawType(level: number, rng: Rng): PieceType {
-  const weights = TYPES.map((t) => weightOf(t, level));
+function drawType(mix: number, rng: Rng): PieceType {
+  const weights = TYPES.map((t) => weightOf(t, mix));
   const total = weights.reduce((a, b) => a + b, 0);
   const u = nextFloat(rng);
   let acc = 0;
@@ -134,68 +132,64 @@ function drawType(level: number, rng: Rng): PieceType {
   return TYPES[TYPES.length - 1] as PieceType;
 }
 
-/** Из k кандидатов берётся та, что хуже всего ложится без платных действий; без hostile — просто случайная. */
-export function deal(level: number, board: readonly number[], rng: Rng, hostile: boolean): Piece {
-  const k = hostile ? hostileK(level) : 1;
+/**
+ * Сдаёт фигуру. С `hostile` из k кандидатов берётся та, что хуже всего ложится
+ * на поле как есть; без него — просто случайная. `mix` — глубина набора фигур.
+ * `avoid` — типы, которые уже на руке: они не выпадают (если только не повезло 8 раз подряд).
+ */
+export function deal(mix: number, k: number, board: readonly number[], rng: Rng, hostile: boolean, avoid: readonly PieceType[] = []): Piece {
+  const n = hostile ? k : 1;
   let pick: Piece | null = null;
   let pickFits = Infinity;
-  for (let i = 0; i < k; i += 1) {
-    const type = drawType(level, rng);
+  for (let i = 0; i < n; i += 1) {
+    let type = drawType(mix, rng);
+    // не даём две одинаковые фигуры на одной руке (на пустом поле неудобнее всех палка, и без этого их было бы три)
+    for (let tries = 0; tries < 8 && avoid.includes(type); tries += 1) type = drawType(mix, rng);
     const forms = dealtForms(type);
     const cells = forms[Math.floor(nextFloat(rng) * forms.length)] as Cells;
-    const n = countFits(board, cells);
-    if (n < pickFits) {
-      pickFits = n;
+    const fitsCount = countFits(board, cells);
+    if (fitsCount < pickFits) {
+      pickFits = fitsCount;
       pick = { type, cells, color: colorOf(type) };
     }
   }
   return pick as Piece;
 }
 
-// ---------- уровень и забег ----------
+// ---------- уровень ----------
 type Draft = { -readonly [K in keyof GameState]: GameState[K] } & { board: number[]; hand: Piece[] };
 
-const draft = (s: GameState): Draft => ({
-  ...s, board: s.board.slice(), hand: s.hand.slice(), dealRng: { ...s.dealRng }, rerollRng: { ...s.rerollRng },
-});
+const draft = (s: GameState): Draft => ({ ...s, board: s.board.slice(), hand: s.hand.slice(), dealRng: { ...s.dealRng } });
 
 function dealNext(d: Draft): Piece {
   const hostile = d.dealIdx % CFG.HOSTILE_EVERY === 0;
   d.dealIdx += 1;
-  return deal(d.level, d.board, d.dealRng, hostile);
+  return deal(d.def.mix, d.def.hostileK, d.board, d.dealRng, hostile, d.hand.map((p) => p.type));
 }
 
-function buildLevel(seed: number, level: number, coins: number, goalOverride: number | null, carry: { levelsCleared: number; capLost: number }): GameState {
+export interface LevelOptions {
+  /** Своё зерно вместо зерна уровня (?seed=N). */
+  readonly seed?: number | null;
+  /** Своя цель по линиям вместо цели уровня (?goal=N). */
+  readonly goal?: number | null;
+}
+
+export function startLevel(def: LevelDef, options: LevelOptions = {}): GameState {
+  const seed = options.seed ?? def.seed;
   const board = new Array<number>(CELLS).fill(0);
-  const blockerRng = makeRng(hash(seed, level, 1));
-  for (let n = 0; n < blockersFor(level); ) {
-    const y = Math.floor(nextFloat(blockerRng) * N), x = Math.floor(nextFloat(blockerRng) * N);
+  const stoneRng = makeRng(hash(seed, def.id, 1));
+  for (let n = 0; n < def.stones; ) {
+    const y = Math.floor(nextFloat(stoneRng) * N), x = Math.floor(nextFloat(stoneRng) * N);
     if (board[y * N + x] === 0) { board[y * N + x] = STONE; n += 1; }
   }
   for (let y = 0; y < N; y += 1) if (board.slice(y * N, y * N + N).every((v) => v !== 0)) board.fill(0, y * N, y * N + N);
   const d: Draft = {
-    seed, level, goal: goalOverride ?? goalFor(level), goalOverride, board, hand: [], used: 0, lines: 0, coins,
-    status: 'playing', dealRng: makeRng(hash(seed, level, 2)), rerollRng: makeRng(hash(seed, level, 3)), dealIdx: 0,
-    levelsCleared: carry.levelsCleared, capLost: carry.capLost,
+    seed, def, level: def.id, goal: options.goal ?? def.goal, board, hand: [], used: 0, lines: 0, coins: CFG.START_COINS,
+    status: 'playing', dealRng: makeRng(hash(seed, def.id, 2)), dealIdx: 0, capLost: 0,
   };
-  d.hand = [dealNext(d), dealNext(d), dealNext(d)];
+  for (let i = 0; i < 3; i += 1) d.hand.push(dealNext(d));
   settle(d, []);
   return d;
-}
-
-export interface RunOptions {
-  readonly level?: number;
-  readonly goal?: number | null;
-}
-
-export function startRun(seed: number, options: RunOptions = {}): GameState {
-  return buildLevel(seed, options.level ?? 1, CFG.START_COINS, options.goal ?? null, { levelsCleared: 0, capLost: 0 });
-}
-
-/** Следующий уровень после `level_won`: кошелёк переносится. */
-export function nextLevel(state: GameState): GameState | null {
-  if (state.status !== 'level_won') return null;
-  return buildLevel(state.seed, state.level + 1, state.coins, state.goalOverride, state);
 }
 
 /** Фигура ушла с руки (поставлена или сгорела): на её место встаёт новая, пока сданы не все 20. */
@@ -205,20 +199,42 @@ function useSlot(d: Draft, slot: number): void {
   else d.hand.splice(slot, 1);
 }
 
-/** Сжигает фигуры, когда ни одной из трёх некуда встать, а монет нет; закрывает уровень после 20-й. */
+/**
+ * Можно ли за имеющиеся монеты сделать так, чтобы какая-то фигура встала:
+ * повернуть (по часовой, каждый раз 2), отзеркалить, заменить на другую и потом повернуть.
+ */
+export function rescuable(board: readonly number[], hand: readonly Piece[], coins: number): boolean {
+  const orientations = (cells: Cells, budget: number): boolean => {
+    let base = cells;
+    for (let m = 0; m < 2; m += 1) {
+      const mirrorCost = m * CFG.MIRROR_COST;
+      let c = base;
+      for (let r = 0; r < 4; r += 1) {
+        if (mirrorCost + r * CFG.ROTATE_COST <= budget && countFits(board, c) > 0) return true;
+        c = rotate(c);
+      }
+      base = mirror(cells);
+    }
+    return false;
+  };
+  for (const piece of hand) {
+    if (orientations(piece.cells, coins)) return true;
+    for (const type of TYPES) {
+      const price = swapPrice(type);
+      if (price <= coins && orientations(baseCells(type), coins - price)) return true;
+    }
+  }
+  return false;
+}
+
+/** Сжигает фигуру, когда ни одной некуда встать и никакая покупка не поможет; закрывает уровень после 20-й. */
 function settle(d: Draft, burned: Piece[]): void {
   while (d.status === 'playing') {
     if (d.used >= CFG.PIECES) {
-      if (d.lines >= d.goal) {
-        d.levelsCleared += 1;
-        const room = CFG.CAP - d.coins;
-        d.capLost += Math.max(0, CFG.LEVEL_BONUS - room);
-        d.coins = Math.min(CFG.CAP, d.coins + CFG.LEVEL_BONUS);
-        d.status = d.level >= CFG.MAX_LEVELS ? 'run_won' : 'level_won';
-      } else d.status = 'lost';
+      d.status = d.lines >= d.goal ? 'won' : 'lost';
       return;
     }
-    if (d.hand.every((p) => countFits(d.board, p.cells) === 0) && d.coins < MIN_COST) {
+    if (d.hand.every((p) => countFits(d.board, p.cells) === 0) && !rescuable(d.board, d.hand, d.coins)) {
       burned.push(d.hand[0] as Piece);
       useSlot(d, 0);
       continue;
@@ -283,11 +299,6 @@ export function swapPiece(state: GameState, slot: number, type: PieceType): Outc
     if (p.type === type && cellsKey(cells) === cellsKey(normalize(p.cells))) return null;
     return { type, cells, color: colorOf(type) };
   });
-}
-
-/** Пересдача: новая случайная фигура на это место, без «неудобности». */
-export function rerollPiece(state: GameState, slot: number): Outcome | null {
-  return buy(state, slot, CFG.REROLL_COST, 'reroll', (d) => deal(d.level, d.board, d.rerollRng, false));
 }
 
 /** Ни одной из фигур на руках некуда встать (для подсказки игроку). */

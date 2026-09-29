@@ -17,6 +17,6 @@ export const icon = {
   rotate: svg(stroke('<path d="M20 12a8 8 0 11-2.6-5.9"/><path d="M20 4v5h-5"/>')),
   mirror: svg(stroke('<path d="M12 3v18" stroke-dasharray="2 3"/><path d="M9 7L4 17h5z" fill="currentColor" fill-opacity=".2"/><path d="M15 7l5 10h-5z"/>')),
   swap: svg(stroke('<path d="M4 8h14M14 4l4 4-4 4"/><path d="M20 16H6M10 12l-4 4 4 4"/>')),
-  reroll: svg(stroke('<rect x="4" y="4" width="16" height="16" rx="4"/>') + '<g fill="currentColor"><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="15" r="1.2"/><circle cx="15" cy="9" r="1.2"/><circle cx="9" cy="15" r="1.2"/></g>'),
+  lock: svg('<rect x="4.5" y="10.5" width="15" height="10.5" rx="3" fill="currentColor"/><path d="M8 10.5V8a4 4 0 018 0v2.5" fill="none" stroke="currentColor" stroke-width="2.6"/>'),
   coin: svg('<circle cx="12" cy="12" r="11" fill="var(--ui-yellow)"/><circle cx="12" cy="12" r="10.2" fill="none" stroke="color-mix(in srgb, var(--ui-yellow) 70%, #b45309)" stroke-width="1.6"/><circle cx="12" cy="12" r="6.4" fill="none" stroke="color-mix(in srgb, var(--ui-yellow) 55%, #b45309)" stroke-width="1.6"/><path d="M7.6 7.4a5.2 5.2 0 016.2-1.3" stroke="#fff" stroke-opacity=".75" stroke-width="1.6" fill="none" stroke-linecap="round"/>', 'coin'),
 };

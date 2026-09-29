@@ -100,7 +100,19 @@ svg { display: block; }
 .c-1 { --c: var(--piece-1); } .c-2 { --c: var(--piece-2); } .c-3 { --c: var(--piece-3); } .c-4 { --c: var(--piece-4); } .c-5 { --c: var(--piece-5); }
 .c-9 { --c: var(--piece-9); }
 
-/* ---------- главный ---------- */
+/* ---------- главный: арт автора во весь экран и живая кнопка ---------- */
+.home { align-items: center; justify-content: center; overflow: hidden; background: var(--ui-background); padding: env(safe-area-inset-top) 0 0; }
+.home > * { position: relative; z-index: 1; }
+.home .home-bg { position: absolute; inset: -60px; z-index: 0; background: var(--art) center / cover no-repeat; filter: blur(36px) saturate(1.1); opacity: .45; transform: scale(1.2); }
+.home-art { width: 100%; max-width: 480px; height: auto; max-height: calc(100dvh - 130px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); min-height: 0; flex: 0 1 auto; object-fit: contain; object-position: bottom;
+  /* Края и низ растворяются в размытой копии; сверху почти без маски — там название. */
+  -webkit-mask-image: linear-gradient(transparent, #000 3%, #000 82%, transparent), linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(transparent, #000 3%, #000 82%, transparent), linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-composite: intersect;
+  animation: art-in 480ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes art-in { from { opacity: 0; transform: translateY(-10px); } }
+
 /* Кнопка «Играть»: пилюля, дышит, светится, раз в 3 с пробегает блик (apps/CLAUDE.md §2). */
 .play-btn {
   position: relative; overflow: hidden; flex: none;
@@ -127,20 +139,35 @@ svg { display: block; }
 .shake-x { animation: shake-x 320ms ease; }
 @keyframes shake-x { 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
 
-/* ---------- главный ---------- */
-.home { align-items: center; justify-content: center; gap: var(--ui-space-3); text-align: center; overflow: hidden;
-  background: radial-gradient(90% 60% at 50% 22%, #fff, var(--ui-background) 72%); }
-.home-hero { position: relative; margin-bottom: var(--ui-space-3); }
-.hero-board { display: grid; grid-template-columns: repeat(4, 56px); grid-auto-rows: 56px; gap: 6px; padding: 14px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-card); }
-.hero-board i:not(.tile) { border-radius: 16px; background: var(--ui-surface-muted); display: block; }
-.hero-board .tile { border-radius: 16px; animation: hero-in 420ms cubic-bezier(.3,1.5,.5,1) both; }
-@keyframes hero-in { from { transform: scale(.4); opacity: 0; } }
-.hero-coin { position: absolute; right: -14px; top: -16px; display: flex; align-items: center; gap: 6px; padding: 6px 12px 6px 8px; border-radius: 999px; background: var(--ui-surface); box-shadow: var(--ui-shadow-card); font-weight: 700; font-size: 16px; animation: breathe 2.4s ease-in-out infinite; }
-.hero-coin .coin { width: 24px; height: 24px; }
-@keyframes breathe { 50% { transform: scale(1.06); } }
-.home-title { font-size: 38px; font-weight: 700; line-height: 1.1; letter-spacing: -.01em; }
-.home-sub { font-size: 15px; color: var(--ui-text-muted); margin-top: -4px; }
-.home-best { font-size: 13px; color: var(--ui-text-muted); }
+/* ---------- уровни ---------- */
+.levels { display: flex; flex-direction: column; gap: var(--ui-space-3); margin: var(--ui-space-4) calc(-1 * var(--ui-space-2)) 0; overflow-y: auto; padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-4); }
+.level-card {
+  display: flex; align-items: center; gap: var(--ui-space-4);
+  padding: var(--ui-space-3) var(--ui-space-4) var(--ui-space-3) var(--ui-space-3);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-soft);
+  text-align: left;
+  width: 100%;
+  animation: card-in 360ms cubic-bezier(.2,.9,.3,1.2) both;
+  transition: transform 120ms ease;
+}
+.level-card:active { transform: scale(0.97); }
+@keyframes card-in { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+.level-card .num { width: 64px; height: 64px; flex: none; }
+.level-card .num .tile span { position: relative; z-index: 1; color: #fff; font-size: 28px; font-weight: 700; text-shadow: 0 1px 2px rgba(31,41,55,.2); }
+.level-card .lock { width: 64px; height: 64px; border-radius: 28%; background: linear-gradient(160deg, #e2e8f0, var(--ui-disabled)); box-shadow: inset 0 -3px 0 #b6c2d2; display: grid; place-items: center; color: #fff; }
+.level-card .lock svg { width: 26px; height: 26px; }
+.level-card h3 { font-size: 16px; font-weight: 600; }
+.level-card p { font-size: 12px; color: var(--ui-text-muted); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.level-card p svg { width: 14px; height: 14px; }
+.level-card .state { margin-left: auto; }
+.level-card.current { box-shadow: 0 0 0 3px var(--ui-blue), var(--ui-shadow-card); }
+.level-card.locked h3, .level-card.locked p { color: var(--ui-disabled); }
+.check { width: 30px; height: 30px; border-radius: 50%; background: var(--ui-success); display: grid; place-items: center; color: #fff; }
+.check svg { width: 16px; height: 16px; }
+.play-mini { width: 38px; height: 38px; border-radius: 50%; background: var(--ui-blue); display: grid; place-items: center; color: #fff; box-shadow: 0 6px 12px rgba(79,126,255,.35); animation: breathe 2s ease-in-out infinite; }
+.play-mini svg { width: 14px; height: 14px; margin-left: 2px; }
 
 /* ---------- игровой экран ---------- */
 .game { gap: var(--ui-space-2); padding-bottom: calc(env(safe-area-inset-bottom) + var(--ui-space-3)); }
@@ -155,8 +182,8 @@ svg { display: block; }
 .stat .ic svg { width: 17px; height: 17px; }
 .stat .coin-ic { background: none; }
 .stat .coin-ic svg { width: 28px; height: 28px; }
-.stat .t { display: grid; line-height: 1.1; min-width: 0; }
-.stat small { font-size: 11px; font-weight: 500; color: var(--ui-text-muted); }
+.stat .t { display: grid; line-height: 1.15; min-width: 0; }
+.stat small { font-size: 11px; font-weight: 500; color: var(--ui-text-muted); white-space: nowrap; }
 .stat b { font-size: 16px; font-weight: 700; }
 .stat b i { font-style: normal; font-size: 12px; font-weight: 500; color: var(--ui-text-muted); margin-left: 2px; }
 .stat.done { box-shadow: 0 0 0 2px var(--ui-success), var(--ui-shadow-soft); }
@@ -187,7 +214,7 @@ svg { display: block; }
 .slot.lifted .slot-piece { opacity: .3; }
 .slot-piece { display: grid; place-items: center; }
 
-.shop { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ui-space-2); }
+.shop { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ui-space-2); }
 .buy { display: grid; justify-items: center; align-content: space-between; gap: 2px; height: 88px; padding: 8px 2px; border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); transition: transform 120ms ease; min-width: 0; }
 .buy:active { transform: scale(.94); }
 .buy .bi { width: 38px; height: 38px; border-radius: var(--ui-radius-medium); background: color-mix(in srgb, var(--ui-blue) 12%, white); color: var(--ui-blue); display: grid; place-items: center; }

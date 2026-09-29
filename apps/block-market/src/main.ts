@@ -1,6 +1,8 @@
 import './styles.css';
-import { gameScreen, type RunParams, type Screen } from './ui/game.ts';
-import { homeScreen } from './ui/screens.ts';
+import { LEVEL_COUNT } from './levels/levels.ts';
+import { gameScreen, type GameParams, type Screen } from './ui/game.ts';
+import { homeScreen, levelsScreen } from './ui/screens.ts';
+import { isUnlocked } from './ui/storage.ts';
 
 // Маршруты в hash: ссылка вида /#/play открывается на любом статическом
 // хостинге и во встроенных браузерах мессенджеров без настройки сервера.
@@ -24,29 +26,29 @@ function go(next: string): void {
 }
 
 /**
- * Для проверки: ?seed=N — та же партия, ?level=N — стартовать с N-го уровня,
- * ?goal=N — одна цель по линиям на все уровни.
+ * Для проверки: ?seed=N — своё зерно вместо зерна уровня, ?goal=N — своя цель
+ * по линиям (0 — уровень проходится всегда), ?unlock=all — открыть все уровни.
  */
-function runParams(): RunParams {
+function gameParams(level: number): GameParams {
   const q = new URLSearchParams(location.search);
   const int = (name: string): number | null => {
     const raw = q.get(name);
     const n = raw === null ? NaN : Number(raw);
     return Number.isInteger(n) && n >= 0 ? n : null;
   };
-  const seed = int('seed');
-  const level = int('level');
-  const goal = int('goal');
-  return {
-    seed: seed ?? (Math.floor(Math.random() * 2 ** 31) ^ Date.now()) >>> 0,
-    fixedSeed: seed !== null,
-    level: level !== null && level >= 1 && level <= 12 ? level : 1,
-    goal,
-  };
+  return { level, seed: int('seed'), goal: int('goal') };
 }
 
 function screenFor(hash: string): Screen {
-  if (hash === '#/play') return gameScreen(go, runParams());
+  const match = /^#\/level\/(\d+)$/.exec(hash);
+  if (match !== null) {
+    const n = Number(match[1]);
+    if (n >= 1 && n <= LEVEL_COUNT && isUnlocked(n)) return gameScreen(go, gameParams(n));
+    if (inMemory) memoryRoute = '#/levels';
+    else history.replaceState(null, '', '#/levels');
+    return { el: levelsScreen(go), destroy: () => undefined };
+  }
+  if (hash === '#/levels') return { el: levelsScreen(go), destroy: () => undefined };
   return { el: homeScreen(go), destroy: () => undefined };
 }
 

@@ -1,7 +1,7 @@
 import { baseCells, colorOf, swapPrice, TYPES, type PieceType } from '../engine/catalog.ts';
 import { CFG } from '../engine/config.ts';
 import {
-  countFits, fits, MIN_COST, mirrorPiece, nextLevel, place, preview, rerollPiece, rotatePiece, startRun, stuck, swapPiece,
+  countFits, fits, mirrorPiece, place, preview, rotatePiece, startLevel, stuck, swapPiece,
   type GameEvent, type GameState, type Outcome, type Purchase,
 } from '../engine/engine.ts';
 import { reducedMotion, vibrate, wait } from './feedback.ts';
@@ -10,19 +10,20 @@ import { log } from './log.ts';
 import { pieceHtml } from './pieces.ts';
 import { openPopup, type PopupAction } from './popup.ts';
 import type { Go } from './screens.ts';
-import { loadProgress, markHowToPlaySeen, recordBest } from './storage.ts';
+import { levelDef, LEVEL_COUNT } from '../levels/levels.ts';
+import { loadProgress, markHowToPlaySeen, markPassed } from './storage.ts';
 
 export interface Screen {
   el: HTMLElement;
   destroy: () => void;
 }
 
-export interface RunParams {
-  readonly seed: number;
+export interface GameParams {
   readonly level: number;
+  /** ?seed=N: своё зерно вместо зерна уровня. */
+  readonly seed: number | null;
+  /** ?goal=N: своя цель по линиям. */
   readonly goal: number | null;
-  /** Зерно задано в адресе: «Заново» повторяет ту же партию. */
-  readonly fixedSeed: boolean;
 }
 
 const N = CFG.SIZE;
@@ -32,9 +33,8 @@ const PAD = 8;
 const LIFT = 44;
 
 const dur = (ms: number): number => (reducedMotion() ? 1 : ms);
-const randomSeed = (): number => (Math.floor(Math.random() * 2 ** 31) ^ Date.now()) >>> 0;
 
-const COSTS: Record<Exclude<Purchase, 'swap'>, number> = { rotate: CFG.ROTATE_COST, mirror: CFG.MIRROR_COST, reroll: CFG.REROLL_COST };
+const COSTS: Record<Exclude<Purchase, 'swap'>, number> = { rotate: CFG.ROTATE_COST, mirror: CFG.MIRROR_COST };
 const cheapestSwap = Math.min(...TYPES.map(swapPrice));
 
 const coinAcc = (n: number): string => (n % 10 === 1 && n % 100 !== 11 ? 'монету' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'монеты' : 'монет');
@@ -42,9 +42,11 @@ const burnText = (n: number): string => (n === 1 ? 'Фигура сгорела:
 
 const coinWord = (n: number): string => (n % 10 === 1 && n % 100 !== 11 ? 'монета' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'монеты' : 'монет');
 
-export function gameScreen(go: Go, params: RunParams): Screen {
-  let seed = params.seed;
-  let state: GameState = startRun(seed, { level: params.level, goal: params.goal });
+export function gameScreen(go: Go, params: GameParams): Screen {
+  const def = levelDef(params.level);
+  if (def === undefined) throw new Error(`no level ${String(params.level)}`);
+  const seed = params.seed ?? def.seed;
+  let state: GameState = startLevel(def, { seed: params.seed, goal: params.goal });
   let busy = false;
   let sheetOpen = false;
   let popupOpen = false;
@@ -63,9 +65,9 @@ export function gameScreen(go: Go, params: RunParams): Screen {
       </div>
     </div>
     <div class="stats">
-      <div class="stat" data-testid="stat-pieces"><span class="ic" style="--c:var(--ui-blue)">${icon.pieces}</span><span class="t"><small>Фигуры</small><b></b></span></div>
-      <div class="stat" data-testid="stat-lines"><span class="ic" style="--c:var(--ui-green)">${icon.lines}</span><span class="t"><small>Линии</small><b></b></span></div>
-      <div class="stat" data-testid="stat-coins"><span class="ic coin-ic">${icon.coin}</span><span class="t"><small>Монеты</small><b></b></span></div>
+      <div class="stat" data-testid="stat-pieces" title="Фигур показано из ${String(CFG.PIECES)}"><span class="ic" style="--c:var(--ui-blue)">${icon.pieces}</span><span class="t"><b></b><small></small></span></div>
+      <div class="stat" data-testid="stat-lines" title="Линий собрано"><span class="ic" style="--c:var(--ui-green)">${icon.lines}</span><span class="t"><b></b><small></small></span></div>
+      <div class="stat" data-testid="stat-coins" title="Монет в кошельке"><span class="ic coin-ic">${icon.coin}</span><span class="t"><b></b><small></small></span></div>
     </div>
     <div class="stage"><div class="board" data-testid="board"></div></div>
     <div class="tray" data-testid="tray">
@@ -75,7 +77,6 @@ export function gameScreen(go: Go, params: RunParams): Screen {
       ${shopButton('rotate', icon.rotate, 'Поворот 90°')}
       ${shopButton('mirror', icon.mirror, 'Зеркало')}
       ${shopButton('swap', icon.swap, 'Замена')}
-      ${shopButton('reroll', icon.reroll, 'Пересдача')}
     </div>
     <div class="hint" data-testid="hint"></div>`;
 
@@ -87,7 +88,7 @@ export function gameScreen(go: Go, params: RunParams): Screen {
   let sel = 0;
   const hint = $('.hint');
   const buttons = new Map<Purchase, HTMLButtonElement>(
-    (['rotate', 'mirror', 'swap', 'reroll'] as const).map((k) => [k, $<HTMLButtonElement>(`[data-buy="${k}"]`)]),
+    (['rotate', 'mirror', 'swap'] as const).map((k) => [k, $<HTMLButtonElement>(`[data-buy="${k}"]`)]),
   );
   const cellEls: HTMLElement[] = [];
   for (let i = 0; i < N * N; i += 1) {
@@ -114,7 +115,7 @@ export function gameScreen(go: Go, params: RunParams): Screen {
 
   function defaultHint(): string {
     if (state.status !== 'playing') return '';
-    if (stuck(state) && state.coins >= MIN_COST) return 'Ни одной фигуре некуда встать: <b>поверни, отзеркаль, замени или пересдай</b>';
+    if (stuck(state)) return 'Ни одной фигуре некуда встать: <b>поверни, отзеркаль или замени</b>';
     if (state.lines >= state.goal) return '<b>Цель выполнена.</b> Доигрывай уровень и копи монеты';
     return 'Выбери любую фигуру и перетащи на поле';
   }
@@ -134,10 +135,16 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     el.dataset['hand'] = s.hand.map((p) => p.type).join(',');
     el.dataset['stuck'] = stuck(s) ? '1' : '0';
     $('[data-testid="title"]').textContent = `Уровень ${String(s.level)}`;
-    $('[data-testid="stat-pieces"] b').innerHTML = `${String(s.used)}<i>/${String(CFG.PIECES)}</i>`;
+    const left = Math.max(0, CFG.PIECES - s.dealIdx);
+    el.dataset['shown'] = String(s.dealIdx);
+    $('[data-testid="stat-pieces"] b').innerHTML = `${String(s.dealIdx)}<i>/${String(CFG.PIECES)}</i>`;
+    $('[data-testid="stat-pieces"] small').textContent = left === 0 ? 'все показаны' : `осталось ${String(left)}`;
+    const linesLeft = Math.max(0, s.goal - s.lines);
     $('[data-testid="stat-lines"] b').innerHTML = `${String(s.lines)}<i>/${String(s.goal)}</i>`;
+    $('[data-testid="stat-lines"] small').textContent = linesLeft === 0 ? 'цель набрана' : `ещё ${String(linesLeft)}`;
     $('[data-testid="stat-lines"]').classList.toggle('done', s.lines >= s.goal);
     $('[data-testid="stat-coins"] b').innerHTML = `${String(s.coins)}<i>/${String(CFG.CAP)}</i>`;
+    $('[data-testid="stat-coins"] small').textContent = s.coins >= CFG.CAP ? 'кошелёк полон' : 'монеты';
     $('[data-testid="stat-coins"]').classList.toggle('full', s.coins >= CFG.CAP);
 
     s.board.forEach((v, i) => {
@@ -164,7 +171,6 @@ export function gameScreen(go: Go, params: RunParams): Screen {
       rotate: playing && rotatePiece(s, sel) !== null,
       mirror: playing && mirrorPiece(s, sel) !== null,
       swap: playing && s.hand[sel] !== undefined && s.coins >= cheapestSwap,
-      reroll: playing && rerollPiece(s, sel) !== null,
     };
     for (const [k, b] of buttons) {
       b.classList.toggle('off', !can[k]);
@@ -358,7 +364,7 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     afterChange();
   }
 
-  const labelFor = (k: Purchase): string => ({ rotate: 'Поворот', mirror: 'Зеркало', swap: 'Замена', reroll: 'Пересдача' })[k];
+  const labelFor = (k: Purchase): string => ({ rotate: 'Поворот', mirror: 'Зеркало', swap: 'Замена' })[k];
 
   async function buy(kind: Purchase, type?: PieceType): Promise<void> {
     if (busy || sheetOpen || popupOpen || state.status !== 'playing') return;
@@ -366,7 +372,6 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     const out: Outcome | null =
       kind === 'rotate' ? rotatePiece(state, sel)
       : kind === 'mirror' ? mirrorPiece(state, sel)
-      : kind === 'reroll' ? rerollPiece(state, sel)
       : type === undefined ? null : swapPiece(state, sel, type);
     if (out === null) {
       const cost = kind === 'swap' ? cheapestSwap : COSTS[kind];
@@ -465,8 +470,8 @@ export function gameScreen(go: Go, params: RunParams): Screen {
   }
 
   function restart(): void {
-    if (!params.fixedSeed) seed = randomSeed();
-    state = startRun(seed, { level: params.level, goal: params.goal });
+    state = startLevel(def as NonNullable<typeof def>, { seed: params.seed, goal: params.goal });
+    sel = 0;
     setBusy(false);
     render();
     log({ type: 'level_start', level: state.level, seed, coins: state.coins });
@@ -474,30 +479,25 @@ export function gameScreen(go: Go, params: RunParams): Screen {
 
   function showEnd(): void {
     popupOpen = true;
-    const host = el;
     const done = (fn: () => void) => (): void => { popupOpen = false; fn(); };
-    const menu: PopupAction = { id: 'menu', html: 'В меню', className: 'btn-ghost', run: done(() => go('#/')) };
-    const again: PopupAction = { id: 'again', html: `${icon.replay} Новый забег`, className: 'btn-primary', run: done(restart) };
-    recordBest(state.levelsCleared);
-    if (state.status === 'level_won') {
+    const menu: PopupAction = { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: done(() => go('#/levels')) };
+    const again: PopupAction = { id: 'again', html: `${icon.replay} Переиграть`, className: 'btn-secondary', run: done(restart) };
+    if (state.status === 'won') {
+      markPassed(state.level);
       log({ type: 'level_win', level: state.level, lines: state.lines, goal: state.goal, coins: state.coins });
-      openPopup(host, `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень ${String(state.level)} пройден</h2><p class="sub">Линий: ${String(state.lines)} из ${String(state.goal)}. В кошельке ${String(state.coins)} ${coinWord(state.coins)}.</p>`, [
-        { id: 'next', html: `Дальше ${icon.play}`, className: 'btn-success', run: done(() => {
-          const next = nextLevel(state);
-          if (next === null) return;
-          state = next;
-          setBusy(false);
-          render();
-          log({ type: 'level_start', level: state.level, seed, coins: state.coins });
-        }) },
-        menu,
-      ], 'popup-win');
-    } else if (state.status === 'run_won') {
-      log({ type: 'run_win', levelsCleared: state.levelsCleared });
-      openPopup(host, `<div class="badge-big badge-cup">${icon.cup}</div><h2>Забег пройден!</h2><p class="sub">Все ${String(CFG.MAX_LEVELS)} уровней позади.</p>`, [again, menu], 'popup-final');
+      if (state.level >= LEVEL_COUNT) {
+        openPopup(el, `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2><p class="sub">Пять из пяти. Линий на последнем: ${String(state.lines)} из ${String(state.goal)}.</p>`, [{ ...again, className: 'btn-primary' }, menu], 'popup-final');
+      } else {
+        const nextId = state.level + 1;
+        openPopup(el, `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень ${String(state.level)} пройден</h2><p class="sub">Линий: ${String(state.lines)} из ${String(state.goal)}. В кошельке осталось ${String(state.coins)} ${coinWord(state.coins)}.</p>`, [
+          { id: 'next', html: `Следующий уровень ${icon.play}`, className: 'btn-success', run: done(() => go(`#/level/${String(nextId)}`)) },
+          again,
+          menu,
+        ], 'popup-win');
+      }
     } else {
-      log({ type: 'level_fail', level: state.level, reason: 'goal_missed', lines: state.lines, goal: state.goal, levelsCleared: state.levelsCleared });
-      openPopup(host, `<div class="badge-big badge-lose">${icon.cross}</div><h2>Цель не набрана</h2><p class="sub">Линий: ${String(state.lines)} из ${String(state.goal)}. Пройдено уровней: ${String(state.levelsCleared)}.</p>`, [again, menu], 'popup-lose');
+      log({ type: 'level_fail', level: state.level, reason: 'goal_missed', lines: state.lines, goal: state.goal });
+      openPopup(el, `<div class="badge-big badge-lose">${icon.cross}</div><h2>Цель не набрана</h2><p class="sub">Линий: ${String(state.lines)} из ${String(state.goal)}.</p>`, [{ ...again, className: 'btn-primary' }, menu], 'popup-lose');
     }
   }
 
@@ -510,9 +510,9 @@ export function gameScreen(go: Go, params: RunParams): Screen {
     openPopup(el, `<h2>Как играть?</h2>
       <ol class="rules">
         <li><b>1</b><span>Выбери любую из трёх фигур и перетащи на поле. Полная строка или столбец исчезает и платит монеты: <b>1, 4, 9</b> за 1, 2, 3 линии сразу.</span></li>
-        <li><b>2</b><span>Фигура неудобная? За монеты можно <b>повернуть</b>, <b>отзеркалить</b>, <b>заменить</b> или <b>пересдать</b> выбранную. В кошельке до ${String(CFG.CAP)}.</span></li>
-        <li><b>3</b><span>На уровне ${String(CFG.PIECES)} фигур. Собери нужное число линий.</span></li>
-        <li><b>4</b><span>Если ни одной из трёх некуда встать, а монет меньше ${String(MIN_COST)}, одна фигура сгорает.</span></li>
+        <li><b>2</b><span>Фигура неудобная? За монеты можно <b>повернуть</b>, <b>отзеркалить</b> или <b>заменить</b> выбранную. В кошельке до ${String(CFG.CAP)}.</span></li>
+        <li><b>3</b><span>На уровне ${String(CFG.PIECES)} фигур. Сверху видно, сколько уже показано и сколько линий ещё нужно.</span></li>
+        <li><b>4</b><span>Если ни одной из трёх некуда встать и никакая покупка не поможет, одна фигура сгорает.</span></li>
       </ol>`, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => { popupOpen = false; } }], 'popup-help');
   }
 

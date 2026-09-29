@@ -51,7 +51,7 @@
   .pc i.f { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 82%, white), var(--c)); box-shadow: inset 0 -2px 0 rgba(31,41,55,.14), 0 2px 4px rgba(31,41,55,.14); }
 
   /* покупки */
-  .shop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .shop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .buy { background: var(--ui-surface); border: 0; border-radius: var(--ui-radius-large); box-shadow: var(--ui-shadow-soft); height: 104px; padding: 10px 4px 10px; display: grid; justify-items: center; align-content: space-between; font-family: inherit; color: var(--ui-text); }
   .buy .bi { width: 40px; height: 40px; border-radius: var(--ui-radius-medium); background: color-mix(in srgb, var(--ui-blue) 12%, white); color: var(--ui-blue); display: grid; place-items: center; }
   .buy .bi svg { width: 24px; height: 24px; }
@@ -140,9 +140,9 @@ function board(overlay = true) {
 
 const head = (title) => `<div class="head"><div class="ibtn">${I.back}</div><h1>${title}</h1><div class="ibtn">${I.gear}</div></div>`;
 const stats = () => `<div class="stats">
-  <div class="stat" style="--c:var(--ui-blue)"><div class="ic">${I.pieces}</div><div class="t"><div class="l">Фигуры</div><div class="v">8 <small>/ 20</small></div></div></div>
-  <div class="stat" style="--c:var(--ui-green)"><div class="ic">${I.lines}</div><div class="t"><div class="l">Линии</div><div class="v">3 <small>/ 7</small></div></div></div>
-  <div class="stat" style="--c:var(--ui-yellow)"><div class="ic" style="background:none">${COIN.replace('<svg', '<svg width="30" height="30"')}</div><div class="t"><div class="l">Монеты</div><div class="v">5 <small>/ 10</small></div></div></div>
+  <div class="stat" style="--c:var(--ui-blue)"><div class="ic">${I.pieces}</div><div class="t"><div class="v">11 <small>/ 20</small></div><div class="l">осталось 9</div></div></div>
+  <div class="stat" style="--c:var(--ui-green)"><div class="ic">${I.lines}</div><div class="t"><div class="v">3 <small>/ 7</small></div><div class="l">ещё 4</div></div></div>
+  <div class="stat" style="--c:var(--ui-yellow)"><div class="ic" style="background:none">${COIN.replace('<svg', '<svg width="30" height="30"')}</div><div class="t"><div class="v">5 <small>/ 10</small></div><div class="l">монеты</div></div></div>
 </div>`;
 
 const F = ['.##', '##.', '.#.'];
@@ -154,7 +154,7 @@ const queue = () => `<div class="tray">
 
 const price = (n) => `<span class="price">${COIN}${n}</span>`;
 const buy = (icon, name, p, off = false) => `<button class="buy${off ? ' off' : ''}"><span class="bi">${icon}</span><span class="n">${name}</span>${price(p)}</button>`;
-const shop = () => `<div class="shop">${buy(I.rot, 'Поворот 90°', 2)}${buy(I.mirror, 'Зеркало', 2)}${buy(I.swap, 'Замена', 'от 5')}${buy(I.dice, 'Пересдача', 2)}</div>`;
+const shop = () => `<div class="shop">${buy(I.rot, 'Поворот 90°', 2)}${buy(I.mirror, 'Зеркало', 2)}${buy(I.swap, 'Замена', 'от 5')}</div>`;
 
 $('#p1').innerHTML = `${head('Уровень 3')}${stats()}${board()}${queue()}${shop()}
   <div class="hint">Выбранная фигура закроет <b>2 линии</b> и вернёт <b>4 монеты</b></div>`;

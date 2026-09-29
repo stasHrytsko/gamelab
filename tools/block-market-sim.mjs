@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Block Market — Monte Carlo экономики (ideas/backlog/41-block-market.md).
+ * Block Market — Monte Carlo экономики (ideas/approved/41-block-market.md).
  *
  * Игра: поле 8×8, забег из уровней по 20 фигур. Клетки строки/столбца заполнены —
  * линия исчезает и платит монеты нелинейно (n-я линия за раз: n(n+1)/2).

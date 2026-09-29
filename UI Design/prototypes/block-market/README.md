@@ -1,6 +1,6 @@
 # Block Market — мокап
 
-Идея — `ideas/backlog/41-block-market.md`.
+Идея — `ideas/approved/41-block-market.md`.
 
 - `mockup.html` → `mockup.png` — два экрана 390×844:
   1. игровой экран: три счётчика (фигуры, линии, монеты), поле 8×8, рука

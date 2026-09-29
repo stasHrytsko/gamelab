@@ -1,4 +1,4 @@
-// Числа игры. Правила — ideas/backlog/41-block-market.md; здесь они собраны в
+// Числа игры. Правила — ideas/approved/41-block-market.md; здесь они собраны в
 // одном месте, чтобы подкручивать баланс без охоты по коду. Числа отдельных
 // уровней — в levels/levels.ts.
 export const CFG = {

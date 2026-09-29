@@ -1,6 +1,6 @@
 # Block Market
 
-Идея — `ideas/backlog/41-block-market.md` (правила, решения автора, Gate 1).
+Идея — `ideas/approved/41-block-market.md`, спека — `specs/41-block-market.md`.
 Мокап — `UI Design/prototypes/block-market/mockup.png`. Арт главного экрана —
 `UI Design/prototypes/block-market/assets/`.
 
@@ -13,7 +13,7 @@
 Сверху три плашки: сколько фигур показано из 20 и сколько осталось; сколько
 линий собрано и сколько ещё нужно; сколько монет.
 
-**Не собрана по полному конвейеру:** спеки `specs/41-block-market.md` и решения
+**Собрана раньше спеки:** спека `specs/41-block-market.md` записана по игре после сборки; решение
 Gate 1 ещё нет. Правила — из идеи, цифры — в `src/engine/config.ts` (общие) и
 `src/levels/levels.ts` (по уровням).
 

@@ -258,8 +258,8 @@ export const LEVEL_CFGS = [
   { id: 'TG-01', w: 3, h: 3, colors: 2, perColor: 2, capsPool: [2, 3], walls: 0, prefill: 0.5, minOpt: 4, maxOpt: 9, minRet: 1 },
   { id: 'TG-02', w: 4, h: 3, colors: 2, perColor: 3, capsPool: [3, 4], walls: 1, prefill: 0.5, minOpt: 6, maxOpt: 12, minRet: 1 },
   { id: 'TG-03', w: 4, h: 3, colors: 2, perColor: 3, capsPool: [3, 4], walls: 2, prefill: 0.5, minOpt: 8, maxOpt: 16, minRet: 2 },
-  { id: 'TG-04', w: 4, h: 3, colors: 3, perColor: 2, capsPool: [2, 3], walls: 1, prefill: 0.5, minOpt: 8, maxOpt: 18, minRet: 2 },
-  { id: 'TG-05', w: 4, h: 3, colors: 3, perColor: 2, capsPool: [2, 3], walls: 2, prefill: 0.5, minOpt: 10, maxOpt: 22, minRet: 3 },
+  { id: 'TG-04', w: 3, h: 3, colors: 3, perColor: 2, capsPool: [2, 3], walls: 1, prefill: 0.5, minOpt: 8, maxOpt: 14, minRet: 2 },
+  { id: 'TG-05', w: 4, h: 3, colors: 3, perColor: 2, capsPool: [2, 3], walls: 3, prefill: 0.67, minOpt: 12, maxOpt: 22, minRet: 2 },
 ];
 
 export function levelFromSeed(cfg, seed) {

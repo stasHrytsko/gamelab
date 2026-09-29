@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../../design-tokens.css">
+<style>
+  html { overflow: hidden; }
+  /* Арт главного экрана The Gap, 941×1340. Заглушка из токенов кита, пока автор не нарисовал свой. */
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 941px; height: 1340px; background: radial-gradient(80% 60% at 50% 30%, #fff, var(--ui-background) 75%); font-family: var(--ui-font); display: flex; flex-direction: column; align-items: center; padding-top: 90px; overflow: hidden; }
+  h1 { font-size: 168px; font-weight: 700; line-height: 1; color: var(--ui-text); letter-spacing: -.02em; }
+  h1 span { color: var(--ui-blue); }
+  .board { margin-top: 70px; position: relative; background: var(--ui-surface); border-radius: 44px; box-shadow: var(--ui-shadow-card); padding: 22px; display: grid; grid-template-columns: repeat(4, 150px); grid-template-rows: repeat(3, 150px); gap: 14px; }
+  .cell { border-radius: 26%; background: var(--ui-surface-muted); }
+  .wall { background: var(--ui-disabled); }
+  .sq { --c: var(--ui-blue); position: absolute; width: 150px; height: 150px; border-radius: 26%; display: grid; place-items: center;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
+    box-shadow: 0 12px 24px rgba(31,41,55,.16), inset 0 -8px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 4px 0 rgba(255,255,255,.45); }
+  .sq svg { width: 50%; height: 50%; filter: drop-shadow(0 2px 3px rgba(31,41,55,.25)); }
+  .gap { position: absolute; background: var(--ui-text); border-radius: 8px; opacity: .85; }
+  .flasks { margin-top: 90px; display: flex; gap: 56px; align-items: flex-end; }
+  .flask { width: 116px; border-radius: 26px 26px 56px 56px; background: var(--ui-surface); border: 4px solid var(--ui-border); box-shadow: var(--ui-shadow-soft); padding: 12px; display: flex; flex-direction: column-reverse; gap: 8px; }
+  .slot { width: 84px; height: 84px; border-radius: 26%; background: var(--ui-surface-muted); position: relative; }
+  .slot .sq { position: static; width: 84px; height: 84px; }
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="#fff"/></symbol>
+  <symbol id="tri" viewBox="0 0 24 24"><path d="M12 4 21 19H3z" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="dia" viewBox="0 0 24 24"><path d="M12 3 21 12 12 21 3 12z" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+</defs></svg>
+<h1>The <span>Gap</span></h1>
+<div class="board" id="b"></div>
+<div class="flasks" id="f"></div>
+<script>
+  const cell = 150, gap = 14, pad = 22;
+  const b = document.getElementById('b');
+  const walls = [0, 6, 9];
+  for (let i = 0; i < 12; i++) b.insertAdjacentHTML('beforeend', `<div class="cell${walls.includes(i) ? ' wall' : ''}"></div>`);
+  const put = (x, y, c, g, extra = '') => b.insertAdjacentHTML('beforeend', `<div class="sq" style="--c:var(--ui-${c});left:${pad + x * (cell + gap)}px;top:${pad + y * (cell + gap)}px;${extra}"><svg><use href="#${g}"/></svg></div>`);
+  put(1, 0, 'blue', 'circle'); put(3, 0, 'coral', 'tri'); put(2, 1, 'yellow', 'dia'); put(0, 2, 'coral', 'tri'); put(2, 2, 'blue', 'circle');
+  b.insertAdjacentHTML('beforeend', `<div class="gap" style="width:120px;height:12px;left:${pad + 3 * (cell + gap) + 15}px;top:-6px"></div><div class="gap" style="width:12px;height:120px;left:-6px;top:${pad + 2 * (cell + gap) + 15}px"></div><div class="gap" style="width:120px;height:12px;left:${pad + 2 * (cell + gap) + 15}px;bottom:-6px"></div>`);
+  const fl = [[['blue', 'circle'], ['coral', 'tri']], [], [['yellow', 'dia']], [['coral', 'tri'], ['coral', 'tri'], ['blue', 'circle']]];
+  const caps = [3, 3, 2, 4];
+  document.getElementById('f').innerHTML = fl.map((st, i) => `<div class="flask">${Array.from({ length: caps[i] }, (_, s) => `<div class="slot">${st[s] ? `<div class="sq" style="--c:var(--ui-${st[s][0]})"><svg><use href="#${st[s][1]}"/></svg></div>` : ''}</div>`).join('')}</div>`).join('');
+</script></body></html>

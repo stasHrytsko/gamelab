@@ -27,15 +27,16 @@ export const CFG = {
   PIECES: 20,            // фигур на уровень
   START_COINS: 5,
   CAP: 10,               // потолок кошелька
-  LEVEL_BONUS: 2,        // монет за пройденный уровень
+  LEVEL_BONUS: 1,        // монет за пройденный уровень
   MAX_LEVELS: 12,        // забег «пройден», если дошёл до конца
-  goal: (L) => Math.min(4 + Math.ceil(L * 0.8), 10), // линий на уровне L (L с 1)
+  goal: (L) => Math.min(4 + Math.ceil(L * 0.8), 9), // линий на уровне L (L с 1)
   blockers: (L) => Math.min(2 + L, 12),     // предзаполненных клеток на старте
   hostK: (L) => Math.min(2 + Math.ceil(L / 2), 5), // из скольких кандидатов выбирается самая неудобная
-  ROT90: 2, ROT180: 3, FLIP: 2,             // цена возможностей
-  REROLL: 2, DISCARD: 2,
+  ROT90: 2, ROT180: 4, FLIP: 2,             // цена возможностей
+  REROLL: 2, DISCARD: 2, DISCARD_BUY: false,   // платный сброс убран (v2); бесплатное сгорание остаётся
+  HOSTILE_EVERY: 2,                         // неудобную фигуру сдают каждым вторым ходом
   SWAP_ADD: 2,                              // надбавка к цене замены из каталога
-  income: (lines) => (lines * (lines + 1)) / 2, // 1→1, 2→3, 3→6, 4→10, 5→15
+  income: (lines) => lines * lines,   // 1→1, 2→4, 3→9, 4→16 (v2)
 };
 
 // каталог: форма, цена замены (магазин), класс неудобства
@@ -255,8 +256,8 @@ function drawType(L, r) {
 }
 
 /** Сдаёт фигуру: из k случайных берётся та, что хуже всего ложится без платных действий. */
-export function deal(L, board, r) {
-  const k = CFG.hostK(L);
+export function deal(L, board, r, hostile = true) {
+  const k = hostile ? CFG.hostK(L) : 1;
   let pick = null, pickFits = Infinity;
   for (let i = 0; i < k; i++) {
     const type = drawType(L, r);
@@ -378,7 +379,9 @@ export function playRun(seed, pol, st) {
 
     const dealRng = rng(hash(seed, L, 2));
     const rerollRng = rng(hash(seed, L, 3));
-    const queue = [deal(L, board, dealRng), deal(L, board, dealRng), deal(L, board, dealRng)];
+    let dealIdx = 0;
+    const dealNext = () => deal(L, board, dealRng, dealIdx++ % CFG.HOSTILE_EVERY === 0);
+    const queue = [dealNext(), dealNext(), dealNext()];
     const goal = CFG.goal(L);
     let lines = 0;
     st.playByLevel[L]++;
@@ -386,7 +389,7 @@ export function playRun(seed, pol, st) {
 
     for (let i = 0; i < CFG.PIECES; i++) {
       let cur = queue.shift();
-      queue.push(deal(L, board, dealRng));
+      queue.push(dealNext());
       const phase = Math.min(2, Math.floor((3 * i) / CFG.PIECES));
       const ph = st.phase[phase];
       ph.dec++; ph.coins += coins;
@@ -439,7 +442,7 @@ export function playRun(seed, pol, st) {
           if (!rerolled && canPay(CFG.REROLL, forced)) {
             let sum = 0;
             for (let s = 0; s < 2; s++) {
-              const p = deal(L, board, botRng);
+              const p = deal(L, board, botRng, false);
               let bv = -Infinity;
               for (const o of p.opts) {
                 if (o.cost > 0 && !canPay(CFG.REROLL + o.cost, forced)) continue;
@@ -450,7 +453,7 @@ export function playRun(seed, pol, st) {
             }
             reroll = { net: sum / 2 - lam * CFG.REROLL };
           }
-          if (canPay(CFG.DISCARD, forced)) discard = { net: base - WASTE - lam * CFG.DISCARD };
+          if (CFG.DISCARD_BUY && canPay(CFG.DISCARD, forced)) discard = { net: base - WASTE - lam * CFG.DISCARD };
         }
 
         // ── выбор ──
@@ -491,7 +494,7 @@ export function playRun(seed, pol, st) {
 
         if (choice.type === 'reroll') {
           pay('reroll', CFG.REROLL);
-          cur = deal(L, board, rerollRng);
+          cur = deal(L, board, rerollRng, false);
           rerolled = true;
           continue; // повторный выбор с новой фигурой
         }
@@ -558,7 +561,7 @@ function selftest() {
   ok(optionsFor(CANON.I4).length === 2, 'I4 две формы');
   ok(optionsFor(CANON.O).length === 1, 'O одна форма');
   const l = optionsFor(CANON.L).map((o) => o.cost).sort();
-  ok(l.length === 8 && l.join() === [0, 2, 2, 2, 2, 3, 4, 4].join(), 'L: цены 0,2,2,2,2,3,4,4 got ' + l.join());
+  ok(l.length === 8 && l.join() === [0, 2, 2, 2, 2, 4, 4, 4].join(), 'L: цены 0,2,2,2,2,4,4,4 got ' + l.join());
   ok(optionsFor(CANON.I4).find((o) => o.cost === CFG.ROT90), 'I4 поворот стоит ROT90');
   // линии: строка + столбец одновременно
   const b = new Uint8Array(8);
@@ -569,7 +572,7 @@ function selftest() {
   const mono = optionsFor(CANON.mono)[0];
   ok(applyPlace(b, mono, 0, 0, out) === 2, 'строка+столбец = 2 линии');
   ok(out.every((v) => v === 0) || out[0] === 0, 'обе линии убраны');
-  ok(CFG.income(3) === 6 && CFG.income(1) === 1, 'доход нелинейный');
+  ok(CFG.income(3) === 9 && CFG.income(1) === 1, 'доход нелинейный');
   // детерминизм и инварианты по 300 забегам
   for (const p of [policy(Infinity), policy(0), policy(3, 2)]) {
     for (let s = 1; s <= 300; s++) {
@@ -626,10 +629,10 @@ const INCOME = {
   sq: (n) => n * n,                // 1, 4, 9, 16, 25 — абляция: круче
 };
 
-const spec = (p, incomeMode = 'tri') => ({ lam: p.lam === Infinity ? 'inf' : p.lam, R: p.R, look: p.look, sq: p.sq, elastic: p.elastic, name: p.name, incomeMode });
+const spec = (p, incomeMode = 'game') => ({ lam: p.lam === Infinity ? 'inf' : p.lam, R: p.R, look: p.look, sq: p.sq, elastic: p.elastic, name: p.name, incomeMode });
 const unspec = (o) => policy(o.lam === 'inf' ? Infinity : o.lam, o.R, { look: o.look, sq: o.sq, elastic: o.elastic, name: o.name });
 
-async function parallel(seedFrom, count, pol, incomeMode = 'tri') {
+async function parallel(seedFrom, count, pol, incomeMode = 'game') {
   const threads = Math.min(os.availableParallelism?.() ?? 4, 4);
   const chunk = Math.ceil(count / threads);
   const parts = await Promise.all(Array.from({ length: threads }, (_, i) => new Promise((res, rej) => {
@@ -765,7 +768,7 @@ async function fullReport(N) {
   log('\n### Абляция дохода за линии (оптимальный бот, 3000 забегов)\n');
   log('| Доход за n линий за раз | пройдено уровней | клиров из 2+ линий |');
   log('|---|---|---|');
-  for (const [nm, mode] of [['n(n+1)/2: 1, 3, 6, 10 (как в игре)', 'tri'], ['n: 1, 2, 3, 4 (линейный)', 'lin'], ['n²: 1, 4, 9, 16 (круче)', 'sq']]) {
+  for (const [nm, mode] of [['n²: 1, 4, 9, 16 (в игре, v2)', 'game'], ['n(n+1)/2: 1, 3, 6, 10 (v1)', 'tri'], ['n: 1, 2, 3, 4 (линейный)', 'lin']]) {
     const st = await parallel(1, 3000, P(best.lam, best.R), mode);
     const d = describe(st);
     log(`| ${nm} | ${f2(d.mean)} ± ${f2(d.se)} | ${f1(d.multi)}% |`);
@@ -778,7 +781,7 @@ async function fullReport(N) {
 
 if (!isMainThread && workerData) {
   const { from, to, pol } = workerData;
-  if (pol.incomeMode !== 'tri') CFG.income = INCOME[pol.incomeMode];
+  if (pol.incomeMode !== 'game') CFG.income = INCOME[pol.incomeMode];
   const seeds = []; for (let s = from; s < to; s++) seeds.push(s);
   parentPort.postMessage(runMany(seeds, unspec(pol)));
 } else if (process.argv[1] === fileURLToPath(import.meta.url)) {

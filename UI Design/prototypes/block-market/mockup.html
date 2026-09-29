@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Block Market — мокап</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px; background: var(--ui-surface-muted); font-family: var(--ui-font); color: var(--ui-text); display: flex; gap: 32px; justify-content: center; }
+  .phone { width: 390px; height: 844px; background: var(--ui-background); border-radius: 36px; box-shadow: var(--ui-shadow-card); position: relative; overflow: hidden; padding: 48px 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .cap { position: absolute; top: -0px; }
+
+  /* шапка */
+  .head { display: grid; grid-template-columns: 48px 1fr 48px; gap: 8px; align-items: center; height: 48px; }
+  .head h1 { margin: 0; text-align: center; font-size: 20px; font-weight: 700; }
+  .ibtn { width: 48px; height: 48px; border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; color: var(--ui-text); }
+  .ibtn svg { width: 22px; height: 22px; }
+
+  /* счётчики — как «Статус/Счётчики» кита */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat { background: var(--ui-surface); border-radius: var(--ui-radius-large); box-shadow: var(--ui-shadow-soft); padding: 8px 10px; display: flex; align-items: center; gap: 8px; height: 56px; }
+  .stat .ic { width: 32px; height: 32px; border-radius: var(--ui-radius-medium); display: grid; place-items: center; background: color-mix(in srgb, var(--c) 16%, white); color: var(--c); flex: none; }
+  .stat .ic svg { width: 18px; height: 18px; }
+  .stat .t { line-height: 1.15; }
+  .stat .l { font-size: 11px; font-weight: 500; color: var(--ui-text-muted); }
+  .stat .v { font-size: 16px; font-weight: 700; }
+  .stat .v small { font-size: 12px; font-weight: 500; color: var(--ui-text-muted); }
+
+  /* поле 8×8 */
+  .board-wrap { position: relative; }
+  .board { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 10px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+  .cell { aspect-ratio: 1; border-radius: 9px; background: var(--ui-surface-muted); position: relative; }
+  .cell.t { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 82%, white), var(--c)); box-shadow: inset 0 -3px 0 rgba(31,41,55,.14), 0 3px 6px rgba(31,41,55,.12); }
+  .cell.t::after { content: ''; position: absolute; left: 22%; right: 22%; top: 14%; height: 12%; border-radius: 99px; background: rgba(255,255,255,.55); }
+  /* призрак: куда ляжет выбранная фигура */
+  .cell.g { background: color-mix(in srgb, var(--c) 30%, white); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c) 70%, white); }
+  /* строки, которые закроются */
+  .cell.hot { box-shadow: 0 0 0 2px var(--ui-yellow); z-index: 1; }
+  .cell.g.hot { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c) 70%, white), 0 0 0 2px var(--ui-yellow); }
+  .badge { position: absolute; right: 8px; top: calc(10px + 6 * (100% - 20px) / 8 - 2px); transform: translateY(-50%); }
+  .pop { position: absolute; left: 50%; transform: translate(-50%, -50%); top: 6.6%; background: var(--ui-surface); border-radius: var(--ui-radius-pill); box-shadow: var(--ui-shadow-card); padding: 6px 14px 6px 8px; display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; z-index: 3; }
+  .pop small { font-weight: 500; font-size: 12px; color: var(--ui-text-muted); }
+
+  /* очередь */
+  .queue { background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 10px 16px; display: flex; align-items: center; gap: 16px; height: 132px; }
+  .now { width: 108px; height: 108px; border-radius: var(--ui-radius-large); background: color-mix(in srgb, var(--ui-blue) 8%, white); box-shadow: inset 0 0 0 2px var(--ui-blue); display: grid; place-items: center; position: relative; }
+  .lab { position: absolute; top: -9px; left: 12px; background: var(--ui-blue); color: #fff; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: var(--ui-radius-pill); }
+  .next { flex: 1; display: flex; align-items: center; justify-content: space-around; position: relative; height: 100%; }
+  .next .lab2 { position: absolute; top: 0; left: 0; font-size: 11px; font-weight: 500; color: var(--ui-text-muted); }
+  .sep { width: 1px; align-self: stretch; background: var(--ui-border); }
+  .pc { display: grid; gap: 2px; grid-template-columns: repeat(var(--w), var(--s)); }
+  .pc i { width: var(--s); height: var(--s); border-radius: calc(var(--s) * .26); display: block; }
+  .pc i.f { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 82%, white), var(--c)); box-shadow: inset 0 0 0 0 transparent, inset 0 -2px 0 rgba(31,41,55,.14), 0 2px 4px rgba(31,41,55,.14); }
+
+  /* покупки */
+  .shop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .buy { background: var(--ui-surface); border: 0; border-radius: var(--ui-radius-large); box-shadow: var(--ui-shadow-soft); height: 104px; padding: 10px 4px 10px; display: grid; justify-items: center; align-content: space-between; font-family: inherit; color: var(--ui-text); }
+  .buy .bi { width: 40px; height: 40px; border-radius: var(--ui-radius-medium); background: color-mix(in srgb, var(--ui-blue) 12%, white); color: var(--ui-blue); display: grid; place-items: center; }
+  .buy .bi svg { width: 24px; height: 24px; }
+  .buy .n { font-size: 11px; font-weight: 600; line-height: 1.1; text-align: center; }
+  .price { display: inline-flex; align-items: center; gap: 4px; background: color-mix(in srgb, var(--ui-yellow) 22%, white); border-radius: var(--ui-radius-pill); padding: 1px 8px 1px 4px; font-size: 12px; font-weight: 700; }
+  .price svg { width: 14px; height: 14px; }
+  .buy.off { background: var(--ui-surface-muted); box-shadow: none; color: var(--ui-text-muted); }
+  .buy.off .bi { background: var(--ui-surface-muted); color: var(--ui-disabled); }
+  .buy.off .price { background: transparent; color: var(--ui-text-muted); }
+  .hint { text-align: center; font-size: 12px; font-weight: 500; color: var(--ui-text-muted); }
+  .hint b { color: var(--ui-text); font-weight: 600; }
+
+  /* шторка замены */
+  .dim { position: absolute; inset: 0; background: rgba(31,41,55,.32); z-index: 5; }
+  .sheet { z-index: 6; position: absolute; left: 0; right: 0; bottom: 0; background: var(--ui-surface); border-radius: 28px 28px 0 0; box-shadow: 0 -10px 30px rgba(31,41,55,.16); padding: 12px 16px 20px; display: grid; gap: 12px; }
+  .grab { width: 40px; height: 4px; border-radius: 99px; background: var(--ui-border); margin: 0 auto; }
+  .sheet h2 { margin: 0; font-size: 18px; font-weight: 700; }
+  .sheet .sub { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ui-text-muted); margin-top: -8px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .card { border-radius: var(--ui-radius-large); background: var(--ui-background); border: 2px solid transparent; height: 96px; display: grid; justify-items: center; align-content: space-between; padding: 8px 4px; }
+  .card .slot { height: 48px; display: grid; place-items: center; }
+  .card.sel { border-color: var(--ui-blue); background: color-mix(in srgb, var(--ui-blue) 8%, white); }
+  .card.off { opacity: .45; }
+  .cta { height: 48px; border: 0; border-radius: var(--ui-radius-large); background: var(--ui-blue); color: #fff; font-family: inherit; font-weight: 600; font-size: 16px; box-shadow: 0 6px 14px color-mix(in srgb, var(--ui-blue) 35%, transparent); display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .cta .price { background: rgba(255,255,255,.22); color: #fff; }
+
+  .frame-label { position: absolute; left: 50%; transform: translateX(-50%); bottom: -0px; }
+</style>
+</head>
+<body>
+<template id="coin"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="var(--ui-yellow)"/><circle cx="12" cy="12" r="11" fill="none" stroke="color-mix(in srgb, var(--ui-yellow) 70%, #b45309)" stroke-width="1.5"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="color-mix(in srgb, var(--ui-yellow) 55%, #b45309)" stroke-width="1.6"/><path d="M8 7.2a5 5 0 0 1 6-1.2" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></template>
+
+<div class="phone" id="p1"></div>
+<div class="phone" id="p2"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const COIN = document.getElementById('coin').innerHTML;
+const C = { B: 'var(--ui-blue)', C: 'var(--ui-coral)', Y: 'var(--ui-yellow)', G: 'var(--ui-green)', P: 'var(--ui-purple)' };
+
+// иконки: контур 2px, скругления — язык кита
+const I = {
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  pieces: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2.4"/><rect x="13" y="3" width="8" height="8" rx="2.4" opacity=".55"/><rect x="3" y="13" width="8" height="8" rx="2.4" opacity=".55"/><rect x="13" y="13" width="8" height="8" rx="2.4"/></svg>',
+  lines: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>',
+  rot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>',
+  mirror: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18" stroke-dasharray="2 3"/><path d="M9 7L4 17h5z" fill="currentColor" fill-opacity=".2"/><path d="M15 7l5 10h-5z"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14M14 4l4 4-4 4"/><path d="M20 16H6M10 12l-4 4 4 4"/></svg>',
+  dice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="9" r="1.2" fill="currentColor"/><circle cx="9" cy="15" r="1.2" fill="currentColor"/></svg>',
+};
+
+// фигура из строк: '#' — клетка
+function piece(rows, color, s = 22) {
+  const w = Math.max(...rows.map((r) => r.length));
+  let h = `<div class="pc" style="--w:${w};--s:${s}px;--c:${color}">`;
+  for (const r of rows) for (let x = 0; x < w; x++) h += r[x] === '#' ? '<i class="f"></i>' : `<i></i>`;
+  return h + '</div>';
+}
+
+// поле: G — призрак текущей фигуры (F-пентомино), рядом лежат готовые плитки
+const BOARD = [
+  '........',
+  '..YY....',
+  '..YYG...',
+  'P..GGB..',
+  'PP.CCBB.',
+  'PPBB..YY',
+  'GGG..CYY',
+  'BBCC.PPP',
+];
+const GHOST = new Set(['5,4', '5,5', '6,3', '6,4', '7,4']);
+const HOT = new Set([6, 7]);
+
+function board(overlay = true) {
+  let h = '<div class="board-wrap"><div class="board">';
+  BOARD.forEach((row, y) => [...row].forEach((ch, x) => {
+    const g = GHOST.has(`${y},${x}`);
+    const hot = overlay && HOT.has(y) ? ' hot' : '';
+    if (g) h += `<div class="cell g${hot}" style="--c:var(--ui-coral)"></div>`;
+    else if (ch !== '.') h += `<div class="cell t${hot}" style="--c:${C[ch]}"></div>`;
+    else h += `<div class="cell${hot}"></div>`;
+  }));
+  return h + `</div>${overlay ? `<div class="pop">${COIN.replace('<svg', '<svg width="22" height="22"')}+4 <small>2 линии</small></div>` : ''}</div>`;
+}
+
+const head = (title) => `<div class="head"><div class="ibtn">${I.back}</div><h1>${title}</h1><div class="ibtn">${I.gear}</div></div>`;
+const stats = () => `<div class="stats">
+  <div class="stat" style="--c:var(--ui-blue)"><div class="ic">${I.pieces}</div><div class="t"><div class="l">Фигуры</div><div class="v">8 <small>/ 20</small></div></div></div>
+  <div class="stat" style="--c:var(--ui-green)"><div class="ic">${I.lines}</div><div class="t"><div class="l">Линии</div><div class="v">3 <small>/ 7</small></div></div></div>
+  <div class="stat" style="--c:var(--ui-yellow)"><div class="ic" style="background:none">${COIN.replace('<svg', '<svg width="30" height="30"')}</div><div class="t"><div class="l">Монеты</div><div class="v">5 <small>/ 10</small></div></div></div>
+</div>`;
+
+const F = ['.##', '##.', '.#.'];
+const queue = () => `<div class="queue">
+  <div class="now"><span class="lab">Сейчас</span>${piece(F, C.C, 27)}</div>
+  <div class="next"><span class="lab2">Дальше</span>${piece(['#.#', '###'], C.P, 17)}${piece(['#.', '#.', '##'], C.G, 17)}</div>
+</div>`;
+
+const price = (n) => `<span class="price">${COIN}${n}</span>`;
+const buy = (icon, name, p, off = false) => `<button class="buy${off ? ' off' : ''}"><span class="bi">${icon}</span><span class="n">${name}</span>${price(p)}</button>`;
+const shop = () => `<div class="shop">${buy(I.rot, 'Поворот 90°', 2)}${buy(I.mirror, 'Зеркало', 2)}${buy(I.swap, 'Замена', 'от 4')}${buy(I.dice, 'Пересдача', 2)}</div>`;
+
+$('#p1').innerHTML = `${head('Уровень 3')}${stats()}${board()}${queue()}${shop()}
+  <div class="hint">Эта фигура закроет <b>2 линии</b> и вернёт <b>4 монеты</b></div>`;
+
+// экран 2: шторка «Замена»
+const OPTIONS = [
+  ['Точка', ['#'], 'B', 8], ['Домино', ['##'], 'Y', 4], ['Палка', ['####'], 'B', 8],
+  ['Квадрат', ['##', '##'], 'Y', 6], ['T', ['###', '.#.'], 'P', 6], ['Зигзаг', ['.##', '##.'], 'G', 4],
+  ['W', ['#..', '##.', '.##'], 'C', 5], ['Крест', ['.#.', '###', '.#.'], 'G', 5], ['Уголок', ['#.', '#.', '##'], 'B', 6],
+];
+const cards = OPTIONS.map(([n, r, c, p], i) => {
+  const off = p > 5, sel = n === 'W';
+  return `<div class="card${sel ? ' sel' : ''}${off ? ' off' : ''}"><div class="slot">${piece(r, C[c], 14)}</div><span class="n" style="font-size:11px;font-weight:600">${n}</span>${price(p)}</div>`;
+}).join('');
+$('#p2').innerHTML = `${head('Уровень 3')}${stats()}${board(false)}
+  <div class="dim"></div>
+  <div class="sheet"><div class="grab"></div><h2>Заменить фигуру</h2>
+    <div class="sub"><span>Выбери, какую фигуру получить. Дорогие пока недоступны.</span></div>
+    <div class="cards">${cards}</div>
+    <button class="cta">Взять «W» ${price(5)}</button></div>`;
+</script>
+</body>
+</html>

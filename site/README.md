@@ -1,53 +1,30 @@
-# hub — Prototype Validation Project
+# Stazzi — personal portfolio
 
-Витрина всех прототипов: заголовок, короткое описание, ниже — сетка карточек
-(иконка, название, жанр, питч, «Play →»). Карточка ведёт на саб-сайт игры
-на том же домене. Десктопная веб-страница, на телефоне сетка складывается в
-один столбец. Мокап — `UI Design/prototypes/hub/` (описывает раннюю версию с
-героем и заглушками, сейчас неактуален — обновить при следующей правке вида).
+The main page of the Stazzi repository: a personal archive of ideas, playable
+prototypes, sketches and process notes.
 
-## Как устроено (решение автора 2026-09-28)
+## Structure
 
-Один сайт, один Vercel-проект:
+- `src/main.ts` — content, sections and motion behaviour.
+- `src/styles.css` — layout, visual system, responsive states and animation.
+- `public/og.png` — social preview image.
+- `apps/*/game.json` — playable prototypes included in the root build.
 
-| Адрес | Что там |
-|---|---|
-| `https://<домен>/` | витрина (эта папка) |
-| `https://<домен>/<path>/` | игра из `apps/<slug>/`, `path` — из её `game.json` |
+The portfolio is served at `/`. Playable games keep their own paths such as
+`/the-gap/`, `/arrow-flip/` and `/sprout/`.
 
-Список карточек руками не ведётся. Витрина берёт его из `apps/*/game.json`
-через виртуальный модуль `virtual:games` (`vite.config.ts`), а игра без
-`game.json` на сайт не попадает. Поля и флоу — `apps/CLAUDE.md`, §8.
-
-Сборка — `npm run build` в **корне репо** (`tools/build-site.mjs`):
-
-1. находит игры по `apps/*/game.json`, проверяет поля и уникальность `path`;
-2. собирает каждую (`tsc` + `vite build --base /<path>/`) в кэш
-   `node_modules/.cache/gamelab-site/`. Игру, у которой не менялись ни свои
-   файлы, ни `UI Design`, ни lockfile, берёт из кэша;
-3. если игра не собралась, пишет `✗` в лог и пропускает её, сайт выходит с
-   остальными (упадёт, только если не собралась ни одна);
-4. собирает витрину в `dist/` со списком только собравшихся игр и
-   раскладывает игры в `dist/<path>/`.
-
-Зависимости одни на весь репо (npm workspaces, корневой `package.json`),
-поэтому установка на Vercel — один `npm install`, а не по разу на игру.
-
-## Команды
+## Local development
 
 ```sh
-# в корне репо
+# from the repository root
 npm install
-npm run build        # витрина + все игры → dist/
-npm run preview      # http://localhost:4190/
+npm run build
+npm run preview
 
-# только витрина, без игр (ссылки на игры в dev ведут в 404)
-cd site && npm run dev
+# portfolio only
+cd site
+npm run dev
 ```
 
-## Vercel
-
-New Project → этот репозиторий → **Root Directory — пусто (корень репо)**.
-Остальное берётся из корневого `vercel.json`: `npm run build`, `dist`,
-`trailingSlash` (`/the-dig` → `/the-dig/`), вечный кэш для `assets/`. Каждый
-пуш в `main` выкатывает витрину и все игры разом.
+The page follows `prefers-reduced-motion`, stays keyboard accessible and uses
+the existing game previews and visual studies as its project imagery.

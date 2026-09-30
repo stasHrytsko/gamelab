@@ -1,4 +1,4 @@
-// Сборка витрины: dist/ — хаб, dist/<path>/ — каждая игра из apps/*/game.json.
+// Сборка сайта: dist/ — портфолио, dist/<path>/ — каждая игра из apps/*/game.json.
 // Игра, которая не собралась, пропускается: сайт выходит с остальными.
 // Собранная игра кэшируется по хэшу исходников и пересобирается, только
 // если её файлы (или общий UI Design, lockfile, этот скрипт) поменялись.
@@ -8,7 +8,6 @@ import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statS
 import { join, relative } from 'node:path';
 import { REPO, readGames } from './games.mjs';
 
-const BIN = join(REPO, 'node_modules', '.bin');
 const DIST = join(REPO, 'dist');
 const CACHE = join(REPO, 'node_modules', '.cache', 'gamelab-site');
 const SKIP_DIRS = new Set(['node_modules', 'dist', 'dist-artifact', 'test-results', 'playwright-report']);
@@ -32,7 +31,14 @@ function sourceHash(slug) {
 }
 
 function run(bin, args, cwd, env = {}) {
-  execFileSync(join(BIN, bin), args, { cwd, stdio: 'inherit', env: { ...process.env, ...env } });
+  const entry = bin === 'tsc'
+    ? join(REPO, 'node_modules', 'typescript', 'bin', 'tsc')
+    : join(REPO, 'node_modules', 'vite', 'bin', 'vite.js');
+  execFileSync(process.execPath, [entry, ...args], {
+    cwd,
+    stdio: 'inherit',
+    env: { ...process.env, ...env },
+  });
 }
 
 function buildGame(game) {
@@ -76,6 +82,10 @@ for (const { game, out } of built) {
   mkdirSync(join(DIST, game.path), { recursive: true });
   cpSync(out, join(DIST, game.path), { recursive: true });
 }
+mkdirSync(join(DIST, 'server'), { recursive: true });
+cpSync(join(REPO, 'site', 'worker.mjs'), join(DIST, 'server', 'index.js'));
+mkdirSync(join(DIST, '.openai'), { recursive: true });
+cpSync(join(REPO, '.openai', 'hosting.json'), join(DIST, '.openai', 'hosting.json'));
 
 console.log(`\n✓ На сайте ${built.length} из ${games.length}: ${built.map((b) => '/' + b.game.path + '/').join(' ')}`);
 if (failed.length > 0) {

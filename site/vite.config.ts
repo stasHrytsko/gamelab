@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
+import { sites } from '@openai/sites-vite-plugin';
 import { readGames } from '../tools/games.mjs';
 
 // `virtual:games` — список игр из apps/*/game.json. Скрипт сборки сайта
@@ -17,6 +18,6 @@ function games(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [games()],
+  plugins: [sites(), games()],
   build: { target: 'es2020' },
 });

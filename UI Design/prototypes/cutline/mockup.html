@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cutline</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  /* Кликабельный макет игрового экрана для ideas/backlog/42-cutline.md (v2).
+     Сеть висит на крючке, тап по линии — всё ниже падает. Только токены кита:
+     игровые цвета blue / coral / green, второй канал — значок внутри круга
+     (круг, треугольник, квадрат), как у тайлов The Gap. Новых цветов, радиусов
+     и теней нет; линии — --ui-text-muted с прозрачностью. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; color-scheme: light; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--ui-blue); outline-offset: 2px; }
+
+  .app { height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; padding: 8px 16px 16px; }
+  .top { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px; min-height: 44px; }
+  .top h1 { font-size: 18px; font-weight: 600; text-align: center; }
+  .top-right { display: flex; gap: 8px; }
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 20px; font-weight: 700; color: var(--ui-blue); }
+  .icon-btn svg { width: 22px; height: 22px; color: var(--ui-text); }
+
+  .goal { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--ui-surface); border-radius: var(--ui-radius-large); box-shadow: var(--ui-shadow-soft); padding: 8px 14px; }
+  .goal-text { display: flex; flex-direction: column; min-width: 0; }
+  .goal-text small { font-size: 11px; font-weight: 500; color: var(--ui-text-muted); letter-spacing: .02em; }
+  .goal-text b { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .scissors { display: flex; gap: 2px; flex: none; }
+  .scissors svg { width: 24px; height: 24px; color: var(--ui-blue); transition: color .25s, transform .25s; }
+  .scissors svg.used { color: var(--ui-disabled); transform: scale(.85); }
+
+  .counts { display: flex; justify-content: center; gap: 8px; }
+  .chip { display: flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: var(--ui-radius-pill); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .chip.zero { opacity: .45; }
+  .mini { width: 22px; height: 22px; flex: none; }
+
+  .stage { flex: 1; min-height: 0; position: relative; }
+  .stage svg.net { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; touch-action: none; }
+  .wire { stroke: var(--ui-text-muted); stroke-opacity: .55; stroke-width: 3; stroke-linecap: round; fill: none; transition: opacity .15s; }
+  .wire.target { stroke: var(--ui-coral); stroke-opacity: 1; stroke-dasharray: 6 6; }
+  .hit { stroke: transparent; stroke-width: 30px; vector-effect: non-scaling-stroke; stroke-linecap: round; pointer-events: stroke; cursor: pointer; }
+  .junction { fill: var(--ui-text-muted); fill-opacity: .7; }
+  .hook-plate { fill: var(--ui-text); }
+  .dot { pointer-events: none; transition: opacity .15s; }
+  .dot .body { filter: drop-shadow(0 4px 4px rgba(31, 41, 55, .16)); }
+  .dot-in { transform-box: fill-box; transform-origin: center; }
+  .doomed { opacity: .25; }
+  .falling { pointer-events: none; }
+  .snip { pointer-events: none; }
+  .snip circle { fill: var(--ui-surface); filter: drop-shadow(0 2px 4px rgba(31, 41, 55, .2)); }
+  .snip path { stroke: var(--ui-coral); }
+
+  #g-B .s1 { stop-color: color-mix(in srgb, var(--ui-blue) 60%, #fff); } #g-B .s2 { stop-color: var(--ui-blue); } #g-B .s3 { stop-color: color-mix(in srgb, var(--ui-blue) 85%, #1f2937); }
+  #g-C .s1 { stop-color: color-mix(in srgb, var(--ui-coral) 60%, #fff); } #g-C .s2 { stop-color: var(--ui-coral); } #g-C .s3 { stop-color: color-mix(in srgb, var(--ui-coral) 85%, #1f2937); }
+  #g-G .s1 { stop-color: color-mix(in srgb, var(--ui-green) 60%, #fff); } #g-G .s2 { stop-color: var(--ui-green); } #g-G .s3 { stop-color: color-mix(in srgb, var(--ui-green) 85%, #1f2937); }
+
+  .bottom { display: flex; gap: 8px; align-items: stretch; }
+  .hint { flex: 1; min-width: 0; min-height: 52px; background: var(--ui-surface); border-radius: var(--ui-radius-large); box-shadow: var(--ui-shadow-soft); padding: 8px 14px; display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 18px; color: var(--ui-text-muted); }
+  .hint b { color: var(--ui-text); font-weight: 600; }
+  .hint .fall { display: flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 600; color: var(--ui-text); font-variant-numeric: tabular-nums; }
+  .undo { flex: none; width: 72px; border-radius: var(--ui-radius-large); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--ui-text-muted); }
+  .undo svg { width: 22px; height: 22px; color: var(--ui-blue); }
+  .undo:disabled { opacity: .45; cursor: default; }
+  .undo:disabled svg { color: var(--ui-disabled); }
+
+  /* Попапы — как в остальных играх: белая карточка, крупный значок, кнопки-пилюли. */
+  .overlay { position: fixed; inset: 0; background: rgba(31, 41, 55, .35); display: grid; place-items: center; padding: 16px; z-index: 10; }
+  .card { width: 100%; max-width: 340px; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 24px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; animation: pop .25s ease-out; }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } }
+  .card h2 { font-size: 22px; font-weight: 700; text-wrap: balance; }
+  .card p { font-size: 14px; line-height: 20px; color: var(--ui-text-muted); }
+  .card .big { font-size: 34px; font-weight: 700; display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+  .card .big svg { width: 34px; height: 34px; }
+  .badge-ic { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; }
+  .badge-ic svg { width: 36px; height: 36px; }
+  .badge-ic.win { background: color-mix(in srgb, var(--ui-yellow) 22%, #fff); color: var(--ui-yellow); }
+  .badge-ic.lose { background: color-mix(in srgb, var(--ui-danger) 14%, #fff); color: var(--ui-danger); }
+  .btns { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .btn { height: 52px; border-radius: var(--ui-radius-pill); font-size: 16px; font-weight: 600; background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); border: 1px solid var(--ui-border); }
+  .btn.primary { background: var(--ui-blue); color: #fff; border: 0; box-shadow: 0 8px 18px color-mix(in srgb, var(--ui-blue) 35%, transparent); }
+  .btn.ghost { background: none; box-shadow: none; border: 0; color: var(--ui-text-muted); height: 40px; font-size: 14px; }
+  .reveal { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--ui-text); background: var(--ui-surface-muted); border-radius: var(--ui-radius-medium); padding: 8px 14px; }
+  .rules { list-style: none; display: flex; flex-direction: column; gap: 10px; text-align: left; width: 100%; counter-reset: r; }
+  .rules li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; font-size: 14px; line-height: 20px; }
+  .rules li::before { counter-increment: r; content: counter(r); width: 28px; height: 28px; border-radius: 50%; background: var(--ui-blue); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+  .lvl-list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .lvl { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--ui-radius-large); border: 2px solid var(--ui-border); text-align: left; }
+  .lvl.current { border-color: var(--ui-blue); }
+  .lvl .num { width: 40px; height: 40px; border-radius: var(--ui-radius-medium); background: var(--ui-blue); color: #fff; font-weight: 700; display: grid; place-items: center; flex: none; }
+  .lvl span { display: flex; flex-direction: column; font-size: 15px; font-weight: 600; }
+  .lvl small { font-size: 12px; font-weight: 400; color: var(--ui-text-muted); }
+
+  @media (prefers-reduced-motion: reduce) { .card { animation: none; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-B" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="s1"/><stop offset=".6" class="s2"/><stop offset="1" class="s3"/></linearGradient>
+    <linearGradient id="g-C" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="s1"/><stop offset=".6" class="s2"/><stop offset="1" class="s3"/></linearGradient>
+    <linearGradient id="g-G" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="s1"/><stop offset=".6" class="s2"/><stop offset="1" class="s3"/></linearGradient>
+    <symbol id="ic-B" viewBox="-12 -12 24 24"><circle r="5.5" fill="#fff"/></symbol>
+    <symbol id="ic-C" viewBox="-12 -12 24 24"><path d="M0 -6.5 6.5 5H-6.5z" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-G" viewBox="-12 -12 24 24"><rect x="-5.5" y="-5.5" width="11" height="11" rx="2.5" fill="#fff"/></symbol>
+    <symbol id="scissors" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.6 7.6 20 17M8.6 16.4 20 7"/></g></symbol>
+    <symbol id="star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="currentColor"/></symbol>
+    <symbol id="cross" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app" data-status="playing">
+  <header class="top">
+    <button class="icon-btn" id="btn-levels" aria-label="К уровням" data-testid="levels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></svg></button>
+    <h1 id="title">Уровень 1</h1>
+    <div class="top-right">
+      <button class="icon-btn" id="btn-help" aria-label="Как играть" data-testid="help">?</button>
+      <button class="icon-btn" id="btn-restart" aria-label="Заново" data-testid="restart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12a7 7 0 1 0 2-5"/><path d="M5 3v4h4"/></svg></button>
+    </div>
+  </header>
+
+  <section class="goal" aria-label="Цель уровня">
+    <div class="goal-text"><small>ЦЕЛЬ</small><b id="goal"></b></div>
+    <div class="scissors" id="cuts" aria-label="Разрезы"></div>
+  </section>
+
+  <div class="counts" id="counts" aria-label="Сколько кругов на крючке"></div>
+
+  <main class="stage" id="stage">
+    <svg class="net" id="net" preserveAspectRatio="xMidYMid meet"></svg>
+  </main>
+
+  <div class="bottom">
+    <div class="hint" id="hint" aria-live="polite"></div>
+    <button class="undo" id="btn-undo" data-testid="undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Отменить</button>
+  </div>
+</div>
+
+<div id="popup-root"></div>
+
+<script>
+  // Уровни. Узел: [колонка, ряд, родитель, тип]; тип H — крючок, N — развилка,
+  // B / C / G — синий / коралловый / зелёный круг. Уровень 2 подобран солвером
+  // (динамика по дереву): синих 9, без лимита можно спасти 6, но за 3 разреза —
+  // только 1; коралловых 7, за 3 разреза спасается ровно 5. Ответ — коралловые.
+  const LEVELS = [
+    { name: 'Уровень 1', sub: 'Обучение · цвет назван', color: 'B', goal: 3, cuts: 2, nodes: [
+      [2,0,-1,'H'], [2,1,0,'N'], [1,1,1,'B'], [1,2,2,'B'], [1,3,3,'C'], [2,2,1,'B'], [3,1,1,'C'], [3,2,6,'B'],
+    ] },
+    { name: 'Уровень 2', sub: 'Цвет выбираешь сам', color: null, goal: 5, cuts: 3, nodes: [
+      [2,0,-1,'H'], [2,1,0,'N'],
+      [0,1,1,'C'], [0,2,2,'C'], [0,3,3,'G'], [0,4,4,'B'], [0,5,5,'B'],
+      [2,2,1,'B'], [2,3,7,'N'], [1,3,8,'B'], [1,4,9,'B'], [1,5,10,'B'], [3,3,8,'B'], [3,4,12,'C'], [2,4,8,'B'], [2,5,14,'C'],
+      [4,1,1,'C'], [4,2,16,'C'], [4,3,17,'N'], [4,4,18,'C'], [4,5,19,'B'], [4,6,20,'G'],
+    ] },
+  ];
+  const COLORS = ['B', 'C', 'G'];
+  const NAME = { B: 'синих', C: 'коралловых', G: 'зелёных' };
+  const NAME_PL = { B: 'Синие', C: 'Коралловые', G: 'Зелёные' };
+  const SX = 72, SY = 62, X0 = 36, Y0 = 26, R = 17;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ms = (t) => (reduced ? 0 : t);
+  const $ = (id) => document.getElementById(id);
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(svgNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const mini = (c) => `<svg class="mini" viewBox="-12 -12 24 24"><circle r="11" fill="url(#g-${c})"/><use href="#ic-${c}" x="-12" y="-12" width="24" height="24"/></svg>`;
+
+  let L, kids, alive, history, undoUsed, busy, status, seenHelp = false;
+  try { seenHelp = localStorage.getItem('cutline:help') === '1'; } catch (e) {}
+
+  const pos = (i) => [X0 + L.nodes[i][0] * SX, Y0 + L.nodes[i][1] * SY];
+  const type = (i) => L.nodes[i][3];
+  const subtree = (v) => { const out = []; const st = [v]; while (st.length) { const x = st.pop(); if (!alive.has(x)) continue; out.push(x); st.push(...kids[x]); } return out; };
+  const counts = () => { const c = { B: 0, C: 0, G: 0 }; alive.forEach((i) => { if (c[type(i)] !== undefined) c[type(i)]++; }); return c; };
+  const levelColors = () => COLORS.filter((c) => L.nodes.some((n) => n[3] === c));
+
+  function load(idx, replay = []) {
+    L = LEVELS[idx]; L.idx = idx;
+    kids = L.nodes.map(() => []); L.nodes.forEach((n, i) => { if (n[2] >= 0) kids[n[2]].push(i); });
+    alive = new Set(L.nodes.map((_, i) => i)); history = []; undoUsed = false; busy = false; status = 'playing';
+    replay.forEach((v) => { const gone = subtree(v); gone.forEach((i) => alive.delete(i)); history.push({ v, gone }); });
+    $('title').textContent = L.name;
+    $('goal').innerHTML = L.color ? `Сохрани ${L.goal} ${mini(L.color)} ${NAME[L.color]}` : `Сохрани ${L.goal} кругов одного цвета`;
+    closePopup(); render(); hud(); hint();
+  }
+
+  function render() {
+    const svg = $('net'); svg.innerHTML = '';
+    const maxRow = Math.max(...L.nodes.map((n) => n[1]));
+    svg.setAttribute('viewBox', `0 0 ${X0 * 2 + 4 * SX} ${Y0 + maxRow * SY + R + 14}`);
+    const wires = el('g', {}, svg), hits = el('g', {}, svg), dots = el('g', {}, svg);
+    L.nodes.forEach((n, i) => {
+      if (!alive.has(i)) return;
+      const [x, y] = pos(i);
+      if (n[2] >= 0) {
+        const [px, py] = pos(n[2]);
+        el('line', { class: 'wire', x1: px, y1: py, x2: x, y2: y, 'data-child': i }, wires);
+        el('line', { class: 'hit', x1: px, y1: py, x2: x, y2: y, 'data-child': i, 'data-testid': `edge-${i}` }, hits);
+      }
+      const g = el('g', { class: 'dot', transform: `translate(${x} ${y})`, 'data-id': i }, dots);
+      const t = n[3];
+      if (t === 'H') {
+        el('rect', { class: 'hook-plate', x: -26, y: -12, width: 52, height: 10, rx: 5 }, g);
+        el('circle', { r: 6, cy: 2, fill: 'none', stroke: 'var(--ui-text)', 'stroke-width': 3 }, g);
+      } else if (t === 'N') {
+        el('circle', { class: 'junction', r: 5 }, g);
+      } else {
+        const inn = el('g', { class: 'dot-in' }, g);
+        el('circle', { class: 'body', r: R, fill: `url(#g-${t})` }, inn);
+        el('ellipse', { cx: 0, cy: -8, rx: 9, ry: 3.6, fill: '#fff', opacity: .35 }, inn);
+        el('use', { href: `#ic-${t}`, x: -12, y: -12, width: 24, height: 24 }, inn);
+      }
+    });
+  }
+
+  function hud() {
+    const used = history.length;
+    $('cuts').innerHTML = Array.from({ length: L.cuts }, (_, i) => `<svg class="${i < used ? 'used' : ''}"><use href="#scissors"/></svg>`).join('');
+    const c = counts();
+    $('counts').innerHTML = levelColors().map((k) => `<div class="chip ${c[k] ? '' : 'zero'}" data-testid="count-${k}">${mini(k)}${c[k]}</div>`).join('');
+    $('btn-undo').disabled = undoUsed || !history.length || busy;
+    $('btn-undo').lastChild.textContent = undoUsed ? 'Отмена занята' : 'Отменить';
+    $('app').dataset.status = status; $('app').dataset.busy = busy ? '1' : '0';
+  }
+
+  function hint(fall) {
+    const h = $('hint');
+    if (fall) {
+      const c = { B: 0, C: 0, G: 0 }; fall.forEach((i) => { if (c[type(i)] !== undefined) c[type(i)]++; });
+      const parts = COLORS.filter((k) => c[k]).map((k) => `<span class="fall">${mini(k)}−${c[k]}</span>`).join('');
+      h.innerHTML = parts ? `Упадёт: ${parts}` : 'Упадёт пустая ветка';
+      return;
+    }
+    const left = L.cuts - history.length;
+    h.innerHTML = `<span>Коснись линии — увидишь, что упадёт. <b>Отпусти — разрез.</b> Осталось: <b>${left}</b></span>`;
+  }
+
+  // Нажатие: подсветка того, что упадёт. Отпустил на той же линии — разрез.
+  let press = null;
+  const svgEl = () => $('net');
+  function clearPress() {
+    if (!press) return;
+    svgEl().querySelectorAll('.doomed, .target').forEach((e) => e.classList.remove('doomed', 'target'));
+    svgEl().querySelector('.snip')?.remove();
+    press = null; hint();
+  }
+  function midpoint(v) { const [x, y] = pos(v), [px, py] = pos(L.nodes[v][2]); return [(x + px) / 2, (y + py) / 2]; }
+  $('stage').addEventListener('pointerdown', (e) => {
+    const hit = e.target.closest?.('.hit'); if (!hit || busy || status !== 'playing') return;
+    if (history.length >= L.cuts) { hint(); return; }
+    const v = +hit.dataset.child, fall = subtree(v);
+    press = { v, id: e.pointerId };
+    fall.forEach((i) => svgEl().querySelector(`.dot[data-id="${i}"]`)?.classList.add('doomed'));
+    fall.forEach((i) => { if (i !== v) svgEl().querySelector(`.wire[data-child="${i}"]`)?.classList.add('doomed'); });
+    svgEl().querySelector(`.wire[data-child="${v}"]`).classList.add('target');
+    const [mx, my] = midpoint(v);
+    const snip = el('g', { class: 'snip', transform: `translate(${mx} ${my})` }, svgEl());
+    el('circle', { r: 13 }, snip);
+    const u = el('use', { href: '#scissors', x: -9, y: -9, width: 18, height: 18 }, snip); u.style.color = 'var(--ui-coral)';
+    hint(fall);
+  });
+  addEventListener('pointerup', (e) => {
+    if (!press || e.pointerId !== press.id) return;
+    const under = document.elementFromPoint(e.clientX, e.clientY)?.closest?.('.hit');
+    const v = press.v; clearPress();
+    if (under && +under.dataset.child === v) cut(v);
+  });
+  addEventListener('pointercancel', clearPress);
+
+  function cut(v) {
+    if (busy || status !== 'playing' || history.length >= L.cuts) return;
+    busy = true;
+    const gone = subtree(v);
+    const svg = svgEl();
+    const [mx, my] = midpoint(v);
+    const g = el('g', { class: 'falling' }, svg);
+    g.style.transformBox = 'view-box'; g.style.transformOrigin = `${mx}px ${my}px`;
+    gone.forEach((i) => {
+      svg.querySelectorAll(`[data-child="${i}"]`).forEach((n) => g.appendChild(n));
+      const d = svg.querySelector(`.dot[data-id="${i}"]`); if (d) g.appendChild(d);
+    });
+    gone.forEach((i) => alive.delete(i));
+    history.push({ v, gone });
+    hud(); hint();
+    const dir = pos(v)[0] < pos(L.nodes[v][2])[0] ? -1 : pos(v)[0] > pos(L.nodes[v][2])[0] ? 1 : (Math.random() < .5 ? -1 : 1);
+    const a = g.animate([
+      { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+      { transform: `translate(${dir * 14}px, 40px) rotate(${dir * 10}deg)`, opacity: 1, offset: .25 },
+      { transform: `translate(${dir * 40}px, 620px) rotate(${dir * 32}deg)`, opacity: 0 },
+    ], { duration: ms(820), easing: 'cubic-bezier(.45,0,.85,.55)', fill: 'forwards' });
+    a.onfinish = () => { g.remove(); busy = false; hud(); check(); };
+  }
+
+  function undo() {
+    if (undoUsed || !history.length || busy) return;
+    const last = history.pop(); undoUsed = true;
+    last.gone.forEach((i) => alive.add(i));
+    status = 'playing'; closePopup(); render(); hud(); hint();
+    last.gone.forEach((i) => {
+      const d = svgEl().querySelector(`.dot[data-id="${i}"] .dot-in`);
+      d?.animate([{ transform: 'translateY(-24px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: ms(320), easing: 'ease-out' });
+    });
+  }
+
+  function check() {
+    const c = counts();
+    const present = COLORS.filter((k) => c[k] > 0);
+    let reason = null;
+    if (present.length === 0) reason = 'empty';
+    else if (present.length === 1) {
+      const k = present[0];
+      if (L.color && k !== L.color) reason = 'wrong';
+      else if (c[k] < L.goal) reason = 'short';
+      else return win(k, c[k]);
+    } else if (history.length >= L.cuts) reason = 'cuts';
+    else if (present.every((k) => c[k] < L.goal)) reason = 'unreachable';
+    if (reason) lose(reason, c, present);
+  }
+
+  function win(k, n) {
+    status = 'won'; busy = true; hud();
+    const dots = [...svgEl().querySelectorAll('.dot-in')];
+    dots.forEach((d, i) => d.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.22)' }, { transform: 'scale(1)' }], { duration: ms(380), delay: ms(i * 70), easing: 'ease-out' }));
+    setTimeout(() => {
+      busy = false; hud();
+      const next = L.idx + 1 < LEVELS.length;
+      popup(`
+        <div class="badge-ic win"><svg><use href="#star"/></svg></div>
+        <h2>Уровень пройден!</h2>
+        <div class="big">${mini(k).replace('class="mini"', 'class="mini" style="width:34px;height:34px"')}${n} / ${L.goal}</div>
+        <p>${NAME_PL[k]} на крючке, разрезов ушло ${history.length} из ${L.cuts}.</p>
+        <div class="btns">
+          ${next ? '<button class="btn primary" data-act="next" data-testid="next">Следующий уровень</button>' : ''}
+          <button class="btn ${next ? '' : 'primary'}" data-act="retry">Переиграть</button>
+          <button class="btn ghost" data-act="levels">К уровням</button>
+        </div>`);
+    }, ms(dots.length * 70 + 450));
+  }
+
+  const TITLES = { cuts: 'Разрезы кончились', short: 'Не хватило кругов', wrong: 'Остался не тот цвет', empty: 'Всё упало', unreachable: 'Столько уже не собрать' };
+  function lose(reason, c, present) {
+    status = 'lost'; hud();
+    svgEl().querySelectorAll('.dot-in').forEach((d) => d.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: ms(160), iterations: 2 }));
+    const saved = present.length === 1 ? c[present[0]] : 0;
+    const sub = {
+      cuts: `На крючке осталось цветов: ${present.length}. В конце должен остаться один.`,
+      short: `Сохранено ${saved} · нужно ${L.goal}.`,
+      wrong: `Цель — ${NAME[L.color]}, а на крючке ${NAME[present[0]]}.`,
+      empty: 'На крючке не осталось ни одного круга.',
+      unreachable: `Ни у одного цвета на крючке не осталось ${L.goal} кругов.`,
+    }[reason];
+    setTimeout(() => popup(`
+      <div class="badge-ic lose"><svg><use href="#cross"/></svg></div>
+      <h2>${TITLES[reason]}</h2>
+      <p>${sub}${L.color ? '' : `<br>Можно было ${L.goal}.`}</p>
+      ${L.color ? '' : '<div id="reveal-slot"><button class="btn ghost" data-act="reveal" data-testid="reveal">Показать, какой цвет</button></div>'}
+      <div class="btns">
+        ${!undoUsed && history.length ? '<button class="btn primary" data-act="undo">Отменить последний разрез</button>' : ''}
+        <button class="btn ${!undoUsed && history.length ? '' : 'primary'}" data-act="retry" data-testid="retry">Переиграть</button>
+        <button class="btn ghost" data-act="levels">К уровням</button>
+      </div>`), ms(900));
+  }
+
+  function help() {
+    popup(`
+      <h2>Как играть?</h2>
+      <ol class="rules">
+        <li>Сеть висит на крючке.</li>
+        <li>Коснись линии — подсветится всё, что под ней. Отпусти — разрез, и это упадёт.</li>
+        <li>В конце на крючке должен остаться один цвет.</li>
+        <li>Сохрани не меньше кругов, чем просит цель, и уложись в разрезы. Каких кругов больше — не значит, что их выгоднее спасать.</li>
+      </ol>
+      <div class="btns"><button class="btn primary" data-act="close" data-testid="help-ok">Понятно!</button></div>`);
+    try { localStorage.setItem('cutline:help', '1'); } catch (e) {}
+    seenHelp = true;
+  }
+
+  function levels() {
+    popup(`
+      <h2>Уровни</h2>
+      <div class="lvl-list">${LEVELS.map((l, i) => `
+        <button class="lvl ${i === L.idx ? 'current' : ''}" data-act="go" data-i="${i}"><div class="num">${i + 1}</div><span>${l.name}<small>${l.sub} · сохрани ${l.goal}, разрезов ${l.cuts}</small></span></button>`).join('')}
+      </div>
+      <div class="btns"><button class="btn ghost" data-act="close">Закрыть</button></div>`);
+  }
+
+  function popup(html) { $('popup-root').innerHTML = `<div class="overlay" role="dialog" aria-modal="true"><div class="card">${html}</div></div>`; }
+  function closePopup() { $('popup-root').innerHTML = ''; }
+  $('popup-root').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'close') closePopup();
+    else if (act === 'retry') load(L.idx);
+    else if (act === 'next') load(L.idx + 1);
+    else if (act === 'levels') levels();
+    else if (act === 'go') load(+b.dataset.i);
+    else if (act === 'undo') undo();
+    else if (act === 'reveal') { const k = LEVELS[L.idx].answer; $('reveal-slot').innerHTML = `<div class="reveal">${mini(k)}${NAME_PL[k]} — ${L.goal} кругов</div>`; }
+  });
+  $('btn-undo').addEventListener('click', undo);
+  $('btn-restart').addEventListener('click', () => { if (!busy) load(L.idx); });
+  $('btn-help').addEventListener('click', help);
+  $('btn-levels').addEventListener('click', levels);
+
+  // Ответы для «Показать, какой цвет» — из солвера, не из движка.
+  LEVELS[1].answer = 'C';
+
+  function start(data = {}) {
+    load(data.level ?? 0, data.cuts ?? []);
+    if (data.undoUsed) { undoUsed = true; hud(); }
+    if (!seenHelp && !data.level && !(data.cuts || []).length) help();
+  }
+  window.claude?.hot?.snapshot?.(() => ({ level: L.idx, cuts: history.map((h) => h.v), undoUsed }));
+  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>

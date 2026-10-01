@@ -1,4 +1,4 @@
-# Writing a new Stazzi note
+# Writing a new Stazzi blog post
 
 Create one Markdown file in `site/content/posts/`. The file name becomes the
 shareable URL fragment, so use lowercase words separated by hyphens.

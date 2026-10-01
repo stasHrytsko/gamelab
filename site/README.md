@@ -1,12 +1,12 @@
 # Stazzi — personal portfolio
 
 The main page of the Stazzi repository: a personal archive of ideas, playable
-prototypes, sketches and process notes.
+prototypes and blog posts.
 
 ## Structure
 
 - `src/main.ts` — content, sections and motion behaviour.
-- `blog/index.html` and `src/blog/` — the separate Notes page and article reader.
+- `blog/index.html` and `src/blog/` — the separate Blog page and article reader.
 - `content/posts/*.md` — one Markdown file per blog post.
 - `src/styles.css` — layout, visual system, responsive states and animation.
 - `public/og.png` — social preview image.

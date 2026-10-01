@@ -110,7 +110,7 @@ function header(): string {
 function footer(): string {
   return `
     <footer class="blog-footer">
-      <p>Stazzi — ideas, prototypes & sketches.</p>
+      <p>Stazzi — ideas, prototypes & blog.</p>
       <a href="/">Back to portfolio <span>→</span></a>
     </footer>`;
 }
@@ -131,19 +131,18 @@ function postRow(post: Post, index: number): string {
 
 function renderIndex(): string {
   const latest = posts[0];
-  if (latest === undefined) return '<p>No notes yet.</p>';
+  if (latest === undefined) return '<p>No posts yet.</p>';
   const tags = [...new Set(posts.map((post) => post.tag))];
 
   return `
     <div class="scroll-progress" aria-hidden="true"></div>
-    <div class="pointer-glow" aria-hidden="true"></div>
     <div class="site-shell blog-shell">
       ${header()}
       <main>
         <section class="blog-hero">
           <div>
-            <p class="eyebrow"><span></span>Process journal / ${posts.length} notes</p>
-            <h1>Notes<span>.</span></h1>
+            <p class="eyebrow"><span></span>Personal journal / ${posts.length} posts</p>
+            <h1>Blog<span>.</span></h1>
           </div>
           <div class="blog-intro">
             <p>Updates, thoughts and things I learn while making stuff.</p>
@@ -152,20 +151,19 @@ function renderIndex(): string {
         </section>
 
         <section class="latest-note" aria-labelledby="latest-title">
-          <div class="latest-label"><span>Latest note</span><i></i></div>
+          <div class="latest-label"><span>Latest post</span><i></i></div>
           <a class="latest-card" href="#${latest.slug}">
             <div class="latest-meta"><time datetime="${latest.date}">${formatDate(latest.date)}</time><span>${escapeHtml(latest.tag)}</span><span>${latest.readingTime} min read</span></div>
             <h2 id="latest-title">${escapeHtml(latest.title)}</h2>
             <p>${escapeHtml(latest.excerpt)}</p>
-            <span class="latest-action">Read the note <b>→</b></span>
-            <span class="latest-orbit" aria-hidden="true"><i></i></span>
+            <span class="latest-action">Read the post <b>→</b></span>
           </a>
         </section>
 
         <section class="archive" aria-labelledby="archive-title">
           <div class="archive-head">
             <div><p class="eyebrow"><span></span>All writing</p><h2 id="archive-title">Archive</h2></div>
-            <div class="filters" aria-label="Filter notes">
+            <div class="filters" aria-label="Filter posts">
               <button class="is-active" type="button" data-filter="all">All</button>
               ${tags.map((tag) => `<button type="button" data-filter="${escapeHtml(tag.toLowerCase())}">${escapeHtml(tag)}</button>`).join('')}
             </div>
@@ -186,20 +184,20 @@ function renderPost(post: Post): string {
       ${header()}
       <main>
         <article class="article" id="${post.slug}">
-          <a class="article-back" href="/blog/"><span>←</span>All notes</a>
+          <a class="article-back" href="/blog/"><span>←</span>All posts</a>
           <header class="article-header">
             <div class="article-kicker"><span>${escapeHtml(post.tag)}</span><time datetime="${post.date}">${formatDate(post.date)}</time><span>${post.readingTime} min read</span></div>
             <h1>${escapeHtml(post.title)}</h1>
             <p>${escapeHtml(post.excerpt)}</p>
           </header>
           <div class="article-layout">
-            <aside><span>Note ${String(index + 1).padStart(2, '0')}</span><i></i><p>Written while building, testing and changing my mind.</p></aside>
+            <aside><span>Post ${String(index + 1).padStart(2, '0')}</span><i></i><p>Written while building, testing and changing my mind.</p></aside>
             <div class="article-body">${renderMarkdown(post.body)}</div>
           </div>
         </article>
         ${next === undefined ? '' : `
           <a class="next-note" href="#${next.slug}">
-            <span>Next note</span>
+            <span>Next post</span>
             <strong>${escapeHtml(next.title)}</strong>
             <b>→</b>
           </a>`}
@@ -215,16 +213,12 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 function activatePage(): void {
   const progress = document.querySelector<HTMLElement>('.scroll-progress');
-  const glow = document.querySelector<HTMLElement>('.pointer-glow');
-  let pointerX = window.innerWidth / 2;
-  let pointerY = window.innerHeight / 2;
   let queued = false;
 
   const draw = (): void => {
     queued = false;
     const range = document.documentElement.scrollHeight - window.innerHeight;
     if (progress !== null) progress.style.transform = `scaleX(${range > 0 ? window.scrollY / range : 0})`;
-    if (glow !== null) glow.style.transform = `translate3d(${pointerX - 180}px, ${pointerY - 180}px, 0)`;
   };
   const queue = (): void => {
     if (queued) return;
@@ -232,11 +226,6 @@ function activatePage(): void {
     window.requestAnimationFrame(draw);
   };
   window.onscroll = queue;
-  window.onpointermove = (event): void => {
-    pointerX = event.clientX;
-    pointerY = event.clientY;
-    queue();
-  };
   queue();
 
   const observer = new IntersectionObserver((entries) => {
@@ -264,9 +253,9 @@ function render(): void {
   const slug = decodeURIComponent(window.location.hash.slice(1));
   const post = posts.find((item) => item.slug === slug);
   appRoot.innerHTML = post === undefined ? renderIndex() : renderPost(post);
-  document.title = post === undefined ? 'Notes — Stazzi' : `${post.title} — Stazzi`;
+  document.title = post === undefined ? 'Blog — Stazzi' : `${post.title} — Stazzi`;
   const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-  if (description !== null) description.content = post?.excerpt ?? 'Process notes, experiments and things Stas learns while making small games.';
+  if (description !== null) description.content = post?.excerpt ?? 'Posts, experiments and things Stas learns while making small games.';
   window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
   activatePage();
 }

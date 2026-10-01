@@ -307,7 +307,8 @@ h1 {
   min-height: 300px;
   padding: 30px 36px 34px 0;
   border-bottom: 1px solid var(--line);
-  cursor: default;
+  color: inherit;
+  cursor: pointer;
 }
 .note-card + .note-card { padding-left: 30px; border-left: 1px solid var(--line); }
 .note-meta { display: flex; justify-content: space-between; gap: 12px; color: #91938e; font-family: var(--font-mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }

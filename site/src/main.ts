@@ -60,18 +60,21 @@ const sketches = [
 const notes = [
   {
     date: 'Sep 30, 2026',
+    slug: 'trying-to-make-the-gap-actually-work',
     title: 'Trying to make The Gap actually work',
     excerpt: 'I changed the core idea again. Moving blocks felt too passive, so now I’m testing what happens when sorting and spatial decisions become the same move.',
     tag: 'Process',
   },
   {
     date: 'Sep 27, 2026',
+    slug: 'what-i-learned-from-building-10-prototypes',
     title: 'What I learned from building 10 prototypes',
     excerpt: 'Most ideas sound better in a document than they feel when you can actually touch them. The useful part starts when the first interaction pushes back.',
     tag: 'Learning',
   },
   {
     date: 'Sep 18, 2026',
+    slug: 'mixing-water-sort-with-sliding-puzzles',
     title: 'Mixing Water Sort with sliding puzzles',
     excerpt: 'An experiment about containers, exits and reversible mistakes that eventually turned into The Gap.',
     tag: 'Experiment',
@@ -113,12 +116,12 @@ function sketchCard(item: (typeof sketches)[number], index: number): string {
 
 function noteCard(item: (typeof notes)[number], index: number): string {
   return `
-    <article class="note-card reveal" data-delay="${index * 90}">
+    <a class="note-card reveal" href="/blog/#${item.slug}" data-delay="${index * 90}">
       <div class="note-meta"><time>${item.date}</time><span>${item.tag}</span></div>
       <h3>${item.title}</h3>
       <p>${item.excerpt}</p>
       <span class="note-arrow" aria-hidden="true">↗</span>
-    </article>`;
+    </a>`;
 }
 
 const root = document.getElementById('app');
@@ -134,7 +137,7 @@ root.innerHTML = `
         <a href="#about">About</a>
         <a href="#prototypes">Prototypes</a>
         <a href="#sketches">Sketches</a>
-        <a href="#blog">Blog</a>
+        <a href="/blog/">Blog</a>
         <a href="#contacts">Contacts</a>
       </nav>
     </header>
@@ -194,7 +197,7 @@ root.innerHTML = `
             <h2 id="notes-title">Notes</h2>
             <p>Updates, thoughts and things I learn while making stuff.</p>
           </div>
-          <span class="text-link quiet-link">Process journal</span>
+          <a class="text-link" href="/blog/">View all notes <b>→</b></a>
         </div>
         <div class="notes-grid">
           ${notes.map(noteCard).join('')}

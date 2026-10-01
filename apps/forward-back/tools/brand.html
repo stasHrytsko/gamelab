@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../UI Design/design-tokens.css">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--ui-font); background: transparent; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 96px); grid-template-rows: repeat(4, 96px); gap: 10px; }
+  .grid4.big { grid-template-columns: repeat(4, 104px); grid-template-rows: repeat(4, 104px); gap: 10px; flex: none; }
+  .block { --c: var(--ui-blue); border-radius: 26%; display: grid; place-items: center; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937)); box-shadow: 0 6px 12px rgba(31,41,55,.14), inset 0 -5px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 3px 0 rgba(255,255,255,.45); }
+  .block svg { width: 56%; height: 56%; filter: drop-shadow(0 1px 2px rgba(31,41,55,.2)); }
+  .c-blue { --c: var(--ui-blue); } .c-coral { --c: var(--ui-coral); } .c-yellow { --c: var(--ui-yellow); } .c-purple { --c: var(--ui-purple); }
+
+  #icon { width: 512px; height: 512px; background: radial-gradient(90% 90% at 30% 20%, #fff, var(--ui-background)); display: flex; align-items: center; justify-content: center; }
+  #icon .grid4 .block { border-radius: 22%; }
+
+  #og { width: 1200px; height: 630px; background: radial-gradient(80% 90% at 20% 10%, #fff, var(--ui-background) 70%); display: flex; align-items: center; gap: 72px; padding: 0 96px; }
+  #og h1 { font-size: 84px; font-weight: 700; line-height: 1.05; color: var(--ui-text); }
+  #og p { margin-top: 24px; font-size: 32px; color: var(--ui-text-muted); }
+  #og .cta { margin-top: 36px; display: inline-flex; align-items: center; gap: 14px; height: 76px; padding: 0 40px; border-radius: 22px; color: #fff; font-size: 32px; font-weight: 600; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 10px 24px rgba(79,126,255,.35); }
+  #og .cta svg { width: 30px; height: 30px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="hero" viewBox="0 0 24 24"><path d="M12 2.5l3.2 3.6h-2.2v4.9h4.9V8.8l3.6 3.2-3.6 3.2v-2.2H13v4.9h2.2L12 21.5l-3.2-3.6H11V13H6.1v2.2L2.5 12l3.6-3.2V11H11V6.1H8.8z" fill="#fff"/></symbol>
+  <symbol id="enemy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2" fill="#fff"/><circle cx="9" cy="10.8" r="1.7" fill="#ff7b6b"/><circle cx="15" cy="10.8" r="1.7" fill="#ff7b6b"/><path d="M8.6 15.6c2 1.6 4.8 1.6 6.8 0" fill="none" stroke="#ff7b6b" stroke-width="1.8" stroke-linecap="round"/></symbol>
+</defs></svg>
+
+<div id="icon"><div class="grid4"><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block c-blue"><svg><use href="#hero"/></svg></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div></div></div>
+
+<div id="og">
+  <div class="grid4 big"><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block c-blue"><svg><use href="#hero"/></svg></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div><div class="block" style="--c:var(--ui-surface-muted);box-shadow:none;background:var(--ui-surface-muted)"></div><div class="block c-coral"><svg><use href="#enemy"/></svg></div>
+  </div>
+  <div>
+    <h1>Вперёд<br>или назад</h1>
+    <p>Один шаг — два варианта</p>
+    <div class="cta"><svg viewBox="0 0 24 24"><path d="M7 4.5v15c0 .8.9 1.3 1.6.8l11-7.5c.6-.4.6-1.2 0-1.6l-11-7.5C7.9 3.2 7 3.7 7 4.5z" fill="currentColor"/></svg>Играть</div>
+  </div>
+</div>
+</body>
+</html>

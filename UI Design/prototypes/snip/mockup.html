@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snip</title>
+<link rel="stylesheet" href="../../design-tokens.css">
+<style>
+  /* Кликабельный макет для ideas/backlog/51-snip.md — медитативная версия по
+     скетчу автора (2026-10-01): сеть висит на потолке, фиолетовые точки — вершины
+     спрятанной рыбки, остальные висят на отростках. Свайп поперёк нитки режет её.
+     Остались только фиолетовые — нитки исчезают, точки соединяются в рыбку.
+     Упала фиолетовая — у рыбки дырка, уровень предлагают переиграть.
+     Только токены кита; цвет дублируется значком внутри шарика. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; color-scheme: light; }
+  body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--ui-blue); outline-offset: 2px; }
+
+  .app { height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; padding: 8px 16px 16px; }
+  .top { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; min-height: 44px; }
+  .top h1 { font-size: 18px; font-weight: 600; text-align: center; }
+  .icon-btn { width: 44px; height: 44px; border-radius: var(--ui-radius-medium); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: grid; place-items: center; font-size: 20px; font-weight: 700; color: var(--ui-blue); }
+  .icon-btn svg { width: 22px; height: 22px; color: var(--ui-text); }
+
+  .goal { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--ui-surface); border-radius: var(--ui-radius-large); box-shadow: var(--ui-shadow-soft); padding: 8px 14px; }
+  .goal b { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .left { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ui-text-muted); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .left strong { font-size: 18px; color: var(--ui-text); font-weight: 700; }
+  .mini { width: 22px; height: 22px; flex: none; }
+
+  .stage { flex: 1; min-height: 0; position: relative; touch-action: none; cursor: crosshair; }
+  .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .wire { stroke: var(--ui-text-muted); stroke-opacity: .6; stroke-width: 2.5; stroke-linecap: round; fill: none; }
+  .ceiling rect { fill: var(--ui-text); }
+  .ceiling path { stroke: var(--ui-text); stroke-width: 3; stroke-linecap: round; }
+  .dot-in { transform-box: fill-box; transform-origin: center; }
+  .dot .body { filter: drop-shadow(0 3px 3px rgba(31, 41, 55, .16)); }
+  .trail { fill: none; stroke: var(--ui-blue); stroke-opacity: .45; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .fish-line { fill: none; stroke: var(--ui-purple); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .fish-line.broken { stroke-dasharray: 2 9; stroke-opacity: .7; }
+  .fish-fill { fill: color-mix(in srgb, var(--ui-purple) 22%, #fff); }
+  .hole { fill: none; stroke: var(--ui-coral); stroke-width: 2.5; stroke-dasharray: 4 4; }
+
+  #g-P .s1 { stop-color: color-mix(in srgb, var(--ui-purple) 55%, #fff); } #g-P .s2 { stop-color: var(--ui-purple); } #g-P .s3 { stop-color: color-mix(in srgb, var(--ui-purple) 80%, #1f2937); }
+  #g-B .s1 { stop-color: color-mix(in srgb, var(--ui-blue) 60%, #fff); } #g-B .s2 { stop-color: var(--ui-blue); } #g-B .s3 { stop-color: color-mix(in srgb, var(--ui-blue) 85%, #1f2937); }
+  #g-C .s1 { stop-color: color-mix(in srgb, var(--ui-coral) 60%, #fff); } #g-C .s2 { stop-color: var(--ui-coral); } #g-C .s3 { stop-color: color-mix(in srgb, var(--ui-coral) 85%, #1f2937); }
+  #g-Y .s1 { stop-color: color-mix(in srgb, var(--ui-yellow) 55%, #fff); } #g-Y .s2 { stop-color: var(--ui-yellow); } #g-Y .s3 { stop-color: color-mix(in srgb, var(--ui-yellow) 85%, #1f2937); }
+
+  .hint { min-height: 48px; background: var(--ui-surface); border-radius: var(--ui-radius-large); box-shadow: var(--ui-shadow-soft); padding: 8px 14px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13px; line-height: 18px; color: var(--ui-text-muted); }
+  .hint b { color: var(--ui-text); font-weight: 600; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(31, 41, 55, .3); display: grid; place-items: end center; padding: 16px; z-index: 10; }
+  .card { width: 100%; max-width: 360px; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; animation: up .3s ease-out; }
+  @keyframes up { from { transform: translateY(24px); opacity: 0; } }
+  .card h2 { font-size: 22px; font-weight: 700; }
+  .card p { font-size: 14px; line-height: 20px; color: var(--ui-text-muted); }
+  .btns { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .btn { height: 52px; border-radius: var(--ui-radius-pill); font-size: 16px; font-weight: 600; background: var(--ui-surface); border: 1px solid var(--ui-border); box-shadow: var(--ui-shadow-soft); }
+  .btn.primary { background: var(--ui-blue); color: #fff; border: 0; box-shadow: 0 8px 18px color-mix(in srgb, var(--ui-blue) 35%, transparent); }
+  .rules { list-style: none; display: flex; flex-direction: column; gap: 10px; text-align: left; width: 100%; counter-reset: r; }
+  .rules li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; font-size: 14px; line-height: 20px; }
+  .rules li::before { counter-increment: r; content: counter(r); width: 28px; height: 28px; border-radius: 50%; background: var(--ui-blue); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+  .overlay.center { place-items: center; }
+  .overlay.clear { background: none; }
+
+  @media (prefers-reduced-motion: reduce) { .card { animation: none; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-P" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="s1"/><stop offset=".6" class="s2"/><stop offset="1" class="s3"/></linearGradient>
+    <linearGradient id="g-B" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="s1"/><stop offset=".6" class="s2"/><stop offset="1" class="s3"/></linearGradient>
+    <linearGradient id="g-C" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="s1"/><stop offset=".6" class="s2"/><stop offset="1" class="s3"/></linearGradient>
+    <linearGradient id="g-Y" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="s1"/><stop offset=".6" class="s2"/><stop offset="1" class="s3"/></linearGradient>
+    <symbol id="ic-P" viewBox="-12 -12 24 24"><path d="M0 -7 1.8 -1.8 7 0 1.8 1.8 0 7 -1.8 1.8 -7 0 -1.8 -1.8z" fill="#fff"/></symbol>
+    <symbol id="ic-B" viewBox="-12 -12 24 24"><circle r="5" fill="#fff"/></symbol>
+    <symbol id="ic-C" viewBox="-12 -12 24 24"><path d="M0 -6 6 4.8H-6z" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-Y" viewBox="-12 -12 24 24"><rect x="-5" y="-5" width="10" height="10" rx="2.2" fill="#fff"/></symbol>
+    <symbol id="star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app" data-status="playing" data-busy="0">
+  <header class="top">
+    <button class="icon-btn" id="btn-help" aria-label="Как играть" data-testid="help">?</button>
+    <h1>Уровень 1</h1>
+    <button class="icon-btn" id="btn-restart" aria-label="Заново" data-testid="restart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12a7 7 0 1 0 2-5"/><path d="M5 3v4h4"/></svg></button>
+  </header>
+
+  <section class="goal">
+    <b>Оставь только <svg class="mini" viewBox="-12 -12 24 24"><circle r="11" fill="url(#g-P)"/><use href="#ic-P" x="-12" y="-12" width="24" height="24"/></svg> фиолетовые</b>
+    <div class="left">лишних <strong id="left" data-testid="left">0</strong></div>
+  </section>
+
+  <main class="stage" id="stage">
+    <svg id="svg" viewBox="0 0 360 450" preserveAspectRatio="xMidYMid meet">
+      <g id="net"></g>
+      <polyline class="trail" id="trail" points=""/>
+    </svg>
+  </main>
+
+  <div class="hint" id="hint"><span>Проведи пальцем поперёк нитки — <b>она перережется</b>, и всё, что ниже, упадёт.</span></div>
+</div>
+<div id="popup-root"></div>
+
+<script>
+  // Уровень «Рыбка». Узел: [id, x, y, родитель, тип]. Тип: ceil — потолок,
+  // J — излом или развилка нитки, P — фиолетовая точка рисунка, B / C / Y —
+  // синий / коралловый / жёлтый лишний шарик. Нитки только горизонтальные и
+  // вертикальные, как в скетче. Лишние шарики висят на отростках, кроме двух
+  // цепочек по два — их можно срезать одним движением.
+  /*LEVEL*/
+  const NODES = [
+    ['c', 180, 24, null, 'ceil'], ['j0', 180, 110, 'c', 'J'],
+    ['l1', 160, 110, 'j0', 'J'], ['l2', 130, 110, 'l1', 'J'], ['l3', 105, 110, 'l2', 'J'], ['l4', 75, 110, 'l3', 'J'], ['l5', 50, 110, 'l4', 'J'],
+    ['r1', 205, 110, 'j0', 'J'], ['r2', 228, 110, 'r1', 'J'], ['r3', 250, 110, 'r2', 'J'], ['r4', 285, 110, 'r3', 'J'], ['r5', 320, 110, 'r4', 'J'],
+    // нос и нижний бок
+    ['jN', 50, 215, 'l5', 'J'], ['x1', 28, 215, 'jN', 'C'], ['N', 50, 300, 'jN', 'P'], ['x2', 50, 345, 'N', 'B'],
+    ['x3', 75, 150, 'l4', 'Y'],
+    ['j3', 105, 190, 'l3', 'J'], ['x4', 80, 190, 'j3', 'B'], ['A', 105, 255, 'j3', 'P'], ['x5', 73, 255, 'A', 'C'],
+    ['EYE', 105, 300, 'A', 'P'], ['E', 105, 345, 'EYE', 'P'], ['x6', 105, 390, 'E', 'C'], ['x7', 137, 345, 'E', 'Y'],
+    ['x8', 130, 160, 'l2', 'C'], ['x9', 130, 200, 'x8', 'Y'],
+    ['T', 160, 210, 'l1', 'P'], ['jT', 160, 250, 'T', 'J'], ['x11', 136, 250, 'jT', 'B'],
+    ['D', 160, 390, 'jT', 'P'], ['x12', 160, 430, 'D', 'C'], ['x13', 192, 390, 'D', 'B'],
+    ['jB', 205, 170, 'r1', 'J'], ['x14', 182, 170, 'jB', 'B'], ['B', 205, 255, 'jB', 'P'],
+    ['C', 205, 345, 'B', 'P'], ['x16', 237, 345, 'C', 'Y'],
+    ['x17', 228, 160, 'r2', 'C'], ['x18', 228, 200, 'x17', 'B'],
+    ['K', 250, 300, 'r3', 'P'],
+    ['F', 285, 265, 'r4', 'P'], ['Jb', 285, 335, 'F', 'P'], ['x19', 285, 380, 'Jb', 'C'],
+    ['G', 320, 230, 'r5', 'P'], ['H', 320, 300, 'G', 'P'], ['I', 320, 370, 'H', 'P'], ['x20', 320, 415, 'I', 'B'],
+  ];
+  const OUTLINE = ['N', 'A', 'T', 'B', 'K', 'F', 'G', 'H', 'I', 'Jb', 'K', 'C', 'D', 'E', 'N'];
+  const BODY = ['N', 'A', 'T', 'B', 'K', 'C', 'D', 'E'], TAIL = ['K', 'F', 'G', 'H', 'I', 'Jb'], EYE = 'EYE';
+  /*END*/
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(svgNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ms = (t) => (reduced ? 0 : t);
+  const byId = Object.fromEntries(NODES.map((n) => [n[0], { id: n[0], x: n[1], y: n[2], p: n[3], t: n[4], kids: [] }]));
+  Object.values(byId).forEach((n) => n.p && byId[n.p].kids.push(n.id));
+  const isExtra = (n) => 'BCY'.includes(n.t) && n.t.length === 1;
+
+  let alive, status, busy, seenHelp = false;
+  try { seenHelp = localStorage.getItem('snip:help') === '1'; } catch (e) {}
+
+  const subtree = (v) => { const out = [], st = [v]; while (st.length) { const x = st.pop(); if (!alive.has(x)) continue; out.push(x); st.push(...byId[x].kids); } return out; };
+  const extrasLeft = () => [...alive].filter((id) => isExtra(byId[id])).length;
+
+  function load() {
+    alive = new Set(Object.keys(byId)); status = 'playing'; busy = false;
+    $('popup-root').innerHTML = ''; render(); hud();
+  }
+
+  function render() {
+    const net = $('net'); net.innerHTML = ''; net.style.opacity = 1;
+    const wires = el('g', {}, net), dots = el('g', {}, net);
+    const c = byId.c;
+    const ceil = el('g', { class: 'ceiling', transform: `translate(${c.x} ${c.y})` }, net);
+    el('rect', { x: -70, y: -6, width: 140, height: 7, rx: 3.5 }, ceil);
+    for (let i = 0; i < 6; i++) el('path', { d: `M${-58 + i * 22} -8 l14 -14` }, ceil);
+    Object.values(byId).forEach((n) => {
+      if (!alive.has(n.id) || !n.p) return;
+      const p = byId[n.p];
+      el('line', { class: 'wire', x1: p.x, y1: p.y, x2: n.x, y2: n.y, 'data-child': n.id }, wires);
+      if (n.t === 'J') return;
+      const r = n.t === 'P' ? 12 : 10;
+      const g = el('g', { class: 'dot', transform: `translate(${n.x} ${n.y})`, 'data-id': n.id }, dots);
+      const inn = el('g', { class: 'dot-in' }, g);
+      el('circle', { class: 'body', r, fill: `url(#g-${n.t})` }, inn);
+      el('ellipse', { cx: 0, cy: -r * .45, rx: r * .55, ry: r * .22, fill: '#fff', opacity: .35 }, inn);
+      el('use', { href: `#ic-${n.t}`, x: -r * .75, y: -r * .75, width: r * 1.5, height: r * 1.5 }, inn);
+    });
+  }
+
+  function hud() {
+    $('left').textContent = extrasLeft();
+    $('app').dataset.status = status; $('app').dataset.busy = busy ? '1' : '0';
+  }
+
+  // Звук и вибрация разреза: короткий шум через полосовой фильтр. Включаются
+  // только после первого касания (так требует браузер).
+  let ac = null;
+  function snipSound() {
+    try {
+      ac ??= new (window.AudioContext || window.webkitAudioContext)();
+      const len = Math.floor(ac.sampleRate * .045), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3200 + Math.random() * 900; f.Q.value = 1.4;
+      const g = ac.createGain(); g.gain.value = .22;
+      src.connect(f).connect(g).connect(ac.destination); src.start();
+    } catch (e) {}
+    navigator.vibrate?.(8);
+  }
+
+  // Свайп: каждый отрезок пути пальца проверяется на пересечение с нитками.
+  const toSvg = (e) => { const pt = $('svg').createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform($('svg').getScreenCTM().inverse()); };
+  function crossPoint(p, q, a, b) {
+    const r = { x: q.x - p.x, y: q.y - p.y }, s = { x: b.x - a.x, y: b.y - a.y };
+    const den = r.x * s.y - r.y * s.x; if (Math.abs(den) < 1e-9) return null;
+    const t = ((a.x - p.x) * s.y - (a.y - p.y) * s.x) / den, u = ((a.x - p.x) * r.y - (a.y - p.y) * r.x) / den;
+    return t >= 0 && t <= 1 && u > .02 && u < .98 ? { x: p.x + t * r.x, y: p.y + t * r.y } : null;
+  }
+  let swipe = null, trailPts = [];
+  $('stage').addEventListener('pointerdown', (e) => {
+    if (status !== 'playing') return;
+    $('stage').setPointerCapture(e.pointerId);
+    const p = toSvg(e); swipe = { id: e.pointerId, last: p, start: p, moved: 0 };
+    trailPts = [{ x: p.x, y: p.y, t: performance.now() }];
+  });
+  $('stage').addEventListener('pointermove', (e) => {
+    if (!swipe || e.pointerId !== swipe.id) return;
+    const p = toSvg(e); swipe.moved += Math.hypot(p.x - swipe.last.x, p.y - swipe.last.y);
+    for (const n of Object.values(byId)) {
+      if (!n.p || !alive.has(n.id)) continue;
+      const hit = crossPoint(swipe.last, p, byId[n.p], n);
+      if (hit) cut(n.id, hit);
+    }
+    swipe.last = p; trailPts.push({ x: p.x, y: p.y, t: performance.now() });
+  });
+  const endSwipe = (e) => {
+    if (!swipe || e.pointerId !== swipe.id) return;
+    if (swipe.moved < 6) tapCut(swipe.start); // короткий тап по нитке тоже режет
+    swipe = null;
+  };
+  $('stage').addEventListener('pointerup', endSwipe);
+  $('stage').addEventListener('pointercancel', endSwipe);
+  function tapCut(p) {
+    const scale = $('svg').getScreenCTM().a, lim = 14 / scale;
+    let best = null;
+    for (const n of Object.values(byId)) {
+      if (!n.p || !alive.has(n.id)) continue;
+      const a = byId[n.p], b = n, dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy;
+      const t = Math.max(.05, Math.min(.95, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L2));
+      const q = { x: a.x + t * dx, y: a.y + t * dy }, d = Math.hypot(p.x - q.x, p.y - q.y);
+      if (d < lim && (!best || d < best.d)) best = { d, id: n.id, q };
+    }
+    if (best) cut(best.id, best.q);
+  }
+  (function drawTrail() {
+    const now = performance.now();
+    trailPts = trailPts.filter((p) => now - p.t < 160);
+    $('trail').setAttribute('points', trailPts.map((p) => `${p.x},${p.y}`).join(' '));
+    requestAnimationFrame(drawTrail);
+  })();
+
+  function cut(v, at) {
+    if (status !== 'playing' || !alive.has(v)) return;
+    const n = byId[v], p = byId[n.p];
+    const gone = subtree(v);
+    gone.forEach((id) => alive.delete(id));
+    snipSound();
+    const svg = $('svg'), net = $('net');
+    // Верхний кусок нитки остаётся и тает, нижний падает вместе с веткой.
+    const stub = el('line', { class: 'wire', x1: p.x, y1: p.y, x2: at.x, y2: at.y }, net);
+    stub.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms(500), fill: 'forwards' }).onfinish = () => stub.remove();
+    const g = el('g', {}, svg);
+    g.style.transformBox = 'view-box'; g.style.transformOrigin = `${at.x}px ${at.y}px`;
+    gone.forEach((id) => {
+      const w = net.querySelector(`.wire[data-child="${id}"]`); if (w) { if (id === v) { w.setAttribute('x1', at.x); w.setAttribute('y1', at.y); } g.appendChild(w); }
+      const d = net.querySelector(`.dot[data-id="${id}"]`); if (d) g.appendChild(d);
+    });
+    const side = n.x < p.x ? -1 : n.x > p.x ? 1 : (Math.random() < .5 ? -1 : 1);
+    const lostPurple = gone.filter((id) => byId[id].t === 'P');
+    g.animate([
+      { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+      { transform: `translate(${side * 6}px, 14px) rotate(${side * 14}deg)`, opacity: 1, offset: .2 },
+      { transform: `translate(${side * 30}px, 560px) rotate(${side * 40}deg)`, opacity: 0 },
+    ], { duration: ms(900), easing: 'cubic-bezier(.4,0,.85,.5)', fill: 'forwards' }).onfinish = () => g.remove();
+    // Оставшаяся сеть мягко качается, как мобиль.
+    net.style.transformBox = 'view-box'; net.style.transformOrigin = `${byId.c.x}px ${byId.c.y}px`;
+    const amp = Math.min(2.2, .5 + gone.length * .25) * -side;
+    net.animate([{ transform: 'rotate(0deg)' }, { transform: `rotate(${amp}deg)` }, { transform: `rotate(${-amp * .6}deg)` }, { transform: `rotate(${amp * .3}deg)` }, { transform: 'rotate(0deg)' }], { duration: ms(1200), easing: 'ease-out' });
+    hud();
+    if (lostPurple.length) return lose(lostPurple);
+    if (extrasLeft() === 0) win();
+  }
+
+  const pts = (ids) => ids.map((id) => `${byId[id].x},${byId[id].y}`).join(' ');
+
+  function drawFish(broken = []) {
+    const svg = $('svg');
+    const fish = el('g', { id: 'fish' }, svg);
+    const fills = el('g', { opacity: 0 }, fish);
+    el('polygon', { class: 'fish-fill', points: pts(TAIL) }, fills);
+    el('polygon', { class: 'fish-fill', points: pts(BODY) }, fills);
+    const line = el('polyline', { class: 'fish-line' + (broken.length ? ' broken' : ''), points: pts(OUTLINE) }, fish);
+    const len = line.getTotalLength();
+    if (!broken.length) {
+      line.style.strokeDasharray = len; line.style.strokeDashoffset = len;
+      line.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: ms(1400), easing: 'ease-in-out', fill: 'forwards' });
+      fills.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms(600), delay: ms(1200), fill: 'forwards' });
+    }
+    return fish;
+  }
+
+  function win() {
+    status = 'won'; busy = true; hud();
+    const net = $('net');
+    setTimeout(() => {
+      // Нитки и потолок уходят, точки соединяются в рыбку, и она всплывает повыше.
+      net.querySelectorAll('.wire, .ceiling').forEach((w) => w.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms(600), fill: 'forwards' }));
+      const swim = el('g', {}, $('svg')), bob = el('g', {}, swim);
+      bob.appendChild(drawFish());
+      bob.appendChild(net.querySelector('g:nth-child(2)')); // точки поверх контура
+      swim.animate([{ transform: 'translate(0, 0)' }, { transform: 'translate(0, -90px)' }], { duration: ms(1400), easing: 'ease-in-out', fill: 'forwards' });
+      const eye = bob.querySelector(`.dot[data-id="${EYE}"]`);
+      setTimeout(() => {
+        eye?.querySelector('use')?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms(300), fill: 'forwards' });
+        eye?.querySelector('.body')?.animate([{ fill: 'url(#g-P)' }, { fill: 'var(--ui-text)' }], { duration: ms(300), fill: 'forwards' });
+        bob.style.transformBox = 'view-box'; bob.style.transformOrigin = '185px 300px';
+        bob.animate([{ transform: 'translate(0,0) rotate(0)' }, { transform: 'translate(-4px,-6px) rotate(-1.5deg)' }, { transform: 'translate(0,0) rotate(0)' }], { duration: ms(1800), iterations: reduced ? 1 : Infinity, easing: 'ease-in-out' });
+        busy = false; hud();
+        popup(`
+          <h2>Рыбка!</h2>
+          <p>Все лишние срезаны, ни одна фиолетовая не упала.</p>
+          <div class="btns"><button class="btn primary" data-act="retry" data-testid="retry">Ещё раз</button></div>`, false, true);
+      }, ms(1700));
+    }, ms(900));
+  }
+
+  function lose(lost) {
+    status = 'lost'; busy = true; hud();
+    setTimeout(() => {
+      $('net').animate([{ opacity: 1 }, { opacity: .25 }], { duration: ms(400), fill: 'forwards' });
+      drawFish(lost);
+      lost.forEach((id) => el('circle', { class: 'hole', cx: byId[id].x, cy: byId[id].y, r: 13 }, $('fish')));
+      busy = false; hud();
+      popup(`
+        <h2>У рыбки дырка</h2>
+        <p>Вместе с веткой упала фиолетовая точка${lost.length > 1 ? ` — даже ${lost.length}` : ''}. Без неё рисунок не сложится.</p>
+        <div class="btns"><button class="btn primary" data-act="retry" data-testid="retry">Переиграть</button></div>`);
+    }, ms(1000));
+  }
+
+  function help() {
+    popup(`
+      <h2>Как играть?</h2>
+      <ol class="rules">
+        <li>Сеть висит на потолке.</li>
+        <li>Проведи пальцем поперёк нитки — она перережется, и всё, что ниже, упадёт.</li>
+        <li>Оставь только фиолетовые шарики.</li>
+        <li>Не урони ни одного фиолетового — из них в конце сложится рисунок.</li>
+      </ol>
+      <div class="btns"><button class="btn primary" data-act="close" data-testid="help-ok">Понятно!</button></div>`, true);
+    try { localStorage.setItem('snip:help', '1'); } catch (e) {}
+  }
+  function popup(html, center, clear) { $('popup-root').innerHTML = `<div class="overlay ${center ? 'center' : ''} ${clear ? 'clear' : ''}" role="dialog" aria-modal="true"><div class="card">${html}</div></div>`; }
+  $('popup-root').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    if (b.dataset.act === 'close') $('popup-root').innerHTML = '';
+    if (b.dataset.act === 'retry') reset();
+  });
+  function reset() { document.querySelectorAll('#svg > g:not(#net)').forEach((g) => g.remove()); $('net').getAnimations().forEach((a) => a.cancel()); load(); }
+  $('btn-restart').addEventListener('click', () => { if (!busy) reset(); });
+  $('btn-help').addEventListener('click', help);
+
+  load();
+  if (!seenHelp) help();
+</script>
+</body>
+</html>

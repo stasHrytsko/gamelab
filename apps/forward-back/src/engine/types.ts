@@ -21,6 +21,10 @@ export interface Level {
   readonly enemies: readonly Enemy[];
   /** Обучающий уровень: проиграть нельзя, жадный выбор тоже решает. */
   readonly tutorial: boolean;
+  /** Подсказка внизу экрана для этого уровня. */
+  readonly tip?: string;
+  /** Куда показывает рука-подсказка до первого касания (обучающие уровни). */
+  readonly hand?: Cell;
 }
 
 export type Status = 'playing' | 'won' | 'failed';

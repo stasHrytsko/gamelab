@@ -1,9 +1,9 @@
-import { createState, legalSteps, modesOf, move as engineMove, optionsForEnemy, stepInfo } from '../engine/forwardEngine.ts';
-import type { Dir, GameState, Mode, Move } from '../engine/types.ts';
+import { capturedBy, createState, DELTA, legalSteps, modesOf, move as engineMove, optionsForEnemy } from '../engine/forwardEngine.ts';
+import type { Cell, Dir, GameState, Mode, Move, StepInfo } from '../engine/types.ts';
 import { SIZE } from '../engine/types.ts';
 import { getLevel, LEVEL_COUNT } from '../levels/levels.ts';
-import { arrowGlyph, enemyGlyph, heroGlyph, icon } from './icons.ts';
-import { vibrate, wait } from './feedback.ts';
+import { enemyGlyph, handGlyph, heroGlyph, hookGlyph, icon, pushGlyph } from './icons.ts';
+import { reducedMotion, vibrate, wait } from './feedback.ts';
 import { log } from './log.ts';
 import { openPopup } from './popup.ts';
 import type { Go } from './screens.ts';
@@ -15,12 +15,13 @@ export interface Screen {
 }
 
 const ROT: Record<Dir, number> = { '^': -90, '>': 0, v: 90, '<': 180 };
-const OPPOSITE: Record<Dir, Dir> = { '^': 'v', v: '^', '<': '>', '>': '<' };
 
 // Тайминги хода (быстрая версия без спеки — подобраны на глаз, запишем в спеку после показа).
 const T = {
-  step: 150, // шаг героя на одну клетку
-  vanish: 240, // исчезновение одного врага
+  chain: 140, // цепь выстреливает от героя к первому врагу сзади
+  step: 170, // шаг героя на одну клетку (рывок тянет врагов вместе с ним)
+  knock: 0.4, // на сколько клеток толчок отбрасывает врагов перед исчезновением
+  vanish: 230, // исчезновение одного врага
   stagger: 70, // задержка между врагами линии, считая от героя
   shake: 160,
 } as const;
@@ -28,8 +29,11 @@ const T = {
 const GAP = 5;
 const PAD = 10;
 
-const pill = (kind: 'fwd' | 'back', dir: Dir, count: number): string =>
-  `<span class="pill ${kind}"><svg viewBox="0 0 24 24" style="transform:rotate(${String(ROT[kind === 'fwd' ? dir : OPPOSITE[dir]])}deg)">${arrowGlyph}</svg>${String(count)}</span>`;
+/** Метка хода: толчок — шеврон по ходу, рывок — крюк. Цвет — второй канал, значок — первый. */
+const pill = (mode: 'forward' | 'back', dir: Dir, count: number): string =>
+  mode === 'forward'
+    ? `<span class="pill fwd"><svg viewBox="0 0 24 24" style="transform:rotate(${String(ROT[dir])}deg)">${pushGlyph}</svg>${String(count)}</span>`
+    : `<span class="pill back"><svg viewBox="0 0 24 24">${hookGlyph}</svg>${String(count)}</span>`;
 
 const HOW_TO_PLAY = `
   <h2>Как играть?</h2>
@@ -40,12 +44,12 @@ const HOW_TO_PLAY = `
     <div class="piece ghost"></div>
     <div class="piece enemy"><svg viewBox="0 0 24 24">${enemyGlyph}</svg></div>
   </div>
-  <div class="demo-pills" aria-hidden="true">${pill('back', '>', 2)}${pill('fwd', '>', 1)}</div>
+  <div class="demo-pills" aria-hidden="true">${pill('back', '>', 2)}${pill('forward', '>', 1)}</div>
   <ol class="rules">
-    <li><b>1</b><span>Тапни соседнюю пустую клетку — герой шагнёт туда. Шаг стоит один ход.</span></li>
-    <li><b>2</b><span><em class="k-fwd">Вперёд:</em> уберёшь цепочку врагов прямо перед клеткой, куда пришёл.</span></li>
-    <li><b>3</b><span><em class="k-back">Назад:</em> уберёшь цепочку врагов прямо за клеткой, которую покинул.</span></li>
-    <li><b>4</b><span>Если доступны оба — выбираешь один. Убери всех, пока есть ходы.</span></li>
+    <li><b>1</b><span>Герой ходит на соседнюю клетку. Каждый шаг — один ход.</span></li>
+    <li><b>2</b><span><em class="k-fwd">Толчок:</em> шагнул к врагу — сбил цепочку перед собой.</span></li>
+    <li><b>3</b><span><em class="k-back">Рывок:</em> шагнул от врага — цепь утянула цепочку сзади.</span></li>
+    <li><b>4</b><span>Тапни врага, которого хочешь убрать. Держи палец — увидишь ход заранее. Ошибся — отмени.</span></li>
   </ol>`;
 
 interface Sprite {
@@ -55,9 +59,16 @@ interface Sprite {
   readonly el: HTMLDivElement;
 }
 
+/** Что сделает касание клетки: конкретный ход, «выбери, кого убрать» или ничего. */
+type Intent =
+  | { readonly kind: 'move'; readonly info: StepInfo; readonly mode: Mode }
+  | { readonly kind: 'ambiguous'; readonly info: StepInfo }
+  | null;
+
 export function gameScreen(levelNumber: number, go: Go): Screen {
   const level = getLevel(levelNumber);
   let state: GameState = createState(level);
+  const history: GameState[] = [];
   let busy = false;
   let popupOpen = false;
   let lastMoveAt = performance.now();
@@ -79,8 +90,11 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       <div class="moves-pill" data-testid="moves">Ходы <b>0</b><span>/ ${String(level.moveLimit)}</span></div>
       <div class="left-pill" data-testid="left"></div>
     </div>
-    <div class="stage"><div class="board" data-testid="board"><div class="dests"></div></div></div>
-    <div class="choice-bar" data-testid="choice-bar"></div>`;
+    <div class="stage"><div class="board" data-testid="board"><div class="dests"></div><div class="fx"></div></div></div>
+    <div class="bottom-bar">
+      <button class="undo-btn" data-testid="undo" aria-label="Отменить ход">${icon.undo}<span>Отменить</span></button>
+      <p class="hint" data-testid="hint"></p>
+    </div>`;
 
   const q = <T extends HTMLElement>(sel: string): T => {
     const found = el.querySelector<T>(sel);
@@ -90,9 +104,11 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   const stage = q('.stage');
   const boardEl = q('.board');
   const destsEl = q('.dests');
+  const fxEl = q('.fx');
   const movesEl = q('[data-testid="moves"]');
   const leftEl = q('[data-testid="left"]');
-  const barEl = q('.choice-bar');
+  const hintEl = q('[data-testid="hint"]');
+  const undoBtn = q<HTMLButtonElement>('[data-testid="undo"]');
 
   for (let r = 0; r < SIZE; r += 1) {
     for (let c = 0; c < SIZE; c += 1) {
@@ -109,14 +125,33 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   hero.el.innerHTML = `<svg viewBox="0 0 24 24">${heroGlyph}</svg>`;
   boardEl.append(hero.el);
 
+  // Призрак героя для предпросмотра: показывает, куда он встанет.
+  const ghost = document.createElement('div');
+  ghost.className = 'piece hero ghost-hero';
+  ghost.innerHTML = `<svg viewBox="0 0 24 24">${heroGlyph}</svg>`;
+  ghost.hidden = true;
+  boardEl.append(ghost);
+
   const enemies = new Map<string, Sprite>();
-  for (const e of level.enemies) {
+  function addEnemy(id: string, row: number, col: number): Sprite {
     const box = document.createElement('div');
     box.className = 'piece enemy';
-    box.dataset['testid'] = `enemy-${e.id}`;
+    box.dataset['testid'] = `enemy-${id}`;
     box.innerHTML = `<svg viewBox="0 0 24 24">${enemyGlyph}</svg>`;
     boardEl.append(box);
-    enemies.set(e.id, { id: e.id, row: e.row, col: e.col, el: box });
+    const sprite = { id, row, col, el: box };
+    enemies.set(id, sprite);
+    return sprite;
+  }
+  for (const e of level.enemies) addEnemy(e.id, e.row, e.col);
+
+  // Рука-подсказка на обучающих уровнях: прижать палец к цели. Исчезает с первым касанием.
+  let hand: HTMLDivElement | null = null;
+  if (level.hand !== undefined) {
+    hand = document.createElement('div');
+    hand.className = 'hand';
+    hand.innerHTML = `<i class="ripple"></i><svg viewBox="0 0 24 24">${handGlyph}</svg>`;
+    boardEl.append(hand);
   }
 
   // ---------- размеры от экрана ----------
@@ -126,6 +161,10 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     el.style.setProperty('--cell', `${String(Math.max(46, Math.min(Math.floor(free / SIZE), 80)))}px`);
     place(hero);
     for (const s of enemies.values()) place(s);
+    if (hand !== null && level.hand !== undefined) {
+      const [x, y] = xy(level.hand.row, level.hand.col);
+      hand.style.transform = `translate(${String(x)}px, ${String(y)}px)`;
+    }
     renderDests();
   }
   const observer = new ResizeObserver(fit);
@@ -136,28 +175,19 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     const cell = cellSize();
     return [PAD + col * (cell + GAP), PAD + row * (cell + GAP)];
   };
-  function place(s: Sprite): void {
+  const at = (s: { row: number; col: number }, dx = 0, dy = 0, scale = 1): string => {
     const [x, y] = xy(s.row, s.col);
-    s.el.style.transform = `translate(${String(x)}px, ${String(y)}px)`;
+    return `translate(${String(x + dx)}px, ${String(y + dy)}px) scale(${String(scale)})`;
+  };
+  function place(s: Sprite): void {
+    s.el.style.transform = at(s);
   }
 
   const locked = (): boolean => popupOpen || busy || state.status !== 'playing';
 
-  // ---------- подсказки: метки на соседних клетках и выбор линии ----------
-  // Враги, которых уберёт какой-нибудь из возможных ходов, подсвечены сразу: зелёным — вперёд, жёлтым — назад.
-  // Если врага можно убрать и так и так, у него два кольца.
-  function renderHints(): void {
-    for (const s of enemies.values()) s.el.classList.remove('hl-fwd', 'hl-back');
-    if (state.status !== 'playing') return;
-    for (const info of legalSteps(state)) {
-      for (const id of info.forward) enemies.get(id)?.el.classList.add('hl-fwd');
-      for (const id of info.back) enemies.get(id)?.el.classList.add('hl-back');
-    }
-  }
-
+  // ---------- метки на клетках, куда можно шагнуть ----------
   function renderDests(): void {
     destsEl.replaceChildren();
-    renderHints();
     if (state.status !== 'playing') return;
     for (const info of legalSteps(state)) {
       const d = document.createElement('div');
@@ -165,28 +195,88 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       d.dataset['testid'] = `dest-${String(info.to.row)}-${String(info.to.col)}`;
       const [x, y] = xy(info.to.row, info.to.col);
       d.style.transform = `translate(${String(x)}px, ${String(y)}px)`;
-      const hasF = info.forward.length > 0;
-      const hasB = info.back.length > 0;
-      if (hasF && hasB) {
-        // Выбор без второго тапа: клетка делится пополам вдоль хода. Половина «по ходу» — вперёд,
-        // половина «против хода» — назад. Тап в нужную половину сразу делает ход.
-        d.classList.add('split', `axis-${info.dir === '<' || info.dir === '>' ? 'h' : 'v'}`, `dir-${dirName[info.dir]}`);
-        d.innerHTML = `<div class="half back">${pill('back', info.dir, info.back.length)}</div><div class="half fwd">${pill('fwd', info.dir, info.forward.length)}</div>`;
-      } else if (hasF || hasB) {
-        d.innerHTML = `<div class="pills">${hasF ? pill('fwd', info.dir, info.forward.length) : pill('back', info.dir, info.back.length)}</div>`;
-      } else {
-        d.innerHTML = '<i class="dot"></i>';
-      }
+      const pills = [info.forward.length > 0 ? pill('forward', info.dir, info.forward.length) : '', info.back.length > 0 ? pill('back', info.dir, info.back.length) : ''].join('');
+      d.innerHTML = pills === '' ? '<i class="dot"></i>' : `<div class="pills">${pills}</div>`;
       destsEl.append(d);
     }
   }
-  const dirName: Record<Dir, string> = { '^': 'up', v: 'down', '<': 'left', '>': 'right' };
 
-  function renderBar(): void {
-    barEl.className = 'choice-bar';
-    barEl.innerHTML = level.tutorial
-      ? `<p class="hint"><b>Тапни врага — и его уберёшь.</b><span>Или тапни соседнюю клетку: на метках видно, сколько врагов уйдёт вперёд и назад.</span></p>`
-      : `<p class="hint">Тапни врага или соседнюю клетку. Клетка с двумя метками делится: тапни нужную половину.</p>`;
+  // ---------- цепь рывка: от героя к первому врагу сзади ----------
+  function makeChain(from: Cell, to: Cell): HTMLDivElement {
+    const cell = cellSize();
+    const [ax, ay] = xy(from.row, from.col);
+    const [bx, by] = xy(to.row, to.col);
+    const chain = document.createElement('div');
+    const horizontal = from.row === to.row;
+    chain.className = `chain ${horizontal ? 'h' : 'v'}`;
+    const x = Math.min(ax, bx) + cell / 2;
+    const y = Math.min(ay, by) + cell / 2;
+    const len = Math.abs(horizontal ? bx - ax : by - ay);
+    chain.style.left = `${String(horizontal ? x : x - 4)}px`;
+    chain.style.top = `${String(horizontal ? y - 4 : y)}px`;
+    chain.style.width = horizontal ? `${String(len)}px` : '8px';
+    chain.style.height = horizontal ? '8px' : `${String(len)}px`;
+    // Цепь растёт от героя: точка опоры — его сторона.
+    chain.style.transformOrigin = horizontal ? (ax < bx ? 'left center' : 'right center') : ay < by ? 'center top' : 'center bottom';
+    fxEl.append(chain);
+    return chain;
+  }
+
+  // ---------- предпросмотр: призрак героя, обречённые враги, цепь или толчок ----------
+  function intentAt(row: number, col: number): Intent {
+    const enemy = [...enemies.values()].find((s) => s.row === row && s.col === col);
+    if (enemy !== undefined) {
+      // Каждого врага убирает не больше одного хода (проверено тестом), так что тап однозначен.
+      const option = optionsForEnemy(state, enemy.id)[0];
+      if (option === undefined) return null;
+      const info = legalSteps(state).find((s) => s.dir === option.dir);
+      return info === undefined ? null : { kind: 'move', info, mode: option.mode };
+    }
+    const info = legalSteps(state).find((s) => s.to.row === row && s.to.col === col);
+    if (info === undefined) return null;
+    const modes = modesOf(info);
+    return modes.length === 1 ? { kind: 'move', info, mode: modes[0] as Mode } : { kind: 'ambiguous', info };
+  }
+
+  function clearPreview(): void {
+    ghost.hidden = true;
+    fxEl.replaceChildren();
+    for (const s of enemies.values()) s.el.classList.remove('doomed-fwd', 'doomed-back');
+    for (const d of destsEl.children) d.classList.remove('aim');
+  }
+
+  function showPreview(intent: Intent): void {
+    clearPreview();
+    if (intent === null) return;
+    const { info } = intent;
+    ghost.hidden = false;
+    ghost.style.transform = at(info.to);
+    destsEl.querySelector(`[data-testid="dest-${String(info.to.row)}-${String(info.to.col)}"]`)?.classList.add('aim');
+    const modes: Mode[] = intent.kind === 'move' ? [intent.mode] : ['forward', 'back'];
+    for (const mode of modes) {
+      const ids = capturedBy(info, mode);
+      for (const id of ids) enemies.get(id)?.el.classList.add(mode === 'forward' ? 'doomed-fwd' : 'doomed-back');
+      const first = ids[0] === undefined ? undefined : enemies.get(ids[0]);
+      if (mode === 'back' && first !== undefined) makeChain(state.hero, first);
+    }
+  }
+
+  // ---------- нижняя панель: отмена + подсказка ----------
+  function defaultTip(): string {
+    return level.tip ?? 'Прижми палец к врагу — увидишь ход заранее. Отпусти — сделаешь. Ошибся — отмени.';
+  }
+  function renderBar(text = defaultTip()): void {
+    hintEl.innerHTML = `<span>${text}</span>`;
+    undoBtn.disabled = history.length === 0 || busy;
+  }
+  let tipTimer = 0;
+  function flashTip(text: string): void {
+    renderBar(text);
+    hintEl.classList.remove('flash');
+    void hintEl.offsetWidth;
+    hintEl.classList.add('flash');
+    window.clearTimeout(tipTimer);
+    tipTimer = window.setTimeout(() => renderBar(), 2600);
   }
 
   function renderStatus(): void {
@@ -197,52 +287,62 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     el.dataset['moves'] = String(state.moves);
     el.dataset['enemies'] = String(state.enemies.length);
     el.toggleAttribute('data-busy', busy);
+    undoBtn.disabled = history.length === 0 || busy;
   }
   const enemyMini = `<svg viewBox="0 0 24 24" class="mini">${enemyGlyph}</svg>`;
 
   // ---------- недопустимый тап ----------
   function shake(s: Sprite): void {
-    const [x, y] = xy(s.row, s.col);
-    s.el.animate(
-      [
-        { transform: `translate(${String(x)}px,${String(y)}px)` },
-        { transform: `translate(${String(x + 5)}px,${String(y)}px)` },
-        { transform: `translate(${String(x - 4)}px,${String(y)}px)` },
-        { transform: `translate(${String(x)}px,${String(y)}px)` },
-      ],
-      { duration: T.shake, easing: 'ease-out' },
-    );
+    const frames = [at(s), at(s, 5), at(s, -4), at(s)].map((transform) => ({ transform }));
+    s.el.animate(frames, { duration: T.shake, easing: 'ease-out' });
     vibrate(15);
   }
 
-  // ---------- ход: шаг героя, затем линия исчезает от героя наружу ----------
+  // ---------- ход: толчок отбрасывает линию вперёд, рывок утягивает её за героем ----------
   async function animateMove(m: Move): Promise<void> {
-    const [x0, y0] = xy(m.from.row, m.from.col);
-    const [x1, y1] = xy(m.to.row, m.to.col);
+    const [dr, dc] = DELTA[m.dir];
+    const pitch = cellSize() + GAP;
     const taken = m.captured.map((id) => enemies.get(id)).filter((s): s is Sprite => s !== undefined);
-    const cls = m.mode === 'forward' ? 'hl-fwd' : 'hl-back';
-    for (const s of taken) s.el.classList.add(cls);
+    const slow = reducedMotion() ? 0 : 1;
 
+    let chain: HTMLDivElement | null = null;
+    if (m.mode === 'back' && taken[0] !== undefined) {
+      chain = makeChain(m.from, taken[0]);
+      const axis = m.dir === '<' || m.dir === '>' ? 'X' : 'Y';
+      await chain.animate([{ transform: `scale${axis}(0)` }, { transform: `scale${axis}(1)` }], { duration: T.chain * slow, easing: 'ease-out', fill: 'forwards' }).finished;
+    }
+
+    // Шаг героя. При рывке цепь и вся линия едут вместе с ним — жёстко, как на тросе.
     // fill:'forwards' — иначе после анимации герой на кадр откатится на старую клетку.
-    const step = hero.el.animate(
-      [{ transform: `translate(${String(x0)}px,${String(y0)}px)` }, { transform: `translate(${String(x1)}px,${String(y1)}px)` }],
-      { duration: T.step, easing: 'cubic-bezier(.3,0,.25,1)', fill: 'forwards' },
-    );
+    const easing = 'cubic-bezier(.3,0,.25,1)';
+    const step = hero.el.animate([{ transform: at(m.from) }, { transform: at(m.to) }], { duration: T.step * slow, easing, fill: 'forwards' });
+    const dx = dc * pitch;
+    const dy = dr * pitch;
+    if (m.mode === 'back') {
+      for (const s of taken) s.el.animate([{ transform: at(s) }, { transform: at(s, dx, dy) }], { duration: T.step * slow, easing, fill: 'forwards' });
+      chain?.animate([{ translate: '0 0' }, { translate: `${String(dx)}px ${String(dy)}px` }], { duration: T.step * slow, easing, fill: 'forwards' });
+    }
     await step.finished;
     hero.row = m.to.row;
     hero.col = m.to.col;
     place(hero);
     step.cancel();
+    if (m.mode === 'forward' && taken.length > 0) vibrate(10);
 
+    // Исчезновение от героя наружу. Толчок дополнительно отбрасывает врага по ходу.
+    const kx = m.mode === 'forward' ? dx * T.knock : dx;
+    const ky = m.mode === 'forward' ? dy * T.knock : dy;
+    const sx = m.mode === 'forward' ? 0 : dx;
+    const sy = m.mode === 'forward' ? 0 : dy;
     const gone = taken.map((s, i) =>
       s.el
         .animate(
           [
-            { transform: `${s.el.style.transform} scale(1)`, opacity: 1 },
-            { transform: `${s.el.style.transform} scale(1.12)`, opacity: 1, offset: 0.3 },
-            { transform: `${s.el.style.transform} scale(0)`, opacity: 0 },
+            { transform: at(s, sx, sy, 1), opacity: 1 },
+            { transform: at(s, (sx + kx) / 2, (sy + ky) / 2, 1.12), opacity: 1, offset: 0.3 },
+            { transform: at(s, kx, ky, 0), opacity: 0 },
           ],
-          { duration: T.vanish, delay: i * T.stagger, easing: 'ease-in', fill: 'both' },
+          { duration: T.vanish * slow, delay: i * T.stagger * slow, easing: 'ease-in', fill: 'both' },
         )
         .finished.then(() => {
           // Уходящий враг держит последний кадр до remove(): cancel() вернул бы его на поле.
@@ -250,14 +350,16 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
           enemies.delete(s.id);
         }),
     );
+    if (chain !== null) chain.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160 * slow, delay: T.vanish * 0.5 * slow, fill: 'forwards' });
     await Promise.all(gone);
+    fxEl.replaceChildren();
   }
 
   async function play(dir: Dir, mode: Mode): Promise<void> {
     if (locked()) return;
-    const info = stepInfo(state, dir);
     const result = engineMove(state, dir, mode);
-    if (info === null || result === null) {
+    const info = legalSteps(state).find((s) => s.dir === dir);
+    if (info === undefined || result === null) {
       shake(hero);
       return;
     }
@@ -275,15 +377,17 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     });
     lastMoveAt = now;
 
+    history.push(state);
     busy = true;
+    clearPreview();
     destsEl.replaceChildren();
-    for (const s of enemies.values()) s.el.classList.remove('hl-fwd', 'hl-back');
     renderStatus();
     await animateMove(result.move);
     state = result.state;
     busy = false;
     renderDests();
     renderStatus();
+    renderBar();
     vibrate(result.move.captured.length > 0 ? 12 : 6);
 
     if (state.status === 'won') {
@@ -302,6 +406,31 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     }
   }
 
+  // ---------- отмена хода: состояние из истории, спрайты подстраиваются ----------
+  function undo(): void {
+    const prev = history.pop();
+    if (prev === undefined || busy) return;
+    state = prev;
+    log({ type: 'undo', level: levelNumber, moves: state.moves });
+    clearPreview();
+    hero.row = state.hero.row;
+    hero.col = state.hero.col;
+    place(hero);
+    for (const s of enemies.values()) s.el.classList.remove('hl-fail');
+    for (const e of state.enemies) {
+      if (enemies.has(e.id)) continue;
+      const s = addEnemy(e.id, e.row, e.col);
+      place(s);
+      if (!reducedMotion()) s.el.animate([{ transform: at(s, 0, 0, 0.3), opacity: 0 }, { transform: at(s), opacity: 1 }], { duration: 200, easing: 'cubic-bezier(.3,1.5,.5,1)' });
+    }
+    renderDests();
+    renderStatus();
+    renderBar();
+  }
+  undoBtn.addEventListener('click', () => {
+    if (!locked() || state.status === 'failed') undo();
+  });
+
   async function wave(): Promise<void> {
     const cells = [...boardEl.querySelectorAll<HTMLElement>('.cell')];
     cells.forEach((c, i) => {
@@ -315,38 +444,71 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     await wait(700);
   }
 
-  // ---------- ввод: один тап = один ход ----------
-  boardEl.addEventListener('pointerdown', (event) => {
-    if (locked()) return;
+  // ---------- ввод: прижал — видишь ход, отпустил — сделал, увёл палец — отменил ----------
+  let pressing = false;
+  let pressCell = '';
+  let intent: Intent = null;
+
+  function cellFromEvent(event: PointerEvent): { row: number; col: number } | null {
     const rect = boardEl.getBoundingClientRect();
     const cell = cellSize();
-    const px = event.clientX - rect.left - PAD;
-    const py = event.clientY - rect.top - PAD;
-    const col = Math.floor((px + GAP / 2) / (cell + GAP));
-    const row = Math.floor((py + GAP / 2) / (cell + GAP));
-    if (row < 0 || col < 0 || row >= SIZE || col >= SIZE) return;
+    const col = Math.floor((event.clientX - rect.left - PAD + GAP / 2) / (cell + GAP));
+    const row = Math.floor((event.clientY - rect.top - PAD + GAP / 2) / (cell + GAP));
+    return row < 0 || col < 0 || row >= SIZE || col >= SIZE ? null : { row, col };
+  }
+  function track(event: PointerEvent): void {
+    const c = cellFromEvent(event);
+    const key = c === null ? '' : `${String(c.row)},${String(c.col)}`;
+    if (key === pressCell) return;
+    pressCell = key;
+    intent = c === null ? null : intentAt(c.row, c.col);
+    showPreview(intent);
+  }
 
-    // 1) Тап по врагу: «убери именно его». Шаг и линия определяются сами.
-    const enemy = [...enemies.values()].find((s) => s.row === row && s.col === col);
-    if (enemy !== undefined) {
-      const best = optionsForEnemy(state, enemy.id)[0];
-      if (best === undefined) shake(enemy);
-      else void play(best.dir, best.mode);
+  boardEl.addEventListener('pointerdown', (event) => {
+    if (locked()) return;
+    if (hand !== null) {
+      hand.remove();
+      hand = null;
+    }
+    pressing = true;
+    pressCell = '';
+    try {
+      boardEl.setPointerCapture(event.pointerId);
+    } catch {
+      // без захвата тоже работает, просто без отслеживания за пределами поля
+    }
+    track(event);
+  });
+  boardEl.addEventListener('pointermove', (event) => {
+    if (pressing) track(event);
+  });
+  boardEl.addEventListener('pointerup', (event) => {
+    if (!pressing) return;
+    pressing = false;
+    const c = cellFromEvent(event);
+    const chosen = intent;
+    intent = null;
+    pressCell = '';
+    if (chosen?.kind === 'move') {
+      void play(chosen.info.dir, chosen.mode);
       return;
     }
-
-    // 2) Тап по соседней пустой клетке: шаг. Двойную клетку выбирает половина, в которую попал палец.
-    const target = legalSteps(state).find((s) => s.to.row === row && s.to.col === col);
-    if (target === undefined) {
-      if (row !== hero.row || col !== hero.col) shake(hero);
+    clearPreview();
+    if (chosen?.kind === 'ambiguous') {
+      flashTip('Отсюда можно и <b>толкнуть</b>, и <b>утянуть</b>. Тапни врага, которого хочешь убрать.');
       return;
     }
-    const modes = modesOf(target);
-    if (modes.length === 1) return void play(target.dir, modes[0] as Mode);
-    const lx = px - col * (cell + GAP);
-    const ly = py - row * (cell + GAP);
-    const along = target.dir === '>' ? lx - cell / 2 : target.dir === '<' ? cell / 2 - lx : target.dir === 'v' ? ly - cell / 2 : cell / 2 - ly;
-    void play(target.dir, along >= 0 ? 'forward' : 'back');
+    if (c === null) return;
+    if (c.row === hero.row && c.col === hero.col) return;
+    const enemy = [...enemies.values()].find((s) => s.row === c.row && s.col === c.col);
+    shake(enemy ?? hero);
+  });
+  boardEl.addEventListener('pointercancel', () => {
+    pressing = false;
+    intent = null;
+    clearPreview();
+    log({ type: 'preview_cancel', level: levelNumber });
   });
 
   // ---------- попапы ----------
@@ -401,7 +563,8 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     popup(
       `<div class="badge-big badge-lose">${icon.cross}</div><h2>${title}</h2><p class="sub">${sub}</p>`,
       [
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
+        { id: 'undo', html: `${icon.undo}Отменить ход`, className: 'btn-primary', run: undo },
+        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
         { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',

@@ -88,6 +88,25 @@ describe('правила: вперёд / назад', () => {
     expect(optionsForEnemy(mk([0, 0], [[4, 4]]), '0')).toEqual([]);
   });
 
+  it('каждого врага убирает не больше одного хода — тап по врагу однозначен', () => {
+    // Лучи «вперёд» начинаются через клетку от героя, «назад» — вплотную; по каждому
+    // направлению луч один, поэтому два разных хода не могут задеть одного врага.
+    let seed = 1;
+    const rnd = (): number => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let t = 0; t < 5000; t += 1) {
+      const cells: [number, number][] = [];
+      const used = new Set<string>();
+      const hero: [number, number] = [Math.floor(rnd() * 5), Math.floor(rnd() * 5)];
+      used.add(hero.join());
+      for (let i = 0; i < 10; i += 1) {
+        const c: [number, number] = [Math.floor(rnd() * 5), Math.floor(rnd() * 5)];
+        if (!used.has(c.join())) { used.add(c.join()); cells.push(c); }
+      }
+      const s = mk(hero, cells);
+      for (const e of s.enemies) expect(optionsForEnemy(s, e.id).length).toBeLessThanOrEqual(1);
+    }
+  });
+
   it('решения солвера проходят через движок и побеждают на каждом уровне', () => {
     for (const level of LEVELS) {
       const best = solve({ hero: level.hero, enemies: level.enemies }, level.moveLimit);

@@ -193,10 +193,21 @@ svg { display: block; }
 .piece.hero { --c: var(--ui-blue); z-index: 3; }
 .piece.enemy { --c: var(--ui-coral); color: var(--ui-coral); z-index: 2; transition: box-shadow 160ms ease; }
 .piece.ghost { background: var(--ui-surface-muted); box-shadow: none; }
-.piece.enemy.hl-fwd { box-shadow: 0 0 0 4px var(--ui-green), 0 0 16px 2px color-mix(in srgb, var(--ui-green) 55%, transparent), var(--ui-shadow-tile); }
-.piece.enemy.hl-back { box-shadow: 0 0 0 4px var(--ui-yellow), 0 0 16px 2px color-mix(in srgb, var(--ui-yellow) 65%, transparent), var(--ui-shadow-tile); }
-/* Врага можно убрать и вперёд, и назад: два кольца, внутреннее зелёное, внешнее жёлтое. */
-.piece.enemy.hl-fwd.hl-back { box-shadow: 0 0 0 3px var(--ui-green), 0 0 0 6px var(--ui-yellow), var(--ui-shadow-tile); }
+/* Предпросмотр: кого уберёт ход под пальцем. Зелёное кольцо — толчок, жёлтое — рывок; враг дрожит. */
+.piece.enemy.doomed-fwd, .piece.enemy.doomed-back { animation: doomed 420ms ease-in-out infinite; }
+.piece.enemy.doomed-fwd { box-shadow: 0 0 0 4px var(--ui-green), 0 0 18px 3px color-mix(in srgb, var(--ui-green) 60%, transparent), var(--ui-shadow-tile); }
+.piece.enemy.doomed-back { box-shadow: 0 0 0 4px var(--ui-yellow), 0 0 18px 3px color-mix(in srgb, var(--ui-yellow) 70%, transparent), var(--ui-shadow-tile); }
+.piece.enemy.doomed-fwd svg, .piece.enemy.doomed-back svg { animation: doomed-face 420ms ease-in-out infinite; }
+@keyframes doomed { 50% { filter: brightness(1.08); } }
+@keyframes doomed-face { 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+/* Призрак героя: куда он встанет. */
+.piece.ghost-hero { opacity: .42; z-index: 2; pointer-events: none; box-shadow: none; }
+.piece.ghost-hero[hidden] { display: none; }
+.dest.aim .pills, .dest.aim .dot { opacity: 0; }
+/* Цепь рывка — звенья из повторяющегося градиента. */
+.fx { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.chain { position: absolute; border-radius: 4px; background: repeating-linear-gradient(90deg, var(--ui-yellow) 0 10px, color-mix(in srgb, var(--ui-yellow) 55%, #1f2937) 10px 12px); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--ui-yellow) 60%, #1f2937); }
+.chain.v { background: repeating-linear-gradient(180deg, var(--ui-yellow) 0 10px, color-mix(in srgb, var(--ui-yellow) 55%, #1f2937) 10px 12px); }
 .piece.enemy.hl-fail { animation: fail-pulse 600ms ease 2; }
 @keyframes fail-pulse { 50% { box-shadow: 0 0 0 4px var(--ui-danger), var(--ui-shadow-tile); } }
 
@@ -204,25 +215,29 @@ svg { display: block; }
 .dests { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .dest { position: absolute; left: 0; top: 0; width: var(--cell); height: var(--cell); border-radius: 26%; border: 2px dashed color-mix(in srgb, var(--ui-blue) 45%, transparent); background: color-mix(in srgb, var(--ui-blue) 7%, transparent); display: grid; place-items: center; transition: opacity 160ms ease, border-color 160ms ease; }
 .dest .dot { width: 10px; height: 10px; border-radius: 50%; background: color-mix(in srgb, var(--ui-blue) 45%, transparent); }
-/* Двойная клетка делится пополам вдоль хода: половина по ходу — «вперёд», против хода — «назад». */
-.dest.split { padding: 0; overflow: hidden; border-style: solid; border-color: color-mix(in srgb, var(--ui-blue) 55%, transparent); background: none; display: flex; align-items: stretch; place-items: stretch; }
-.dest.split.axis-h.dir-left { flex-direction: row-reverse; }
-.dest.split.axis-v { flex-direction: column; }
-.dest.split.axis-v.dir-up { flex-direction: column-reverse; }
-.dest .half { flex: 1; display: grid; place-items: center; min-width: 0; min-height: 0; }
-.dest .half.fwd { background: color-mix(in srgb, var(--ui-green) 38%, transparent); }
-.dest .half.back { background: color-mix(in srgb, var(--ui-yellow) 55%, transparent); }
-.dest .half .pill { width: 22px; height: 22px; padding: 0; justify-content: center; font-size: 13px; }
-.dest .half .pill svg { display: none; }
+.dest.aim { border-style: solid; border-color: var(--ui-blue); background: color-mix(in srgb, var(--ui-blue) 14%, transparent); }
 .pills { display: flex; flex-direction: column; gap: 3px; align-items: center; }
 .pill { display: inline-flex; align-items: center; gap: 2px; height: 22px; padding: 0 7px 0 4px; border-radius: 999px; font-size: 12px; font-weight: 700; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .pill svg { width: 14px; height: 14px; }
 .pill.fwd { background: var(--ui-green); color: #fff; }
 .pill.back { background: var(--ui-yellow); color: #5a4300; }
 
-/* Нижняя зона под большой палец: подсказка или выбор линии. */
-.choice-bar { min-height: 76px; display: flex; gap: var(--ui-space-3); align-items: stretch; }
-.hint { flex: 1; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 10px 16px; text-align: center; font-size: 13px; color: var(--ui-text-muted); line-height: 19px; display: flex; flex-direction: column; justify-content: center; }
+/* Нижняя зона под большой палец: отмена хода и подсказка. */
+.bottom-bar { min-height: 76px; display: flex; gap: var(--ui-space-3); align-items: stretch; }
+.undo-btn { flex: none; width: 76px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: var(--ui-shadow-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--ui-blue); transition: transform 120ms ease, opacity 160ms ease; }
+.undo-btn svg { width: 24px; height: 24px; }
+.undo-btn:active { transform: scale(.94); }
+.undo-btn:disabled { opacity: .4; color: var(--ui-text-muted); }
+.hint { flex: 1; min-width: 0; background: var(--ui-surface); border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-soft); padding: 10px 14px; text-align: center; font-size: 13px; color: var(--ui-text-muted); line-height: 18px; display: flex; flex-direction: column; justify-content: center; }
+.hint > span { display: block; }
+.hint.flash { animation: tip-flash 600ms ease; }
+@keyframes tip-flash { 30% { box-shadow: 0 0 0 3px var(--ui-blue), var(--ui-shadow-soft); } }
+/* Рука-подсказка: прижать палец к цели. */
+.hand { position: absolute; left: 0; top: 0; width: var(--cell); height: var(--cell); z-index: 4; pointer-events: none; display: grid; place-items: center; }
+.hand svg { width: 64%; height: 64%; translate: 22% 30%; animation: hand-press 1.6s ease-in-out infinite; filter: drop-shadow(0 4px 6px rgba(31,41,55,.25)); }
+.hand .ripple { position: absolute; width: 46%; height: 46%; border-radius: 50%; border: 3px solid #fff; opacity: 0; animation: hand-ripple 1.6s ease-out infinite; }
+@keyframes hand-press { 0%, 100% { transform: translate(6px, 8px); } 35%, 70% { transform: translate(0, 0) scale(.92); } }
+@keyframes hand-ripple { 0%, 30% { opacity: 0; transform: scale(.5); } 40% { opacity: .9; } 80%, 100% { opacity: 0; transform: scale(1.6); } }
 .hint b { color: var(--ui-text); font-weight: 600; }
 
 /* ---------- попапы ---------- */

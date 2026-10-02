@@ -2,6 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { solve } from '../src/engine/solver.ts';
 import { LEVELS } from '../src/levels/levels.ts';
 
+describe('обучение: по одному правилу за раз', () => {
+  const only = (i: number) => {
+    const l = LEVELS[i]!;
+    return solve({ hero: l.hero, enemies: l.enemies }, l.moveLimit)!.path.map((a) => a.mode);
+  };
+  it('уровень 1 — только толчок', () => expect(new Set(only(0))).toEqual(new Set(['forward'])));
+  it('уровень 2 — только рывок', () => expect(new Set(only(1))).toEqual(new Set(['back'])));
+  it('уровень 3 — впервые выбор на одном шаге', () => {
+    const l = LEVELS[2]!;
+    expect(solve({ hero: l.hero, enemies: l.enemies }, l.moveLimit)!.path.some((a) => a.choice)).toBe(true);
+  });
+});
+
 describe('уровни', () => {
   for (const level of LEVELS) {
     const start = { hero: level.hero, enemies: level.enemies };

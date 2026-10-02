@@ -18,6 +18,8 @@ export type LogEvent =
       /** Времени с предыдущего хода этой попытки, мс. */
       ms: number;
     }
+  | { type: 'undo'; level: number; moves: number }
+  | { type: 'preview_cancel'; level: number }
   | { type: 'help_open'; level: number }
   | { type: 'level_win'; level: number; moves: number }
   | { type: 'level_fail'; level: number; reason: 'moves_exhausted' | 'no_moves' };

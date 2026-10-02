@@ -46,11 +46,11 @@ export function markHowToPlaySeen(): void {
   save({ ...loadProgress(), howToPlaySeen: true });
 }
 
-/** `?unlock=all` в адресе открывает все уровни на эту вкладку, для проверки. */
-const unlockAll = new URLSearchParams(location.search).get('unlock') === 'all';
+/** Для тестов на игроках все уровни открыты сразу. `?lock=1` в адресе возвращает последовательное открытие. */
+const sequential = new URLSearchParams(location.search).get('lock') === '1';
 
 export function isUnlocked(level: number): boolean {
-  if (unlockAll || level === 1) return true;
+  if (!sequential || level === 1) return true;
   return loadProgress().passed.includes(level - 1);
 }
 

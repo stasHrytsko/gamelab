@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createState, legalSteps, modesOf, move, stepInfo } from '../src/engine/forwardEngine.ts';
+import { createState, legalSteps, modesOf, move, optionsForEnemy, stepInfo } from '../src/engine/forwardEngine.ts';
 import { solve } from '../src/engine/solver.ts';
 import type { Dir, GameState, Level } from '../src/engine/types.ts';
 import { LEVELS } from '../src/levels/levels.ts';
@@ -77,6 +77,15 @@ describe('правила: вперёд / назад', () => {
     // и остаётся с одним выходом; здесь проверяем прямое зажатие.
     const s = mk([0, 0], [[0, 1], [1, 0], [3, 3]], 9);
     expect(legalSteps(s)).toHaveLength(0);
+  });
+
+  it('тап по врагу: находится шаг и линия, самая длинная первой', () => {
+    const s = mk([2, 2], [[2, 1], [2, 0], [2, 4]]);
+    // враг 0 (2,1) убирается только шагом вправо «назад», вместе с (2,0)
+    expect(optionsForEnemy(s, '0')).toEqual([{ dir: '>', mode: 'back', count: 2 }]);
+    expect(optionsForEnemy(s, '2')).toEqual([{ dir: '>', mode: 'forward', count: 1 }]);
+    // враг, до которого шагом не достать, — вариантов нет
+    expect(optionsForEnemy(mk([0, 0], [[4, 4]]), '0')).toEqual([]);
   });
 
   it('решения солвера проходят через движок и побеждают на каждом уровне', () => {

@@ -1,5 +1,5 @@
-import { createState, legalSteps, modesOf, move as engineMove, stepInfo } from '../engine/forwardEngine.ts';
-import type { Dir, GameState, Mode, Move, StepInfo } from '../engine/types.ts';
+import { createState, legalSteps, modesOf, move as engineMove, optionsForEnemy, stepInfo } from '../engine/forwardEngine.ts';
+import type { Dir, GameState, Mode, Move } from '../engine/types.ts';
 import { SIZE } from '../engine/types.ts';
 import { getLevel, LEVEL_COUNT } from '../levels/levels.ts';
 import { arrowGlyph, enemyGlyph, heroGlyph, icon } from './icons.ts';
@@ -60,7 +60,6 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   let state: GameState = createState(level);
   let busy = false;
   let popupOpen = false;
-  let selected: StepInfo | null = null;
   let lastMoveAt = performance.now();
 
   const el = document.createElement('main');
@@ -152,48 +151,30 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
       const d = document.createElement('div');
       d.className = 'dest';
       d.dataset['testid'] = `dest-${String(info.to.row)}-${String(info.to.col)}`;
-      if (selected !== null) d.classList.add(selected.dir === info.dir ? 'chosen' : 'dim');
       const [x, y] = xy(info.to.row, info.to.col);
       d.style.transform = `translate(${String(x)}px, ${String(y)}px)`;
-      const pills = [
-        info.forward.length > 0 ? pill('fwd', info.dir, info.forward.length) : '',
-        info.back.length > 0 ? pill('back', info.dir, info.back.length) : '',
-      ].join('');
-      d.innerHTML = pills === '' ? '<i class="dot"></i>' : `<div class="pills">${pills}</div>`;
+      const hasF = info.forward.length > 0;
+      const hasB = info.back.length > 0;
+      if (hasF && hasB) {
+        // Выбор без второго тапа: клетка делится пополам вдоль хода. Половина «по ходу» — вперёд,
+        // половина «против хода» — назад. Тап в нужную половину сразу делает ход.
+        d.classList.add('split', `axis-${info.dir === '<' || info.dir === '>' ? 'h' : 'v'}`, `dir-${dirName[info.dir]}`);
+        d.innerHTML = `<div class="half back">${pill('back', info.dir, info.back.length)}</div><div class="half fwd">${pill('fwd', info.dir, info.forward.length)}</div>`;
+      } else if (hasF || hasB) {
+        d.innerHTML = `<div class="pills">${hasF ? pill('fwd', info.dir, info.forward.length) : pill('back', info.dir, info.back.length)}</div>`;
+      } else {
+        d.innerHTML = '<i class="dot"></i>';
+      }
       destsEl.append(d);
     }
   }
-
-  function highlight(info: StepInfo | null): void {
-    for (const s of enemies.values()) s.el.classList.remove('hl-fwd', 'hl-back');
-    if (info === null) return;
-    for (const id of info.forward) enemies.get(id)?.el.classList.add('hl-fwd');
-    for (const id of info.back) enemies.get(id)?.el.classList.add('hl-back');
-  }
+  const dirName: Record<Dir, string> = { '^': 'up', v: 'down', '<': 'left', '>': 'right' };
 
   function renderBar(): void {
-    barEl.replaceChildren();
-    if (selected !== null) {
-      const info = selected;
-      barEl.className = 'choice-bar choosing';
-      barEl.innerHTML = `
-        <button class="choice back" data-testid="choice-back">${pill('back', info.dir, info.back.length)}<span>Назад</span></button>
-        <button class="choice fwd" data-testid="choice-forward">${pill('fwd', info.dir, info.forward.length)}<span>Вперёд</span></button>`;
-      barEl.querySelector('[data-testid="choice-back"]')?.addEventListener('click', () => void play(info.dir, 'back'));
-      barEl.querySelector('[data-testid="choice-forward"]')?.addEventListener('click', () => void play(info.dir, 'forward'));
-      return;
-    }
     barEl.className = 'choice-bar';
     barEl.innerHTML = level.tutorial
-      ? `<p class="hint">Тапни соседнюю клетку.<br><b>На метках видно, сколько врагов уберёшь</b> вперёд и назад.</p>`
-      : `<p class="hint">Тапни соседнюю клетку. Если метки две — выбери одну.</p>`;
-  }
-
-  function select(info: StepInfo | null): void {
-    selected = info;
-    highlight(info);
-    renderDests();
-    renderBar();
+      ? `<p class="hint"><b>Тапни врага — и его уберёшь.</b><span>Или тапни соседнюю клетку: на метках видно, сколько врагов уйдёт вперёд и назад.</span></p>`
+      : `<p class="hint">Тапни врага или соседнюю клетку. Клетка с двумя метками делится: тапни нужную половину.</p>`;
   }
 
   function renderStatus(): void {
@@ -283,16 +264,12 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     lastMoveAt = now;
 
     busy = true;
-    selected = null;
-    barEl.replaceChildren();
     destsEl.replaceChildren();
     renderStatus();
     await animateMove(result.move);
     state = result.state;
     busy = false;
-    highlight(null);
     renderDests();
-    renderBar();
     renderStatus();
     vibrate(result.move.captured.length > 0 ? 12 : 6);
 
@@ -325,40 +302,38 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     await wait(700);
   }
 
-  // ---------- ввод: один обработчик на всё поле ----------
+  // ---------- ввод: один тап = один ход ----------
   boardEl.addEventListener('pointerdown', (event) => {
     if (locked()) return;
     const rect = boardEl.getBoundingClientRect();
     const cell = cellSize();
-    const col = Math.floor((event.clientX - rect.left - PAD + GAP / 2) / (cell + GAP));
-    const row = Math.floor((event.clientY - rect.top - PAD + GAP / 2) / (cell + GAP));
+    const px = event.clientX - rect.left - PAD;
+    const py = event.clientY - rect.top - PAD;
+    const col = Math.floor((px + GAP / 2) / (cell + GAP));
+    const row = Math.floor((py + GAP / 2) / (cell + GAP));
     if (row < 0 || col < 0 || row >= SIZE || col >= SIZE) return;
 
-    // Тап по подсвеченному врагу — быстрый выбор этой линии.
-    if (selected !== null) {
-      const hit = [...enemies.values()].find((s) => s.row === row && s.col === col);
-      if (hit !== undefined && selected.forward.includes(hit.id)) return void play(selected.dir, 'forward');
-      if (hit !== undefined && selected.back.includes(hit.id)) return void play(selected.dir, 'back');
+    // 1) Тап по врагу: «убери именно его». Шаг и линия определяются сами.
+    const enemy = [...enemies.values()].find((s) => s.row === row && s.col === col);
+    if (enemy !== undefined) {
+      const best = optionsForEnemy(state, enemy.id)[0];
+      if (best === undefined) shake(enemy);
+      else void play(best.dir, best.mode);
+      return;
     }
 
+    // 2) Тап по соседней пустой клетке: шаг. Двойную клетку выбирает половина, в которую попал палец.
     const target = legalSteps(state).find((s) => s.to.row === row && s.to.col === col);
     if (target === undefined) {
-      if (selected !== null) select(null);
-      else if (row !== hero.row || col !== hero.col) {
-        const enemy = [...enemies.values()].find((s) => s.row === row && s.col === col);
-        shake(enemy ?? hero);
-      }
+      if (row !== hero.row || col !== hero.col) shake(hero);
       return;
     }
     const modes = modesOf(target);
-    if (modes.length === 1) {
-      const only = modes[0] as Mode;
-      // Единственный вариант: коротко показываем линию и сразу ходим.
-      highlight(only === 'none' ? null : { ...target, forward: only === 'forward' ? target.forward : [], back: only === 'back' ? target.back : [] });
-      void play(target.dir, only);
-      return;
-    }
-    select(selected?.dir === target.dir ? null : target);
+    if (modes.length === 1) return void play(target.dir, modes[0] as Mode);
+    const lx = px - col * (cell + GAP);
+    const ly = py - row * (cell + GAP);
+    const along = target.dir === '>' ? lx - cell / 2 : target.dir === '<' ? cell / 2 - lx : target.dir === 'v' ? ly - cell / 2 : cell / 2 - ly;
+    void play(target.dir, along >= 0 ? 'forward' : 'back');
   });
 
   // ---------- попапы ----------

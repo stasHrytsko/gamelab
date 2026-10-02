@@ -6,15 +6,31 @@ import { LEVELS } from '../src/levels/levels.ts';
 const testid = (page: Page, id: string) => page.locator(`[data-testid="${id}"]`);
 const idle = (page: Page) => expect(testid(page, 'game')).not.toHaveAttribute('data-busy', '');
 
-/** Играет решение солвера: тапает клетки, а при выборе — кнопку «Вперёд» или «Назад». */
+/** Позиция тапа внутри клетки: у двойной клетки половина «по ходу» — вперёд, «против хода» — назад. */
+function halfPosition(dir: string, mode: string): { x: number; y: number } {
+  const f = mode === 'forward' ? 0.75 : 0.25;
+  const b = 1 - f;
+  if (dir === '>') return { x: f * 100, y: 50 };
+  if (dir === '<') return { x: b * 100, y: 50 };
+  if (dir === 'v') return { x: 50, y: f * 100 };
+  return { x: 50, y: b * 100 };
+}
+
+/** Играет решение солвера одним тапом на ход: по клетке (для выбора — по нужной половине). */
 async function playSolution(page: Page, levelIndex: number): Promise<void> {
   const level = LEVELS[levelIndex]!;
   const best = solve({ hero: level.hero, enemies: level.enemies }, level.moveLimit)!;
   let state = createState(level);
   for (const action of best.path) {
     const info = legalSteps(state).find((s) => s.dir === action.dir)!;
-    await testid(page, `cell-${String(info.to.row)}-${String(info.to.col)}`).click();
-    if (modesOf(info).length === 2) await testid(page, action.mode === 'forward' ? 'choice-forward' : 'choice-back').click();
+    const cell = testid(page, `cell-${String(info.to.row)}-${String(info.to.col)}`);
+    if (modesOf(info).length === 2) {
+      const box = (await cell.boundingBox())!;
+      const pos = halfPosition(action.dir, action.mode);
+      await cell.click({ position: { x: (pos.x / 100) * box.width, y: (pos.y / 100) * box.height } });
+    } else {
+      await cell.click();
+    }
     state = move(state, action.dir, action.mode)!.state;
     await expect(testid(page, 'game')).toHaveAttribute('data-moves', String(state.moves));
     await idle(page);
@@ -22,7 +38,7 @@ async function playSolution(page: Page, levelIndex: number): Promise<void> {
 }
 
 test('главный → уровни → уровень 1 → победа → уровень 2 открыт', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/?lock=1'); // последовательное открытие уровней
   await testid(page, 'play').click({ force: true }); // кнопка дышит, Playwright считает её нестабильной
   await expect(testid(page, 'levels')).toBeVisible();
   await expect(testid(page, 'level-2')).toHaveClass(/locked/);
@@ -35,8 +51,24 @@ test('главный → уровни → уровень 1 → победа → 
   await expect(testid(page, 'level-2')).not.toHaveClass(/locked/);
 });
 
+test('по умолчанию все уровни открыты сразу', async ({ page }) => {
+  await page.goto('/#/levels');
+  for (let n = 1; n <= LEVELS.length; n += 1) await expect(testid(page, `level-${String(n)}`)).not.toHaveClass(/locked/);
+  await testid(page, 'level-5').click();
+  await expect(testid(page, 'game')).toHaveAttribute('data-level', '5');
+});
+
+test('тап по врагу сразу делает ход: шаг и линия выбираются сами', async ({ page }) => {
+  await page.goto('/#/level/1');
+  await testid(page, 'popup-help').getByText('Понятно!').click();
+  // Уровень 1: герой (2,2); враги (2,0),(2,1) позади и (2,4) впереди. Тап по (2,1) = шаг вправо и «назад».
+  await testid(page, 'enemy-1').click();
+  await expect(testid(page, 'game')).toHaveAttribute('data-moves', '1');
+  await expect(testid(page, 'game')).toHaveAttribute('data-enemies', '1');
+});
+
 test('все пять уровней проходятся решением солвера, после пятого — финал', async ({ page }) => {
-  await page.goto('/?unlock=all#/level/1');
+  await page.goto('/#/level/1');
   await testid(page, 'popup-help').getByText('Понятно!').click();
   for (let i = 0; i < LEVELS.length; i += 1) {
     await expect(testid(page, 'game')).toHaveAttribute('data-level', String(i + 1));
@@ -66,8 +98,14 @@ test('проигрыш жадной стратегией и «Переиграт
     // жадный выбор: максимум врагов за шаг
     const options = legalSteps(state).flatMap((info) => modesOf(info).map((mode) => ({ info, mode, n: mode === 'forward' ? info.forward.length : mode === 'back' ? info.back.length : 0 })));
     const best = options.sort((a, b) => b.n - a.n)[0]!;
-    await testid(page, `cell-${String(best.info.to.row)}-${String(best.info.to.col)}`).click();
-    if (modesOf(best.info).length === 2) await testid(page, best.mode === 'forward' ? 'choice-forward' : 'choice-back').click();
+    const cell = testid(page, `cell-${String(best.info.to.row)}-${String(best.info.to.col)}`);
+    if (modesOf(best.info).length === 2) {
+      const box = (await cell.boundingBox())!;
+      const pos = halfPosition(best.info.dir, best.mode);
+      await cell.click({ position: { x: (pos.x / 100) * box.width, y: (pos.y / 100) * box.height } });
+    } else {
+      await cell.click();
+    }
     state = move(state, best.info.dir, best.mode)!.state;
     await expect(testid(page, 'game')).toHaveAttribute('data-moves', String(state.moves));
     await idle(page);

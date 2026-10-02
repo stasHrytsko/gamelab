@@ -87,3 +87,13 @@ export function move(state: GameState, dir: Dir, mode: Mode): { state: GameState
     move: { dir, from: state.hero, to: info.to, mode, captured },
   };
 }
+
+/** Все ходы, которыми можно убрать врага `id`: тап по врагу выбирает шаг и линию разом. */
+export function optionsForEnemy(state: Pick<GameState, 'hero' | 'enemies'>, id: string): { dir: Dir; mode: Mode; count: number }[] {
+  const out: { dir: Dir; mode: Mode; count: number }[] = [];
+  for (const info of legalSteps(state)) {
+    if (info.forward.includes(id)) out.push({ dir: info.dir, mode: 'forward', count: info.forward.length });
+    if (info.back.includes(id)) out.push({ dir: info.dir, mode: 'back', count: info.back.length });
+  }
+  return out.sort((a, b) => b.count - a.count);
+}

@@ -1,5 +1,7 @@
 import './styles.css';
 import games from 'virtual:games';
+import portrait from './assets/portrait.webp';
+import { coverFor } from './covers';
 import { siteHeader } from './nav';
 import { escapeHtml, formatDate, posts } from './posts';
 
@@ -14,7 +16,7 @@ function gameBlock(): string {
   return `
     <article class="feature-card game-feature">
       <a class="feature-picture" href="/${game.path}/" tabindex="-1" aria-hidden="true">
-        <img src="/${game.path}/og.png" alt="" loading="lazy">
+        <img src="${coverFor(game.path)}" alt="" loading="lazy">
         <span class="new-badge">New</span>
       </a>
       <div class="feature-body">
@@ -54,9 +56,9 @@ root.innerHTML = `
           <h1 id="about-title">My name is Stas<span>.</span></h1>
           <p class="about-lead">I make small games, prototypes and visual experiments — mostly to explore ideas, mix mechanics and see what happens.</p>
         </div>
-        <div class="photo-card" role="img" aria-label="Photo of Stas — coming soon">
-          <span>Photo</span>
-        </div>
+        <figure class="photo-card">
+          <img src="${portrait}" alt="Black-and-white portrait of Stas Hrytsko">
+        </figure>
       </section>
 
       <section class="home-block" id="games" aria-labelledby="games-title">

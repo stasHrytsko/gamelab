@@ -169,13 +169,22 @@ h1 {
 }
 
 .photo-card {
-  display: grid;
-  place-items: center;
+  position: relative;
   min-height: 420px;
-  background: repeating-linear-gradient(135deg, #f4f4f2 0 14px, #ecedea 14px 15px);
+  margin: 0;
+  overflow: hidden;
+  background: #ededeb;
 }
 
-.photo-card span,
+.photo-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+
 .feature-meta,
 .new-badge,
 .more-link,
@@ -186,18 +195,16 @@ h1 {
   text-transform: uppercase;
 }
 
-.photo-card span { color: #9a9c97; font-size: 11px; }
-
 .feature-card {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  min-height: 340px;
+  grid-template-columns: 240px minmax(0, 1fr);
 }
 
 .feature-picture {
   position: relative;
   overflow: hidden;
+  aspect-ratio: 4 / 5;
   border-right: 1px solid var(--line);
   background: #eceeeb;
 }
@@ -207,6 +214,7 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: 50% 0;
   transition: transform .35s ease;
 }
 
@@ -395,12 +403,15 @@ h1 {
   .topbar nav a { font-size: 11px; }
   h1 { font-size: clamp(46px, 14vw, 72px); }
   .about-block,
-  .feature-card,
   .contacts-block { grid-template-columns: 1fr; }
   .about-card { min-height: 0; padding: 36px 24px; }
-  .photo-card { min-height: 260px; }
-  .feature-picture { aspect-ratio: 1.4; border-right: 0; border-bottom: 1px solid var(--line); }
-  .feature-body { padding: 28px 24px 32px; }
+  .photo-card { min-height: 0; aspect-ratio: 4 / 5; }
+  .game-feature { grid-template-columns: 120px minmax(0, 1fr); }
+  .game-feature .feature-picture { align-self: start; }
+  .game-feature .feature-body { padding: 18px 16px 20px; }
+  .game-feature .feature-body h3 { font-size: 24px; }
+  .game-feature .feature-body > p:not(.feature-meta) { font-size: 13px; }
+  .game-feature .play-button { margin-top: 16px; }
   .post-feature .feature-body { padding: 64px 24px 84px; }
   .contacts-intro { padding: 0 0 20px; border-right: 0; border-bottom: 1px solid var(--line); }
   .site-footer { padding-bottom: 96px; }

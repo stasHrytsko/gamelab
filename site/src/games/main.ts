@@ -1,13 +1,14 @@
 import '../styles.css';
 import './styles.css';
 import games from 'virtual:games';
+import { coverFor } from '../covers';
 import { siteHeader } from '../nav';
 import { escapeHtml } from '../posts';
 
 function gameCard(game: (typeof games)[number]): string {
   return `
     <a class="game-card" href="/${game.path}/">
-      <div class="game-picture"><img src="/${game.path}/og.png" alt="" loading="lazy"></div>
+      <div class="game-picture"><img src="${coverFor(game.path)}" alt="" loading="lazy"></div>
       <div class="game-copy">
         <p class="feature-meta">${escapeHtml(game.genre)}</p>
         <h2>${escapeHtml(game.title)}</h2>

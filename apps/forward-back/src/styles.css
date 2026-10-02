@@ -193,8 +193,10 @@ svg { display: block; }
 .piece.hero { --c: var(--ui-blue); z-index: 3; }
 .piece.enemy { --c: var(--ui-coral); color: var(--ui-coral); z-index: 2; transition: box-shadow 160ms ease; }
 .piece.ghost { background: var(--ui-surface-muted); box-shadow: none; }
-.piece.enemy.hl-fwd { box-shadow: 0 0 0 4px var(--ui-green), 0 0 18px 2px color-mix(in srgb, var(--ui-green) 60%, transparent), var(--ui-shadow-tile); }
-.piece.enemy.hl-back { box-shadow: 0 0 0 4px var(--ui-yellow), 0 0 18px 2px color-mix(in srgb, var(--ui-yellow) 70%, transparent), var(--ui-shadow-tile); }
+.piece.enemy.hl-fwd { box-shadow: 0 0 0 4px var(--ui-green), 0 0 16px 2px color-mix(in srgb, var(--ui-green) 55%, transparent), var(--ui-shadow-tile); }
+.piece.enemy.hl-back { box-shadow: 0 0 0 4px var(--ui-yellow), 0 0 16px 2px color-mix(in srgb, var(--ui-yellow) 65%, transparent), var(--ui-shadow-tile); }
+/* Врага можно убрать и вперёд, и назад: два кольца, внутреннее зелёное, внешнее жёлтое. */
+.piece.enemy.hl-fwd.hl-back { box-shadow: 0 0 0 3px var(--ui-green), 0 0 0 6px var(--ui-yellow), var(--ui-shadow-tile); }
 .piece.enemy.hl-fail { animation: fail-pulse 600ms ease 2; }
 @keyframes fail-pulse { 50% { box-shadow: 0 0 0 4px var(--ui-danger), var(--ui-shadow-tile); } }
 

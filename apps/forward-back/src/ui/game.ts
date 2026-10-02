@@ -144,8 +144,20 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   const locked = (): boolean => popupOpen || busy || state.status !== 'playing';
 
   // ---------- подсказки: метки на соседних клетках и выбор линии ----------
+  // Враги, которых уберёт какой-нибудь из возможных ходов, подсвечены сразу: зелёным — вперёд, жёлтым — назад.
+  // Если врага можно убрать и так и так, у него два кольца.
+  function renderHints(): void {
+    for (const s of enemies.values()) s.el.classList.remove('hl-fwd', 'hl-back');
+    if (state.status !== 'playing') return;
+    for (const info of legalSteps(state)) {
+      for (const id of info.forward) enemies.get(id)?.el.classList.add('hl-fwd');
+      for (const id of info.back) enemies.get(id)?.el.classList.add('hl-back');
+    }
+  }
+
   function renderDests(): void {
     destsEl.replaceChildren();
+    renderHints();
     if (state.status !== 'playing') return;
     for (const info of legalSteps(state)) {
       const d = document.createElement('div');
@@ -265,6 +277,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
     busy = true;
     destsEl.replaceChildren();
+    for (const s of enemies.values()) s.el.classList.remove('hl-fwd', 'hl-back');
     renderStatus();
     await animateMove(result.move);
     state = result.state;

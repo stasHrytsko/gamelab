@@ -26,6 +26,7 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         blog: resolve(import.meta.dirname, 'blog/index.html'),
+        games: resolve(import.meta.dirname, 'games/index.html'),
       },
     },
   },

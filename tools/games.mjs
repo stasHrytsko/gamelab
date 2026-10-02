@@ -7,7 +7,7 @@ export const REPO = fileURLToPath(new URL('..', import.meta.url));
 const APPS = join(REPO, 'apps');
 const FIELDS = ['idea', 'path', 'title', 'genre', 'pitch'];
 // Витрина сама занимает эти имена в корне сайта.
-const RESERVED = new Set(['assets', 'index.html']);
+const RESERVED = new Set(['assets', 'index.html', 'blog', 'games']);
 
 export function readGames() {
   const games = [];

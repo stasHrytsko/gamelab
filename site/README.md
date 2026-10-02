@@ -5,14 +5,17 @@ prototypes and blog posts.
 
 ## Structure
 
-- `src/main.ts` — content, sections and motion behaviour.
+- `src/main.ts` — home page: About, latest game, latest post, Contacts.
+- `games/index.html` and `src/games/` — the Games page listing every game.
+- `src/nav.ts` — shared header (About and Contact scroll the home page, Games and Blog open their pages).
+- `src/posts.ts` — blog posts parsed from `content/posts/`, shared by home and blog.
 - `blog/index.html` and `src/blog/` — the separate Blog page and article reader.
 - `content/posts/*.md` — one Markdown file per blog post.
 - `src/styles.css` — layout, visual system, responsive states and animation.
 - `public/og.png` — social preview image.
 - `apps/*/game.json` — playable prototypes included in the root build.
 
-The portfolio is served at `/`. Playable games keep their own paths such as
+The home page is served at `/`, the games list at `/games/`. Playable games keep their own paths such as
 `/the-gap/`, `/arrow-flip/` and `/sprout/`. The journal is served at `/blog/`.
 
 ## Add a blog post
@@ -34,5 +37,5 @@ cd site
 npm run dev
 ```
 
-The page follows `prefers-reduced-motion`, stays keyboard accessible and uses
-the existing game previews and visual studies as its project imagery.
+The featured game on the home page is set by `FEATURED_GAME` in `src/main.ts`;
+the latest post is picked automatically by date.

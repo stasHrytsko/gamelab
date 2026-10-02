@@ -135,56 +135,6 @@ h1 {
   letter-spacing: -.055em;
 }
 
-.about-block {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
-  gap: 24px;
-  padding-top: 24px;
-  border-top: 0;
-}
-
-.about-card,
-.photo-card,
-.feature-card,
-.contacts-block,
-.game-card {
-  border: 1px solid var(--line);
-  background: #fff;
-}
-
-.about-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 420px;
-  padding: clamp(32px, 5vw, 72px);
-}
-
-.about-lead {
-  max-width: 560px;
-  margin: 30px 0 0;
-  color: var(--muted);
-  font-size: clamp(16px, 1.4vw, 20px);
-  line-height: 1.6;
-}
-
-.photo-card {
-  position: relative;
-  min-height: 420px;
-  margin: 0;
-  overflow: hidden;
-  background: #ededeb;
-}
-
-.photo-card img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 20%;
-}
-
 .feature-meta,
 .new-badge,
 .more-link,
@@ -195,31 +145,13 @@ h1 {
   text-transform: uppercase;
 }
 
-.feature-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+.feature-card,
+.contacts-block {
+  border: 1px solid var(--line);
+  background: #fff;
 }
 
-.feature-picture {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 4 / 5;
-  border-right: 1px solid var(--line);
-  background: #eceeeb;
-}
-
-.feature-picture img,
-.game-picture img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 0;
-  transition: transform .35s ease;
-}
-
-.feature-card:hover .feature-picture img,
-.game-card:hover .game-picture img { transform: scale(1.03); }
+.feature-card { position: relative; }
 
 .new-badge {
   position: absolute;
@@ -276,12 +208,187 @@ h1 {
 }
 
 .play-button b { color: var(--accent); font-size: 9px; }
-.play-button:hover,
-.game-card:hover .play-button { background: #2d2f2d; }
+.play-button:hover { background: #2d2f2d; }
+
+/* Первый экран: текст от первого лица и коллаж из артов игр */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 64px);
+  min-height: min(680px, calc(100vh - 112px));
+  padding: 24px 0 72px;
+  border-top: 0;
+}
+
+.hero-lead {
+  max-width: 560px;
+  margin: 30px 0 0;
+  font-size: clamp(20px, 1.9vw, 27px);
+  line-height: 1.45;
+  letter-spacing: -.025em;
+}
+
+.hero-sub {
+  max-width: 480px;
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 36px;
+}
+
+.hero-actions .play-button { margin-top: 0; }
+
+.text-button {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--ink);
+  font: 11px var(--font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.text-button b { margin-left: 8px; color: var(--accent); }
+
+.hero-collage {
+  --px: 0;
+  --py: 0;
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 560px;
+  justify-self: end;
+}
+
+.collage-item {
+  --depth: 1;
+  --turn: 0deg;
+  position: absolute;
+  width: 46%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 6px solid #fff;
+  border-radius: 6px;
+  background: #e6e7e4;
+  box-shadow: 0 2px 4px rgba(20, 22, 21, .08), 0 22px 40px -18px rgba(20, 22, 21, .45);
+  transform: translate(calc(var(--px) * var(--depth) * 26px), calc(var(--py) * var(--depth) * 26px)) rotate(var(--turn));
+  transition: transform .5s cubic-bezier(.2, .7, .2, 1);
+}
+
+.collage-item img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+.collage-item--1 { --depth: 1.6; --turn: -6deg; top: 4%; left: 6%; z-index: 3; }
+.collage-item--2 { --depth: .8; --turn: 5deg; top: 0; right: 4%; z-index: 2; }
+.collage-item--3 { --depth: 1.2; --turn: 7deg; bottom: 0; left: 18%; z-index: 4; }
+.collage-item--4 { --depth: .6; --turn: -4deg; right: 0; bottom: 6%; z-index: 1; }
+
+/* Карточка игры — общая для главной и страницы игр. Цвет игры приходит в --game. */
+
+.game-shelf,
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.game-card {
+  --game: var(--ink);
+  --game-text: #fff;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: #fff;
+  transition: background .3s ease, border-color .3s ease, transform .3s ease;
+}
+
+.game-picture {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #eceeeb;
+}
+
+.game-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+  transition: transform .4s ease;
+}
+
+.game-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 16px 16px 18px;
+  border-top: 4px solid var(--game);
+  transition: color .3s ease;
+}
+
+.game-genre {
+  margin: 0;
+  color: var(--muted);
+  font: 10px var(--font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: color .3s ease;
+}
+
+.game-copy h2,
+.game-copy h3 {
+  margin: 8px 0;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -.03em;
+}
+
+.game-pitch {
+  flex: 1;
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  transition: color .3s ease;
+}
+
+.game-play {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--game);
+  font: 10px var(--font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: color .3s ease, background .3s ease;
+}
+.game-play b { font-size: 8px; }
+
+@media (hover: hover) {
+  .game-card:hover { border-color: var(--game); background: var(--game); transform: translateY(-3px); }
+  .game-card:hover .game-picture img { transform: scale(1.04); }
+  .game-card:hover .game-copy,
+  .game-card:hover .game-genre,
+  .game-card:hover .game-pitch { color: var(--game-text); }
+  .game-card:hover .game-play { color: var(--game); background: var(--game-text); }
+}
 
 .post-feature {
   display: block;
-  min-height: 0;
   transition: border-color .25s ease;
 }
 
@@ -380,6 +487,9 @@ h1 {
 
 @media (max-width: 1040px) {
   .site-shell { width: calc(100% - 32px); margin: 16px auto; }
+  .game-shelf,
+  .games-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .game-shelf .game-card:nth-child(4) { display: none; }
 }
 
 @media (max-width: 760px) {
@@ -402,16 +512,17 @@ h1 {
   }
   .topbar nav a { font-size: 11px; }
   h1 { font-size: clamp(46px, 14vw, 72px); }
-  .about-block,
+  .hero,
   .contacts-block { grid-template-columns: 1fr; }
-  .about-card { min-height: 0; padding: 36px 24px; }
-  .photo-card { min-height: 0; aspect-ratio: 4 / 5; }
-  .game-feature { grid-template-columns: 120px minmax(0, 1fr); }
-  .game-feature .feature-picture { align-self: start; }
-  .game-feature .feature-body { padding: 18px 16px 20px; }
-  .game-feature .feature-body h3 { font-size: 24px; }
-  .game-feature .feature-body > p:not(.feature-meta) { font-size: 13px; }
-  .game-feature .play-button { margin-top: 16px; }
+  .hero { min-height: 0; padding: 12px 0 48px; }
+  .hero-collage { max-width: 380px; justify-self: center; }
+  .game-shelf,
+  .games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .game-copy { padding: 12px 12px 14px; }
+  .game-copy h2,
+  .game-copy h3 { font-size: 16px; }
+  .game-pitch { font-size: 12px; }
+  .game-shelf .game-card:nth-child(4) { display: flex; }
   .post-feature .feature-body { padding: 64px 24px 84px; }
   .contacts-intro { padding: 0 0 20px; border-right: 0; border-bottom: 1px solid var(--line); }
   .site-footer { padding-bottom: 96px; }

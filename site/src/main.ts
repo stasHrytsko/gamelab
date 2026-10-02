@@ -1,31 +1,35 @@
 import './styles.css';
 import games from 'virtual:games';
-import portrait from './assets/portrait.webp';
 import { coverFor } from './covers';
+import { gameCard } from './game-card';
 import { siteHeader } from './nav';
 import { escapeHtml, formatDate, posts } from './posts';
 
-// Игра в блоке «New» на главной. Если её нет в сборке — берём последнюю из списка.
-const FEATURED_GAME = 'the-gap';
+// Игры на полке главной — по порядку. Чего нет в сборке, пропускаем;
+// если не набралось четырёх, добираем из общего списка.
+const SHELF = ['the-gap', 'the-dig', 'sprout', 'block-market'];
+// Арты в коллаже первого экрана.
+const COLLAGE = ['the-gap', 'the-dig', 'sprout', 'arrow-flip'];
 
-const game = games.find((item) => item.path === FEATURED_GAME) ?? games.at(-1);
+const shelf = [
+  ...SHELF.flatMap((path) => games.filter((game) => game.path === path)),
+  ...games.filter((game) => !SHELF.includes(game.path)),
+].slice(0, 4);
+const collage = COLLAGE.filter((path) => games.some((game) => game.path === path));
 const post = posts[0];
 
-function gameBlock(): string {
-  if (game === undefined) return '<p class="empty-note">Games are on the way.</p>';
-  return `
-    <article class="feature-card game-feature">
-      <a class="feature-picture" href="/${game.path}/" tabindex="-1" aria-hidden="true">
-        <img src="${coverFor(game.path)}" alt="" loading="lazy">
-        <span class="new-badge">New</span>
-      </a>
-      <div class="feature-body">
-        <p class="feature-meta">${escapeHtml(game.genre)}</p>
-        <h3>${escapeHtml(game.title)}</h3>
-        <p>${escapeHtml(game.pitch)}</p>
-        <a class="play-button" href="/${game.path}/">Play <b>▶</b></a>
-      </div>
-    </article>`;
+function collageBlock(): string {
+  return collage
+    .map((path, index) => `
+      <a class="collage-item collage-item--${index + 1}" href="/${path}/" tabindex="-1" aria-hidden="true">
+        <img src="${coverFor(path)}" alt="">
+      </a>`)
+    .join('');
+}
+
+function gamesBlock(): string {
+  if (shelf.length === 0) return '<p class="empty-note">Games are on the way.</p>';
+  return `<div class="game-shelf">${shelf.map((game) => gameCard(game)).join('')}</div>`;
 }
 
 function blogBlock(): string {
@@ -50,20 +54,23 @@ root.innerHTML = `
     ${siteHeader()}
 
     <main>
-      <section class="home-block about-block" id="about" aria-labelledby="about-title">
-        <div class="about-card">
-          <p class="eyebrow"><span></span>Independent game maker</p>
-          <h1 id="about-title">My name is Stas<span>.</span></h1>
-          <p class="about-lead">I make small games, prototypes and visual experiments — mostly to explore ideas, mix mechanics and see what happens.</p>
+      <section class="home-block hero" id="about" aria-labelledby="about-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span>Stas Hrytsko · Valencia</p>
+          <h1 id="about-title">Hi, I’m Stas<span>.</span></h1>
+          <p class="hero-lead">By day I help teams ship products. In the evenings I build small puzzle games — and check whether they’re actually fun.</p>
+          <p class="hero-sub">${games.length} playable prototypes so far. Each one is a single mechanic, built fast and tested on real players.</p>
+          <div class="hero-actions">
+            <a class="play-button" href="/games/">Play the games <b>▶</b></a>
+            <a class="text-button" href="/blog/">Read the blog <b>→</b></a>
+          </div>
         </div>
-        <figure class="photo-card">
-          <img src="${portrait}" alt="Black-and-white portrait of Stas Hrytsko">
-        </figure>
+        <div class="hero-collage" aria-hidden="true">${collageBlock()}</div>
       </section>
 
       <section class="home-block" id="games" aria-labelledby="games-title">
         <h2 class="block-title" id="games-title">Games</h2>
-        ${gameBlock()}
+        ${gamesBlock()}
         <a class="more-link" href="/games/">More <b>→</b></a>
       </section>
 
@@ -102,3 +109,19 @@ const navObserver = new IntersectionObserver((entries) => {
   });
 }, { rootMargin: '-40% 0px -55% 0px' });
 document.querySelectorAll<HTMLElement>('.home-block').forEach((section) => navObserver.observe(section));
+
+// Коллаж чуть следует за курсором — слои двигаются с разной глубиной.
+const collageNode = document.querySelector<HTMLElement>('.hero-collage');
+const canHover = window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches;
+if (collageNode !== null && canHover) {
+  const hero = collageNode.closest<HTMLElement>('.hero');
+  hero?.addEventListener('pointermove', (event) => {
+    const box = hero.getBoundingClientRect();
+    collageNode.style.setProperty('--px', String((event.clientX - box.left) / box.width - .5));
+    collageNode.style.setProperty('--py', String((event.clientY - box.top) / box.height - .5));
+  });
+  hero?.addEventListener('pointerleave', () => {
+    collageNode.style.setProperty('--px', '0');
+    collageNode.style.setProperty('--py', '0');
+  });
+}

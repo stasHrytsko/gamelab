@@ -45,7 +45,7 @@ export function renderHome(lang: Lang): string {
       <section class="hero">
         <div class="wrap hero-grid">
           <div class="hero-art">
-            <img src="/hero.svg" alt="${escapeHtml(d.heroArt)}" width="640" height="520">
+            <img src="/hero.webp" alt="${escapeHtml(d.heroArt)}" width="1149" height="1369" fetchpriority="high">
           </div>
           <div class="hero-copy">
             <h1>${escapeHtml(d.heroTitle)}</h1>

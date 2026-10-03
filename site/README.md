@@ -26,8 +26,7 @@ their home screen has an "All games" link back to `/games/`.
 - `src/pages/` — `home.ts`, `games.ts`, `blog.ts`.
 - `src/styles.css` — the paper/origami look (palette from `UI Design/`).
 - `content/posts/<slug>.en.md` and `<slug>.uk.md` — blog posts per language.
-- `public/hero.svg` — placeholder for the hero picture, replace with the real
-  one (keep the name or change it in `src/pages/home.ts`).
+- `public/hero.webp` — the hero picture (change it in `src/pages/home.ts`).
 - `public/og.png` — social preview image.
 
 ## Add a blog post

@@ -74,7 +74,7 @@ h1, h2, h3, p { margin: 0; }
 .hero-where span { width: 22px; height: 3px; border-radius: 3px; background: var(--text); }
 .hero-actions { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
 .hero-art { order: 2; }
-.hero-art img { width: 100%; height: auto; max-height: 460px; object-fit: contain; margin-left: auto; }
+.hero-art img { width: 100%; max-width: 440px; height: auto; margin-left: auto; border-radius: 28px; box-shadow: var(--shadow-card); }
 
 /* ---------- блоки главной ---------- */
 .block { padding: 40px 0 24px; }
@@ -250,7 +250,7 @@ a.contact:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
 
   .hero { padding: 8px 0 32px; }
   .hero-grid { grid-template-columns: 1fr; gap: 20px; }
-  .hero-art img { max-height: 280px; margin: 0 auto; }
+  .hero-art img { max-width: 360px; margin: 0 auto; }
   .hero-copy h1 { max-width: none; }
   .hero-lead { font-size: 17px; }
   .hero-actions .btn { flex: 1 1 100%; justify-content: center; }

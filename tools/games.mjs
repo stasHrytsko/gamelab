@@ -8,7 +8,7 @@ const APPS = join(REPO, 'apps');
 const FIELDS = ['idea', 'path', 'title', 'genre', 'pitch', 'pitchUk', 'added', 'status'];
 const STATUSES = new Set(['playable', 'prototype', 'exploring']);
 // Витрина сама занимает эти имена в корне сайта.
-const RESERVED = new Set(['assets', 'index.html', 'games', 'blog', 'uk', 'server', 'hero.svg', 'og.png']);
+const RESERVED = new Set(['assets', 'index.html', 'games', 'blog', 'uk', 'server', 'hero.svg', 'hero.webp', 'og.png']);
 
 export function readGames() {
   const games = [];

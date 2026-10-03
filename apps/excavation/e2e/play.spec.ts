@@ -79,7 +79,7 @@ test('«Забрать» до выхода не срабатывает; тап �
   await page.getByTestId('take').click();
   await page.waitForTimeout(350);
   await expect(game(page)).toHaveAttribute('data-status', 'playing');
-  await expect(page.getByTestId('take')).toContainText('Найди выход');
+  await expect(page.getByTestId('take')).toContainText('Find the exit');
 
   const { room } = await roomOf(page, 3);
   const first = safeSequence(room).find((i) => (room.clue[i] ?? 0) > 0);
@@ -103,7 +103,7 @@ test('ловушка сжигает золото; «Переиграть» — �
   await expect(game(page)).toHaveAttribute('data-status', 'failed');
   await expect(game(page)).toHaveAttribute('data-gold', '0');
   await expect(page.getByTestId('popup-lose')).toBeVisible();
-  await expect(page.getByTestId('popup-lose')).toContainText('Ловушка!');
+  await expect(page.getByTestId('popup-lose')).toContainText('Trap!');
   // Комната раскрыта: все ловушки видны.
   await expect(page.locator('.cell.ghost-trap, .cell.trap-hit')).toHaveCount(room.traps);
   await page.locator('[data-action="replay"]').click();

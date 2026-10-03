@@ -88,7 +88,7 @@ test('счётчик клеток в подсказке и «Очистить»'
   await expect(page.getByTestId('count')).toHaveText('2/4');
   await page.getByTestId('b-2-2').click();
   await page.getByTestId('b-3-3').click();
-  await expect(page.getByTestId('hint')).toContainText('касаться сторонами');
+  await expect(page.getByTestId('hint')).toContainText('touch along their sides');
   await expect(page.getByTestId('count')).toHaveText('4/4');
   // Пятую клетку не поставить.
   await page.getByTestId('b-1-0').click();
@@ -111,7 +111,7 @@ test('фигура на препятствие не встаёт и ход не 
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2 + lift, { steps: 8 });
   await expect(page.locator('.cell.aim-bad').first()).toBeVisible();
   await page.mouse.up();
-  await expect(page.getByTestId('hint')).toContainText('Сюда не встаёт');
+  await expect(page.getByTestId('hint')).toContainText('fit here');
   await expect(page.getByTestId('game')).toHaveAttribute('data-used', '0');
 });
 
@@ -150,7 +150,7 @@ test('ошибку игра не подсказывает; проигрыш — 
     await placePiece(page, piece, i);
   }
   await expect(game).toHaveAttribute('data-status', 'failed');
-  await expect(page.getByTestId('popup-lose')).toContainText('Ходов нет');
+  await expect(page.getByTestId('popup-lose')).toContainText('No moves left');
   await page.locator('[data-action="replay"]').click();
   await expect(page.getByTestId('popup-lose')).toHaveCount(0);
   await expect(game).toHaveAttribute('data-used', '0');

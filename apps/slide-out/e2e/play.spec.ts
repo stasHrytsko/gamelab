@@ -77,7 +77,7 @@ test('все пять уровней проходятся маршрутом с�
     await playRoute(page, id);
     await expect(page.getByTestId(id === 5 ? 'popup-final' : 'popup-win')).toBeVisible();
   }
-  await expect(page.getByTestId('popup-final')).toContainText('Все уровни пройдены');
+  await expect(page.getByTestId('popup-final')).toContainText('All levels complete');
 });
 
 test('проигрыш, когда счётчик цели кончился, и переигровка', async ({ page }) => {
@@ -105,7 +105,7 @@ test('проигрыш, когда счётчик цели кончился, и 
     await swipe(page, pick.id, i % 2 === 0 ? pick.there : pick.back);
   }
   await expect(page.getByTestId('popup-lose')).toBeVisible();
-  await expect(page.getByTestId('popup-lose')).toContainText('Счётчик цели дошёл до нуля');
+  await expect(page.getByTestId('popup-lose')).toContainText('counter hit zero');
   await page.locator('[data-action="replay"]').click();
   await expect(page.getByTestId('popup-lose')).toHaveCount(0);
   await expect(page.getByTestId('left')).toHaveText(String(level.goals.length));

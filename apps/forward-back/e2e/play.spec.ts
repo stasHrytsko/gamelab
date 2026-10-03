@@ -34,10 +34,10 @@ test('главный → уровни → уровень 1 → победа → 
   await expect(testid(page, 'level-2')).toHaveClass(/locked/);
   await testid(page, 'level-1').click();
   await expect(testid(page, 'popup-help')).toBeVisible(); // «Как играть» открылось само
-  await testid(page, 'popup-help').getByText('Понятно!').click();
+  await testid(page, 'popup-help').getByText('Got it!').click();
   await playSolution(page, 0);
   await expect(testid(page, 'popup-win')).toBeVisible();
-  await testid(page, 'popup-win').getByText('К уровням').click();
+  await testid(page, 'popup-win').getByText('Levels').click();
   await expect(testid(page, 'level-2')).not.toHaveClass(/locked/);
 });
 
@@ -60,7 +60,7 @@ test('клетка с двумя вариантами не делает ход, 
   await page.goto('/#/level/3');
   await testid(page, 'cell-2-3').click();
   await expect(testid(page, 'game')).toHaveAttribute('data-moves', '0');
-  await expect(testid(page, 'hint')).toContainText('Тапни врага');
+  await expect(testid(page, 'hint')).toContainText('Tap the enemy');
 });
 
 test('удержание показывает предпросмотр, а уход пальцем отменяет ход', async ({ page }) => {
@@ -91,12 +91,12 @@ test('отмена хода возвращает врагов и счётчик'
 
 test('все пять уровней проходятся решением солвера, после пятого — финал', async ({ page }) => {
   await page.goto('/#/level/1');
-  await testid(page, 'popup-help').getByText('Понятно!').click();
+  await testid(page, 'popup-help').getByText('Got it!').click();
   for (let i = 0; i < LEVELS.length; i += 1) {
     await expect(testid(page, 'game')).toHaveAttribute('data-level', String(i + 1));
     await playSolution(page, i);
     if (i < LEVELS.length - 1) {
-      await testid(page, 'popup-win').getByText('Следующий уровень').click();
+      await testid(page, 'popup-win').getByText('Next level').click();
     } else {
       await expect(testid(page, 'popup-final')).toBeVisible();
     }
@@ -124,7 +124,7 @@ test('проигрыш жадной стратегией: «Отменить х�
   }
   expect(state.status).toBe('failed');
   await expect(testid(page, 'popup-lose')).toBeVisible();
-  await testid(page, 'popup-lose').getByText('Отменить ход').click();
+  await testid(page, 'popup-lose').getByText('Undo move').click();
   await expect(testid(page, 'game')).toHaveAttribute('data-status', 'playing');
   await expect(testid(page, 'game')).toHaveAttribute('data-moves', String(level.moveLimit - 1));
   await testid(page, 'restart').click();

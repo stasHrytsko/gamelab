@@ -161,7 +161,7 @@ test('после нелучшей победы: лишние ходы, разб�
   if (plan === null) throw new Error('не нашёл обходной путь');
   for (const action of plan) await play(page, action);
   await expect(page.getByTestId('popup-win')).toBeVisible();
-  await expect(page.getByTestId('diverge')).toHaveText('С образцом разошлись на ходу 1');
+  await expect(page.getByTestId('diverge')).toHaveText('You diverged from the sample on move 1');
   await page.locator('[data-action="review"]').click();
   await expect(page.getByTestId('demo-banner')).toBeVisible();
   await expect(page.getByTestId('popup-demo')).toBeVisible({ timeout: 40_000 });

@@ -99,7 +99,7 @@ test('ловушка: ближайшая вода проигрывает уро�
   }
   await expect(page.getByTestId('game')).toHaveAttribute('data-status', 'failed');
   await expect(page.getByTestId('popup-lose')).toBeVisible();
-  await expect(page.getByTestId('popup-lose')).toContainText('Корню некуда расти');
+  await expect(page.getByTestId('popup-lose')).toContainText('nowhere to grow');
   await page.locator('[data-action="replay"]').click();
   await expect(page.getByTestId('popup-lose')).toHaveCount(0);
   await expect(page.getByTestId('game')).toHaveAttribute('data-steps', '0');
@@ -113,7 +113,7 @@ test('ходы кончились — «Ходы закончились»', asyn
     await page.getByTestId(id).click();
     await idle(page);
   }
-  await expect(page.getByTestId('popup-lose')).toContainText('Ходы закончились');
+  await expect(page.getByTestId('popup-lose')).toContainText('Out of moves');
 });
 
 test('экран помещается без прокрутки (§7.1)', async ({ browser }) => {

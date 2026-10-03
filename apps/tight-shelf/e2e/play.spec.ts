@@ -125,7 +125,7 @@ test('жадная игра на уровне 3 упирается в no_moves; 
   for (const cell of cells) await tap(page, cell);
   const game = page.getByTestId('game');
   await expect(game).toHaveAttribute('data-status', 'failed');
-  await expect(page.getByTestId('popup-lose')).toContainText('Фигуре некуда встать');
+  await expect(page.getByTestId('popup-lose')).toContainText('has nowhere to go');
   await page.locator('[data-action="replay"]').click();
   await expect(page.getByTestId('popup-lose')).toHaveCount(0);
   await expect(game).toHaveAttribute('data-turn', '0');

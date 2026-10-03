@@ -106,11 +106,11 @@ test('главный → уровни → уровень 1 («Как играт�
   await expect(game(page)).toHaveAttribute('data-used', '0');
   // сколько фигур показано и сколько осталось; сколько линий собрано и сколько ещё нужно; сколько денег
   await expect(page.locator('[data-testid="stat-pieces"]')).toContainText('3/20');
-  await expect(page.locator('[data-testid="stat-pieces"]')).toContainText('осталось 17');
+  await expect(page.locator('[data-testid="stat-pieces"]')).toContainText('17 left');
   await expect(page.locator('[data-testid="stat-lines"]')).toContainText('0/4');
-  await expect(page.locator('[data-testid="stat-lines"]')).toContainText('ещё 4');
+  await expect(page.locator('[data-testid="stat-lines"]')).toContainText('4 to go');
   await expect(page.locator('[data-testid="stat-coins"]')).toContainText('5/10');
-  await expect(page.getByText('Дальше')).toHaveCount(0);
+  await expect(page.getByText('Next')).toHaveCount(0);
 });
 
 test('экран уровней: пять карточек, открыт только первый, закрытый качается', async ({ page }) => {
@@ -130,7 +130,7 @@ test('фигура встаёт на поле перетаскиванием: п
   await placeSomewhere(page);
   await expect(game(page)).toHaveAttribute('data-used', '1');
   await expect(page.locator('[data-testid="stat-pieces"]')).toContainText('4/20');
-  await expect(page.locator('[data-testid="stat-pieces"]')).toContainText('осталось 16');
+  await expect(page.locator('[data-testid="stat-pieces"]')).toContainText('16 left');
   expect(await page.locator('[data-testid="board"] .tile:not(.c-9)').count()).toBeGreaterThanOrEqual(2);
 });
 
@@ -183,7 +183,7 @@ test('покупок три: поворот по 2 монеты; без дене
   await expect(game(page)).toHaveAttribute('data-coins', '1');
   await page.locator('[data-testid="buy-rotate"]').click({ force: true });
   await expect(game(page)).toHaveAttribute('data-coins', '1');
-  await expect(page.locator('[data-testid="hint"]')).toContainText('Не хватает монет');
+  await expect(page.locator('[data-testid="hint"]')).toContainText('Not enough coins');
   await expect(game(page)).toHaveAttribute('data-used', '0');
 });
 
@@ -235,7 +235,7 @@ test('поражение: цель не набрана, «Переиграть»
   const startHand = await attr(page, 'hand');
   await playThrough(page);
   await expect(page.locator('[data-testid="popup-lose"]')).toBeVisible({ timeout: 10_000 });
-  await expect(page.locator('[data-testid="popup-lose"]')).toContainText('Цель не набрана');
+  await expect(page.locator('[data-testid="popup-lose"]')).toContainText('Goal not reached');
   await page.click('[data-testid="popup-lose"] [data-action="again"]');
   await expect(game(page)).toHaveAttribute('data-level', '1');
   await expect(game(page)).toHaveAttribute('data-used', '0');
@@ -250,7 +250,7 @@ test('после пятого уровня — финальный попап', a
   await closeHelp(page);
   await playThrough(page);
   await expect(page.locator('[data-testid="popup-final"]')).toBeVisible({ timeout: 10_000 });
-  await expect(page.locator('[data-testid="popup-final"]')).toContainText('Все уровни пройдены');
+  await expect(page.locator('[data-testid="popup-final"]')).toContainText('All levels complete');
 });
 
 test('лог пишет старт уровня и ход', async ({ page }) => {

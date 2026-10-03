@@ -1,4 +1,4 @@
-import { gameBig, gameTile } from '../cards.ts';
+import { gameBanner, gameCard } from '../cards.ts';
 import { newestGames } from '../data.ts';
 import { footer, header } from '../layout.ts';
 import { escapeHtml, t, type Lang } from '../i18n.ts';
@@ -14,10 +14,8 @@ export function renderGames(lang: Lang): string {
           <h1>${escapeHtml(d.gamesTitle)}</h1>
           <p>${escapeHtml(d.gamesLead)}</p>
         </section>
-        <section class="games-grid" aria-label="${escapeHtml(d.gamesTitle)}">
-          ${newest === undefined ? '' : gameBig(newest, lang, d.latestGame, 'game-tile')}
-          ${rest.map((g) => gameTile(g, lang)).join('')}
-        </section>
+        ${newest === undefined ? '' : gameBanner(newest, lang, d.latestGame)}
+        ${rest.length === 0 ? '' : `<section class="games-grid" aria-label="${escapeHtml(d.gamesTitle)}">${rest.map((g) => gameCard(g, lang)).join('')}</section>`}
       </div>
     </main>
     ${footer(lang)}`;

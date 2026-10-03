@@ -18,10 +18,10 @@ function cover(game: Game): string {
   return `<div class="cover cover-${accent}"><i class="shape s1"></i><i class="shape s2"></i><i class="shape s3"></i><img class="cover-icon" src="/${game.path}/icon-512.png" alt="" width="512" height="512" loading="lazy"></div>`;
 }
 
-export function gameBig(game: Game, lang: Lang, label?: string, variant: 'game-big' | 'game-tile' = 'game-big'): string {
+export function gameBig(game: Game, lang: Lang, label?: string): string {
   const d = t(lang);
   return `
-    <a class="card ${variant} reveal" href="/${game.path}/">
+    <a class="card game-big reveal" href="/${game.path}/">
       <div class="cover-wrap">
         ${cover(game)}
         ${chip(game, lang)}
@@ -50,8 +50,35 @@ export function gameSmall(game: Game, lang: Lang): string {
     </a>`;
 }
 
-export function gameTile(game: Game, lang: Lang): string {
-  return gameBig(game, lang, undefined, 'game-tile');
+/** Страница игр: большая плашка новейшей игры — обложка слева, описание и Play справа. */
+export function gameBanner(game: Game, lang: Lang, label: string): string {
+  const d = t(lang);
+  return `
+    <a class="card game-banner reveal" href="/${game.path}/">
+      <div class="cover-wrap">
+        ${cover(game)}
+        <span class="flag">${escapeHtml(label)}</span>
+      </div>
+      <div class="banner-body">
+        <div class="card-meta">${chip(game, lang)}<span>${escapeHtml(d.genre[game.genre] ?? game.genre)}</span><time datetime="${game.added}">${formatDate(game.added, lang)}</time></div>
+        <h2>${escapeHtml(game.title)}</h2>
+        <p>${escapeHtml(pitch(game, lang))}</p>
+        <span class="btn btn-primary">${d.play} <b>→</b></span>
+      </div>
+    </a>`;
+}
+
+/** Маленькая плашка: обложка, название и Play. */
+export function gameCard(game: Game, lang: Lang): string {
+  const d = t(lang);
+  return `
+    <a class="card game-card reveal" href="/${game.path}/">
+      <div class="cover-wrap">${cover(game)}</div>
+      <div class="card-body">
+        <h3>${escapeHtml(game.title)}</h3>
+        <span class="btn-sm">${d.play} <b>→</b></span>
+      </div>
+    </a>`;
 }
 
 function postHref(post: Post, lang: Lang): string {

@@ -105,7 +105,7 @@ h1, h2, h3, p { margin: 0; }
 .chip-prototype i { background: var(--mustard); }
 .chip-exploring i { background: var(--blue); }
 
-.game-big, .game-tile { flex-direction: column; }
+.game-big { flex-direction: column; }
 .cover-wrap { position: relative; }
 .cover { position: relative; aspect-ratio: 16 / 10; overflow: hidden; display: grid; place-items: center; background: var(--tint); --tint: color-mix(in srgb, var(--coral) 20%, var(--surface)); --shade: color-mix(in srgb, var(--coral) 45%, var(--surface)); }
 .cover-mustard { --tint: color-mix(in srgb, var(--mustard) 26%, var(--surface)); --shade: color-mix(in srgb, var(--mustard) 55%, var(--surface)); }
@@ -154,10 +154,30 @@ h1, h2, h3, p { margin: 0; }
 .page-head h1::after { content: ''; width: 34px; height: 4px; border-radius: 4px; background: var(--coral); }
 .page-head p { margin-top: 8px; color: var(--text-muted); font-size: 18px; }
 .count { margin-left: 8px; padding: 2px 10px; border-radius: 999px; background: var(--muted); font-size: 13px; font-weight: 700; }
-.games-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-bottom: 48px; }
-.games-grid .card-body { padding: 18px 20px 20px; }
-.games-grid h3 { font-size: 22px; }
-.games-grid p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Большая плашка новейшей игры: обложка слева, описание справа. */
+.game-banner { display: grid; grid-template-columns: 1.1fr 1fr; margin-bottom: 28px; }
+.game-banner .cover-wrap { min-height: 340px; }
+.game-banner .cover { height: 100%; aspect-ratio: auto; }
+.game-banner .cover-icon { width: min(30%, 170px); }
+.banner-body { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 14px; padding: 36px 40px; min-width: 0; }
+.banner-body .card-meta { gap: 10px 14px; }
+.banner-body h2 { font-size: clamp(30px, 3.6vw, 42px); line-height: 1.1; font-weight: 800; letter-spacing: -0.01em; }
+.banner-body p { font-size: 17px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; max-width: 34em; }
+.banner-body .btn { margin-top: 6px; }
+.card:hover .banner-body .btn b { transform: translateX(4px); }
+.banner-body .btn b { transition: transform 0.18s; }
+
+/* Сетка маленьких плашек: обложка, название, Play. */
+.games-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding-bottom: 48px; }
+.game-card { flex-direction: column; }
+.game-card .cover { aspect-ratio: 4 / 3; }
+.game-card .cover-icon { width: min(42%, 110px); }
+.game-card .card-body { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 16px; }
+.game-card h3 { font-size: 18px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-sm { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: var(--coral); color: #fff; font-size: 14px; font-weight: 800; box-shadow: inset 0 -3px 0 var(--coral-deep); }
+.btn-sm b { transition: transform 0.18s; }
+.card:hover .btn-sm b { transform: translateX(3px); }
 
 /* ---------- блог ---------- */
 .latest-post { margin-bottom: 40px; }
@@ -236,7 +256,10 @@ a.contact:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
   .feature-stack { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
   .feature-stack .more-card { grid-column: 1 / -1; height: 80px; }
   .game-small { min-height: 120px; }
-  .games-grid { grid-template-columns: repeat(2, 1fr); }
+  .games-grid { grid-template-columns: repeat(3, 1fr); }
+  .game-banner { grid-template-columns: 1fr; }
+  .game-banner .cover-wrap { min-height: 0; }
+  .game-banner .cover { aspect-ratio: 16 / 9; }
   .footer-grid { grid-template-columns: 1fr; }
 }
 
@@ -281,7 +304,12 @@ a.contact:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
   .feature-stack .more-card { height: 64px; }
   .more-card { padding: 0 18px; }
   .more-arrow { width: 40px; height: 40px; }
-  .games-grid { grid-template-columns: 1fr; gap: 14px; }
+  .games-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .banner-body { padding: 22px; gap: 12px; }
+  .banner-body .btn { width: 100%; justify-content: center; }
+  .game-card .card-body { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px 14px; }
+  .game-card .btn-sm { justify-content: center; height: 40px; }
+  .game-card h3 { font-size: 16px; }
   .archive-row { grid-template-columns: 1fr; gap: 6px; padding: 16px 18px; }
   .archive-number { display: none; }
   .archive-tag { justify-self: start; }

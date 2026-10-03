@@ -61,7 +61,7 @@ svg { display: block; }
 }
 .btn:active { transform: scale(0.96); filter: brightness(0.96); }
 .btn svg { width: 20px; height: 20px; flex: none; }
-.btn-primary { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 8px 18px rgba(229, 107, 93, 0.35); }
+.btn-primary { color: #fff; background: var(--ui-yellow); color: var(--ui-background); box-shadow: 0 8px 18px rgba(224, 180, 76, 0.3); }
 .btn-success { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-success) 80%, #fff), var(--ui-success)); box-shadow: 0 8px 18px rgba(95, 160, 143, 0.35); }
 .btn-secondary { background: var(--ui-surface); border: 1px solid var(--ui-border); box-shadow: var(--ui-shadow-soft); }
 .btn-ghost { color: var(--ui-text-muted); height: 44px; font-weight: 500; }
@@ -89,11 +89,10 @@ svg { display: block; }
   position: relative;
   width: 100%; height: 100%;
   border-radius: 28%;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 88%, #5a3f2a) 100%);
-  box-shadow: var(--ui-shadow-tile), inset 0 -3px 0 color-mix(in srgb, var(--c) 75%, #5a3f2a), inset 0 1px 0 rgba(255,255,255,.28);
+  background: var(--c);
+  box-shadow: var(--ui-shadow-tile), inset 0 -3px 0 color-mix(in srgb, var(--c) 78%, #5a3f2a), inset 0 1px 0 rgba(255,255,255,.28);
   display: grid; place-items: center;
 }
-.tile::after { content: ""; position: absolute; left: 14%; top: 8%; width: 42%; height: 18%; border-radius: 999px; background: rgba(255,255,255,0.35); }
 .c-blue { --c: var(--ui-blue); }
 .c-green { --c: var(--ui-success); }
 .c-stone { --c: var(--ui-stone); }

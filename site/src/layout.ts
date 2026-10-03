@@ -30,7 +30,7 @@ export function header(lang: Lang, page: Page): string {
   const home = pageUrl(lang, 'home');
   const active = (p: Page): string => (page === p ? ' class="is-active" aria-current="page"' : '');
   return `
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="paper-rough" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="3" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.4"/></filter></svg>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="paper-rough" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="3" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/></filter></svg>
     <header class="topbar">
       <div class="wrap topbar-in">
         <a class="brand" href="${home}" aria-label="Stazzi">

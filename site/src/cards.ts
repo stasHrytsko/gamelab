@@ -34,7 +34,7 @@ export function rowGame(game: Game, lang: Lang, wide: boolean): string {
   const line = lang === 'uk' ? game.taglineUk : game.tagline;
   return `
     <a class="rcard ${wide ? 'is-wide' : ''} reveal" href="/${game.path}/">
-      <div class="cover-wrap">${cover(game)}${chip(game, lang)}</div>
+      <div class="cover-wrap">${cover(game)}${chip(game, lang)}</div>${wide ? `<span class="tape">${escapeHtml(d.newLabel)}</span>` : ''}
       <div class="rbody">
         <h3>${escapeHtml(game.title)}</h3>
         <p>${escapeHtml(line)}</p>

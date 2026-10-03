@@ -61,8 +61,8 @@ svg { display: block; }
 }
 .btn:active { transform: scale(0.96); filter: brightness(0.96); }
 .btn svg { width: 20px; height: 20px; flex: none; }
-.btn-primary { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 8px 18px rgba(79, 126, 255, 0.35); }
-.btn-success { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-success) 80%, #fff), var(--ui-success)); box-shadow: 0 8px 18px rgba(32, 201, 121, 0.35); }
+.btn-primary { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-blue) 80%, #fff), var(--ui-blue)); box-shadow: 0 8px 18px rgba(229, 107, 93, 0.35); }
+.btn-success { color: #fff; background: linear-gradient(180deg, color-mix(in srgb, var(--ui-success) 80%, #fff), var(--ui-success)); box-shadow: 0 8px 18px rgba(95, 160, 143, 0.35); }
 .btn-secondary { background: var(--ui-surface); border: 1px solid var(--ui-border); box-shadow: var(--ui-shadow-soft); }
 .btn-ghost { color: var(--ui-text-muted); height: 44px; font-weight: 500; }
 
@@ -188,17 +188,17 @@ svg { display: block; }
 
 /* --c регистрируется как <color>, чтобы браузер плавно интерполировал сам
    градиент между направлениями, а не мигал с одного цвета на другой (§7). */
-@property --c { syntax: '<color>'; inherits: true; initial-value: #4f7eff; }
+@property --c { syntax: '<color>'; inherits: true; initial-value: #8fa7c7; }
 
 /* Блок: квадрат стоит на месте, кроме собственного движения. Стрелка — слой
    внутри, крутится вокруг центра квадрата (§7.2 спеки). Цвет — прямое
    отражение направления, меняется вместе со стрелкой. */
 .block { --c: var(--ui-blue); position: absolute; left: 0; top: 0; width: var(--cell); height: var(--cell); border-radius: 26%;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
-  box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #5a3f2a));
+  box-shadow: var(--ui-shadow-tile), inset 0 -4px 0 color-mix(in srgb, var(--c) 75%, #5a3f2a), inset 0 1px 0 rgba(255,255,255,.28);
   display: grid; place-items: center; will-change: transform; touch-action: none;
   transition: --c 320ms ease; }
-.block .arrow { width: 52%; height: 52%; will-change: transform; filter: drop-shadow(0 1px 2px rgba(31,41,55,.25)); }
+.block .arrow { width: 52%; height: 52%; will-change: transform; filter: drop-shadow(0 1px 2px rgba(92,70,48,.25)); }
 .block.stuck-flash { animation: stuck-flash 260ms ease; }
 @keyframes stuck-flash { 50% { filter: brightness(1.18); } }
 
@@ -208,7 +208,7 @@ svg { display: block; }
 /* ---------- попапы ---------- */
 .scrim {
   position: absolute; inset: 0; z-index: 20;
-  background: rgba(31, 41, 55, 0.5);
+  background: rgba(92, 70, 48, 0.5);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   display: grid; place-items: center;
@@ -224,7 +224,7 @@ svg { display: block; }
   border-radius: 24px;
   padding: var(--ui-space-6) var(--ui-space-5) var(--ui-space-4);
   text-align: center;
-  box-shadow: 0 20px 50px rgba(31,41,55,0.25);
+  box-shadow: 0 20px 50px rgba(92,70,48,0.25);
   display: flex; flex-direction: column; gap: var(--ui-space-3);
   animation: modal-in 380ms cubic-bezier(.3,1.4,.5,1) both;
 }
@@ -235,18 +235,18 @@ svg { display: block; }
 .badge-big { width: 88px; height: 88px; margin: 0 auto var(--ui-space-2); border-radius: 50%; display: grid; place-items: center; color: #fff; animation: badge-in 520ms cubic-bezier(.3,1.7,.5,1) 120ms both; }
 @keyframes badge-in { from { transform: scale(0) rotate(-30deg); } }
 .badge-big svg { width: 44px; height: 44px; }
-.badge-win { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-success) 65%, #fff), var(--ui-success)); box-shadow: 0 0 0 10px rgba(32,201,121,0.14), 0 10px 24px rgba(32,201,121,0.35); }
-.badge-lose { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-danger) 65%, #fff), var(--ui-danger)); box-shadow: 0 0 0 10px rgba(255,100,107,0.14), 0 10px 24px rgba(255,100,107,0.35); }
-.badge-cup { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-yellow) 60%, #fff), var(--ui-yellow)); box-shadow: 0 0 0 10px rgba(255,197,66,0.18), 0 10px 24px rgba(255,197,66,0.4); }
+.badge-win { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-success) 65%, #fff), var(--ui-success)); box-shadow: 0 0 0 10px rgba(95,160,143,0.14), 0 10px 24px rgba(95,160,143,0.35); }
+.badge-lose { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-danger) 65%, #fff), var(--ui-danger)); box-shadow: 0 0 0 10px rgba(209,75,69,0.14), 0 10px 24px rgba(209,75,69,0.35); }
+.badge-cup { background: linear-gradient(160deg, color-mix(in srgb, var(--ui-yellow) 60%, #fff), var(--ui-yellow)); box-shadow: 0 0 0 10px rgba(224,180,76,0.18), 0 10px 24px rgba(224,180,76,0.4); }
 
 .rules { list-style: none; text-align: left; display: flex; flex-direction: column; gap: var(--ui-space-3); margin-top: var(--ui-space-2); }
 .rules li { display: flex; gap: var(--ui-space-3); font-size: 14px; line-height: 1.4; }
-.rules li b { flex: none; width: 24px; height: 24px; border-radius: 8px; background: #e8efff; color: var(--ui-blue); font-size: 12px; display: grid; place-items: center; }
+.rules li b { flex: none; width: 24px; height: 24px; border-radius: 8px; background: #e8edf4; color: var(--ui-blue); font-size: 12px; display: grid; place-items: center; }
 
 .demo { display: flex; justify-content: center; align-items: center; gap: 10px; margin: var(--ui-space-2) 0; }
 .demo-block { --c: var(--ui-blue); width: 48px; height: 48px; border-radius: 26%; position: relative; flex: none;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #1f2937));
-  box-shadow: var(--ui-shadow-tile), inset 0 -3px 0 color-mix(in srgb, var(--c) 75%, #1f2937), inset 0 2px 0 rgba(255,255,255,.45);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 88%, #5a3f2a));
+  box-shadow: var(--ui-shadow-tile), inset 0 -3px 0 color-mix(in srgb, var(--c) 75%, #5a3f2a), inset 0 1px 0 rgba(255,255,255,.28);
   display: grid; place-items: center; }
 .demo-block svg { width: 55%; height: 55%; }
 .demo .arrow-hint { color: var(--ui-blue); width: 22px; height: 22px; flex: none; }

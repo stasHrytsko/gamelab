@@ -24,4 +24,4 @@ export const pushGlyph = '<path d="M5 6l6 6-6 6M12 6l6 6-6 6" fill="none" stroke
 /** Рывок: крюк на цепи. */
 export const hookGlyph = '<path d="M12 2.5v10.5a4.5 4.5 0 11-4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M5 6.2l2.5 2.3L5 11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
 /** Рука-подсказка «прижми палец». */
-export const handGlyph = '<path d="M9 11V4.8a1.8 1.8 0 013.6 0V10l.1-1.3a1.8 1.8 0 013.5.3v1.2a1.8 1.8 0 013.4.8v4.5c0 3.6-2.6 6.5-6.2 6.5h-1.3c-2 0-3.6-1-4.7-2.6L4 15.3a1.8 1.8 0 012.8-2.2L9 15z" fill="#fff" stroke="#1f2937" stroke-width="1.5" stroke-linejoin="round"/>';
+export const handGlyph = '<path d="M9 11V4.8a1.8 1.8 0 013.6 0V10l.1-1.3a1.8 1.8 0 013.5.3v1.2a1.8 1.8 0 013.4.8v4.5c0 3.6-2.6 6.5-6.2 6.5h-1.3c-2 0-3.6-1-4.7-2.6L4 15.3a1.8 1.8 0 012.8-2.2L9 15z" fill="#fff" stroke="#5a3f2a" stroke-width="1.5" stroke-linejoin="round"/>';

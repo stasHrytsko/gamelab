@@ -15,6 +15,7 @@ export function homeScreen(go: Go): HTMLElement {
   el.innerHTML = `
     <div class="home-bg" aria-hidden="true"></div>
     <img class="home-art" src="${art}" alt="" width="941" height="1330">
+    <a class="site-link" href="../" data-testid="to-site" aria-label="Все прототипы">${icon.back}<span>Прототипы</span></a>
     <h1 class="sr-only">Slide Out</h1>
     <button class="play-btn" data-testid="play">Играть</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));

@@ -20,6 +20,7 @@ export function homeScreen(go: Go): HTMLElement {
       </div>
       <div class="home-pills"><span class="pill back">Назад ×2</span><span class="pill fwd">Вперёд ×1</span></div>
     </div>
+    <a class="site-link" href="../" data-testid="to-site" aria-label="Все прототипы">${icon.back}<span>Прототипы</span></a>
     <h1 class="home-title">Вперёд<br>или назад</h1>
     <p class="home-sub">Один шаг — два варианта. Выбери, кого убрать.</p>
     <button class="play-btn" data-testid="play">Играть</button>`;

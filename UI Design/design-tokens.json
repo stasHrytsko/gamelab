@@ -2,38 +2,38 @@
   "$schema": "https://design-tokens.github.io/community-group/format/",
   "meta": {
     "name": "PuzzleKit UI",
-    "version": "1.0.0",
-    "source": "UI Design reference boards",
+    "version": "2.0.0",
+    "source": "UI Design: ui-kit-board-overview.jpg, ui-kit-board-detail.webp (legacy/ — прежние референсы v1)",
     "rule": "These tokens override values inferred from screenshots."
   },
   "color": {
     "brand": {
-      "blue": "#4F7EFF",
-      "coral": "#FF7B6B",
-      "yellow": "#FFC542",
-      "green": "#34D399",
-      "purple": "#A78BFA"
+      "blue": "#8FA7C7",
+      "coral": "#E56B5D",
+      "yellow": "#E0B44C",
+      "green": "#7DB5A7",
+      "purple": "#B38760"
     },
     "neutral": {
-      "background": "#F6F8FC",
-      "surface": "#FFFFFF",
-      "surfaceMuted": "#EEF2F8",
-      "border": "#E3E8F2",
-      "text": "#1F2937",
-      "textMuted": "#6B7280"
+      "background": "#EDE4D8",
+      "surface": "#F7F1E8",
+      "surfaceMuted": "#E4D9CB",
+      "border": "#D9CCBB",
+      "text": "#3B3B3B",
+      "textMuted": "#7A7167"
     },
     "semantic": {
-      "primary": "#4F7EFF",
-      "success": "#20C979",
-      "warning": "#FFC542",
-      "danger": "#FF646B",
-      "disabled": "#CBD5E1"
+      "primary": "#E56B5D",
+      "success": "#5FA08F",
+      "warning": "#E0B44C",
+      "danger": "#D14B45",
+      "disabled": "#C9BFB2"
     }
   },
   "typography": {
     "fontFamily": {
-      "primary": "Poppins",
-      "fallback": "Inter, Manrope, Segoe UI, sans-serif"
+      "primary": "Zen Maru Gothic",
+      "fallback": "Poppins, Inter, Manrope, Segoe UI, sans-serif"
     },
     "fontWeight": {
       "regular": 400,
@@ -73,9 +73,9 @@
     "pill": 999
   },
   "shadow": {
-    "soft": "0 6px 18px rgba(31, 41, 55, 0.08)",
-    "card": "0 10px 30px rgba(79, 126, 255, 0.10)",
-    "tile": "0 7px 14px rgba(31, 41, 55, 0.14)"
+    "soft": "0 6px 16px rgba(92, 70, 48, 0.12)",
+    "card": "0 10px 26px rgba(92, 70, 48, 0.14)",
+    "tile": "0 4px 8px rgba(80, 55, 35, 0.25)"
   },
   "component": {
     "buttonHeightPx": 48,

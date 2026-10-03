@@ -15,6 +15,7 @@ export function homeScreen(go: Go): HTMLElement {
   el.innerHTML = `
     <div class="home-bg" aria-hidden="true"></div>
     <img class="home-art" src="${art}" alt="" width="941" height="1340">
+    <a class="site-link" href="../" data-testid="to-site" aria-label="Все прототипы">${icon.back}<span>Прототипы</span></a>
     <h1 class="sr-only">Arrow Flip</h1>
     <button class="play-btn" data-testid="play">Play</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
@@ -33,7 +34,7 @@ export function levelsScreen(go: Go): HTMLElement {
     const open = isUnlocked(n);
     const state = done ? 'done' : open && n === current ? 'current' : open ? 'open' : 'locked';
     const tile = open
-      ? `<div class="num"><div class="tile ${done ? 'c-green' : 'c-blue'}"><span>${String(n)}</span></div></div>`
+      ? `<div class="num"><div class="tile ${done ? 'c-teal' : 'c-coral'}"><span>${String(n)}</span></div></div>`
       : `<div class="lock">${icon.lock}</div>`;
     const badge = done ? `<div class="check">${icon.check}</div>` : state === 'current' ? `<div class="play-mini">${icon.play}</div>` : '';
     const sub = `${level.blocks.length} блоков · ${String(level.moveLimit)} ${movesWord(level.moveLimit)}`;

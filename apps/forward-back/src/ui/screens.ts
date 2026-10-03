@@ -40,7 +40,7 @@ export function levelsScreen(go: Go): HTMLElement {
     const open = isUnlocked(n);
     const state = done ? 'done' : open && n === current ? 'current' : open ? 'open' : 'locked';
     const tile = open
-      ? `<div class="num"><div class="tile ${done ? 'c-green' : 'c-blue'}"><span>${String(n)}</span></div></div>`
+      ? `<div class="num"><div class="tile ${done ? 'c-teal' : 'c-coral'}"><span>${String(n)}</span></div></div>`
       : `<div class="lock">${icon.lock}</div>`;
     const badge = done ? `<div class="check">${icon.check}</div>` : state === 'current' ? `<div class="play-mini">${icon.play}</div>` : '';
     const sub = `${level.enemies.length} ${enemiesWord(level.enemies.length)} · ${String(level.moveLimit)} ${movesWord(level.moveLimit)}`;

@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stazzi — home page mockup (quiet paper style)</title>
+<style>
+@font-face { font-family: "Lora"; src: url("assets/fonts/lora-latin-400-normal.woff2") format("woff2"); font-weight: 400; unicode-range: U+0000-00FF, U+2000-206F, U+2190-2193, U+2212; }
+@font-face { font-family: "Lora"; src: url("assets/fonts/lora-cyrillic-400-normal.woff2") format("woff2"); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Lora"; src: url("assets/fonts/lora-latin-600-normal.woff2") format("woff2"); font-weight: 600; unicode-range: U+0000-00FF, U+2000-206F, U+2190-2193, U+2212; }
+@font-face { font-family: "Lora"; src: url("assets/fonts/lora-cyrillic-600-normal.woff2") format("woff2"); font-weight: 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Lora"; src: url("assets/fonts/lora-latin-700-normal.woff2") format("woff2"); font-weight: 700; unicode-range: U+0000-00FF, U+2000-206F, U+2190-2193, U+2212; }
+@font-face { font-family: "Lora"; src: url("assets/fonts/lora-cyrillic-700-normal.woff2") format("woff2"); font-weight: 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+
+:root {
+  --paper: #ede6d8;
+  --paper-2: #f5efe3;
+  --paper-3: #e3d9c6;
+  --line: #d3c8b3;
+  --ink: #3b3b3b;
+  --ink-soft: #6f685b;
+  --terracotta: #ce7a68;
+  --terracotta-deep: #b8624f;
+  --ochre: #d7a64a;
+  --sage: #8da68f;
+  --blue: #86a0c2;
+  --font: "Lora", "Georgia", "Times New Roman", serif;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36  0 0 0 0 .29  0 0 0 0 .2  0 0 0 .26 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { position: relative; margin: 0; font-family: var(--font); color: var(--ink); background: var(--paper); line-height: 1.6; overflow-x: hidden; }
+body::before { content: ""; position: absolute; inset: 0; background-image: var(--grain); opacity: 0.55; pointer-events: none; z-index: 50; mix-blend-mode: multiply; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, p { margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; position: relative; }
+
+/* общие бумажные приёмы */
+.paper { position: relative; isolation: isolate; }
+.paper::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--paper-2); border-radius: 14px; filter: url(#rough); box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 8px 18px rgba(95, 76, 52, .13), 0 1px 3px rgba(95, 76, 52, .18); }
+.caps { font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); }
+.rule { display: block; width: 26px; height: 1px; background: var(--ink); margin: 14px 0; }
+
+/* шапка */
+.topbar { padding: 26px 0 8px; }
+.topbar .wrap { display: flex; align-items: center; gap: 28px; }
+.brand { display: flex; flex-direction: column; line-height: 1; gap: 8px; }
+.brand b { font-size: 28px; font-weight: 700; letter-spacing: .12em; }
+.brand span { font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-soft); }
+.nav { margin-left: auto; display: flex; gap: 34px; font-size: 16px; }
+.nav a { padding: 4px 0; border-bottom: 1px solid transparent; }
+.nav a:hover { border-color: var(--ink); }
+.lang { font-size: 14px; letter-spacing: .08em; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
+.burger { display: none; border: 0; background: none; padding: 0; cursor: pointer; width: 44px; height: 44px; border-radius: 12px; position: relative; isolation: isolate; align-items: center; justify-content: center; flex-direction: column; gap: 5px; }
+.burger::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--paper-2); border-radius: 12px; filter: url(#rough); box-shadow: 0 4px 10px rgba(95,76,52,.16); }
+.burger i { width: 18px; height: 1.5px; background: var(--ink); display: block; }
+
+/* герой */
+.hero { padding: 36px 0 70px; }
+.hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+.hero h1 { font-size: clamp(38px, 4.6vw, 62px); line-height: 1.08; font-weight: 700; letter-spacing: -.01em; max-width: 12.5em; }
+.hero .sub { font-size: 19px; color: var(--ink-soft); margin-top: 22px; max-width: 27em; }
+.hero .where { margin-top: 26px; display: flex; align-items: center; gap: 14px; font-size: 16px; }
+.hero .where i { width: 24px; height: 1px; background: var(--ink); }
+.btns { margin-top: 34px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.btn { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 30px; border-radius: 12px; font-size: 16px; letter-spacing: .03em; }
+.btn::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 12px; filter: url(#rough-s); }
+.btn-primary { color: #fbf6ec; }
+.btn-primary::before { background: var(--terracotta); box-shadow: 0 6px 12px rgba(184, 98, 79, .28), inset 0 -2px 0 rgba(0,0,0,.08); }
+.btn-secondary::before { background: var(--paper-3); box-shadow: 0 4px 9px rgba(95,76,52,.14); }
+.ghost { font-size: 16px; border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
+.btn-sm { height: 40px; padding: 0 20px; font-size: 14px; border-radius: 10px; }
+.btn-sm::before { border-radius: 10px; }
+
+.portrait { position: relative; justify-self: end; width: min(100%, 470px); }
+.portrait .torn { position: absolute; left: -64px; top: -26px; width: 78%; z-index: 0; }
+.portrait .tri-a { position: absolute; left: -36px; bottom: 44px; width: 120px; z-index: 2; }
+.portrait .tri-b { position: absolute; right: -26px; top: 20px; width: 84px; z-index: 2; }
+.portrait .sprig { position: absolute; left: -40px; top: -52px; width: 130px; z-index: 3; }
+.portrait .photo { position: relative; z-index: 1; border-radius: 16px; overflow: hidden; box-shadow: 0 18px 36px rgba(95,76,52,.28), 0 2px 5px rgba(95,76,52,.2); transform: rotate(1.2deg); border: 8px solid var(--paper-2); }
+.portrait img { display: block; width: 100%; height: auto; }
+
+/* секции */
+.block { padding: 36px 0 28px; }
+.sec-head { display: flex; align-items: baseline; gap: 18px; margin-bottom: 26px; flex-wrap: wrap; }
+.sec-head .no { font-size: 13px; letter-spacing: .2em; color: var(--ink-soft); }
+.sec-head h2 { font-size: 34px; font-weight: 700; letter-spacing: -.005em; }
+.sec-head p { color: var(--ink-soft); font-size: 17px; flex-basis: 100%; margin-top: -6px; }
+.sec-head hr { flex: 1; min-width: 40px; border: 0; height: 1px; background: var(--line); }
+.grid { display: grid; grid-template-columns: 7fr 5fr; gap: 24px; }
+.stack { display: grid; grid-template-rows: 1fr 1fr 78px; gap: 24px; }
+
+/* карточки */
+.card { display: flex; transition: transform .2s ease; }
+.card:hover { transform: translateY(-3px); }
+.g-big { flex-direction: column; padding: 12px 12px 4px; }
+.cover { position: relative; border-radius: 9px; overflow: hidden; aspect-ratio: 16 / 9.4; }
+.cover svg.scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cover .ico { position: absolute; left: 50%; top: 50%; width: 22%; transform: translate(-50%, -52%); border-radius: 24%; box-shadow: 0 10px 22px rgba(95,76,52,.3); }
+.stamp { position: absolute; top: 14px; left: 14px; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; background: var(--terracotta); color: #fbf6ec; padding: 5px 12px 4px; border-radius: 3px; }
+.chip { position: absolute; top: 14px; right: 14px; font-size: 12px; letter-spacing: .06em; background: var(--paper-2); padding: 4px 12px; border-radius: 3px; display: flex; align-items: center; gap: 7px; }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); }
+.body { padding: 18px 14px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.body h3 { font-size: 27px; font-weight: 700; line-height: 1.15; }
+.body p { color: var(--ink-soft); font-size: 16px; }
+.go { margin-top: 6px; align-self: flex-start; border-bottom: 1px solid var(--terracotta-deep); color: var(--terracotta-deep); font-size: 15px; padding-bottom: 2px; letter-spacing: .03em; }
+.g-small { align-items: stretch; padding: 10px; gap: 16px; }
+.g-small .cover { flex: 0 0 38%; aspect-ratio: auto; min-height: 120px; }
+.g-small .body { justify-content: center; padding: 6px 8px 6px 0; }
+.g-small h3 { font-size: 20px; }
+.g-small .ico { width: 44%; }
+.more { position: relative; isolation: isolate; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; font-size: 18px; transition: transform .2s; }
+.more::before { content: ""; position: absolute; inset: 0; z-index: -1; border: 1.5px dashed #b9ad94; border-radius: 12px; filter: url(#rough-s); }
+.more small { display: block; font-size: 13px; color: var(--ink-soft); letter-spacing: .04em; }
+.more b { font-weight: 400; font-size: 24px; color: var(--terracotta-deep); }
+.more:hover { transform: translateY(-2px); }
+
+.p-big { padding: 34px 34px 30px; flex-direction: column; justify-content: space-between; min-height: 350px; }
+.p-big::after { content: ""; position: absolute; right: 30px; bottom: 28px; width: 132px; height: 95px; background-size: contain; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 108'><polygon points='20,108 70,18 120,108' fill='%238da68f'/><polygon points='70,18 120,108 96,108' fill='%23799577' opacity='.7'/><polygon points='84,108 118,52 150,108' fill='%23d7a64a'/><circle cx='112' cy='24' r='14' fill='%23ce7a68'/></svg>") no-repeat center / contain; z-index: 1; }
+.p-big .meta { display: flex; gap: 14px; flex-wrap: wrap; }
+.p-big h3 { font-size: 32px; line-height: 1.15; font-weight: 700; max-width: 17em; margin-top: 14px; }
+.p-big p { margin-top: 12px; color: var(--ink-soft); max-width: 27em; font-size: 17px; }
+.p-small { padding: 18px 24px; flex-direction: column; justify-content: center; gap: 4px; }
+.p-small h3 { font-size: 19px; font-weight: 600; line-height: 1.25; }
+
+/* контакты */
+.footer { margin-top: 70px; position: relative; padding: 96px 0 30px; background: var(--paper-3); }
+.footer::before { content: ""; position: absolute; left: 0; right: 0; top: -22px; height: 24px; background: var(--paper-3); filter: url(#rough); clip-path: polygon(0 100%, 0 40%, 5% 55%, 11% 20%, 18% 50%, 24% 25%, 31% 60%, 38% 30%, 46% 55%, 53% 18%, 60% 48%, 67% 24%, 74% 58%, 81% 28%, 88% 52%, 94% 22%, 100% 50%, 100% 100%); }
+.foot-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 40px; align-items: start; }
+.footer h2 { font-size: 34px; font-weight: 700; }
+.footer .lead { color: var(--ink-soft); margin-top: 8px; font-size: 17px; }
+.contacts { display: grid; grid-template-columns: 1fr 1fr; column-gap: 30px; }
+.contact { display: flex; justify-content: space-between; align-items: center; padding: 18px 2px; border-bottom: 1px solid var(--line); font-size: 18px; }
+.contact:hover { color: var(--terracotta-deep); }
+.contact em { font-style: italic; font-size: 14px; color: var(--ink-soft); }
+.foot-bottom { margin-top: 48px; display: flex; justify-content: space-between; color: var(--ink-soft); font-size: 14px; letter-spacing: .04em; }
+
+@media (max-width: 980px) {
+  .hero .wrap { grid-template-columns: 1fr; gap: 40px; }
+  .portrait { justify-self: center; width: min(100%, 400px); }
+  .grid { grid-template-columns: 1fr; }
+  .stack { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
+  .stack .more { grid-column: 1 / -1; height: 70px; }
+  .foot-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .wrap { padding: 0 18px; }
+  .nav { display: none; }
+  .burger { display: flex; margin-left: 0; }
+  .topbar .wrap { gap: 14px; }
+  .lang { margin-left: auto; }
+  .brand b { font-size: 24px; }
+  .brand span { display: none; }
+  .hero { padding: 16px 0 44px; }
+  .portrait { width: min(88%, 340px); }
+  .portrait .torn { left: -22px; width: 70%; }
+  .portrait .sprig { left: -18px; width: 96px; top: -40px; }
+  .portrait .tri-a { left: -14px; width: 84px; }
+  .btns { flex-direction: column; align-items: stretch; gap: 18px; }
+  .btn { justify-content: center; }
+  .ghost { align-self: center; }
+  .stack { grid-template-columns: 1fr; gap: 16px; }
+  .grid { gap: 16px; }
+  .g-small .cover { flex-basis: 34%; min-height: 96px; }
+  .p-big { padding: 24px 22px 90px; }
+  .p-big h3 { font-size: 26px; }
+  .contacts { grid-template-columns: 1fr; }
+  .sec-head h2 { font-size: 29px; }
+  .foot-bottom { flex-direction: column; gap: 6px; }
+}
+</style>
+</head>
+<body>
+<!-- шероховатый край бумаги: смещает контур фона, текст остаётся ровным -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="rough" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/></filter>
+  <filter id="rough-s" x="-4%" y="-8%" width="108%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.2"/></filter>
+</svg>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#"><b>STAZZI</b><span>ideas · prototypes · notes</span></a>
+    <nav class="nav"><a href="#top">About</a><a href="#games">Games</a><a href="#blog">Blog</a><a href="#contacts">Contacts</a></nav>
+    <a class="lang" href="#">UK</a>
+    <button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="caps">Quiet paper puzzles</p>
+        <span class="rule"></span>
+        <h1>Ideas, prototypes &amp; small experiments.</h1>
+        <p class="sub">I make small game prototypes, mix mechanics and write down what I learn.</p>
+        <p class="where"><i></i>Stas / Valencia</p>
+        <div class="btns">
+          <a class="btn btn-primary" href="#games">Play the games &nbsp;→</a>
+          <a class="ghost" href="#blog">Read the blog</a>
+        </div>
+      </div>
+      <div class="portrait">
+        <svg class="torn" viewBox="0 0 400 320" aria-hidden="true"><path filter="url(#rough)" d="M10 120 L60 40 L130 70 L210 10 L300 60 L390 30 L380 180 L320 300 L180 280 L60 300 Z" fill="#d9ccb4"/></svg>
+        <svg class="tri-a" viewBox="0 0 120 104" aria-hidden="true"><polygon filter="url(#rough-s)" points="0,104 60,0 120,104" fill="#86a0c2"/></svg>
+        <svg class="tri-b" viewBox="0 0 84 74" aria-hidden="true"><polygon filter="url(#rough-s)" points="0,74 42,0 84,74" fill="#d7a64a"/></svg>
+        <svg class="sprig" viewBox="0 0 130 150" aria-hidden="true" fill="none" stroke="#a88f68" stroke-width="1.6" stroke-linecap="round"><path d="M70 148 C66 110 72 70 92 20"/><path d="M72 112 C58 100 50 92 44 78"/><path d="M76 88 C92 80 100 70 104 58"/><path d="M82 56 C70 48 66 40 64 28"/><g fill="#d7a64a" stroke="none"><circle cx="44" cy="76" r="4"/><circle cx="104" cy="56" r="4.5"/><circle cx="64" cy="26" r="3.6"/><circle cx="92" cy="18" r="4"/><circle cx="52" cy="92" r="3"/><circle cx="98" cy="68" r="3"/></g></svg>
+        <div class="photo"><img src="assets/hero.webp" alt="Paper-style portrait of Stas" width="1149" height="1369"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="games">
+    <div class="wrap">
+      <div class="sec-head"><span class="no">01</span><h2>Games</h2><hr><p>Small playable prototypes. Tap one to play.</p></div>
+      <div class="grid">
+        <a class="card paper g-big" href="#">
+          <div class="cover">
+            <svg class="scene" viewBox="0 0 640 380" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="640" height="380" fill="#dfe6da"/><circle cx="500" cy="96" r="44" fill="#ce7a68"/><polygon points="40,380 210,120 380,380" fill="#8da68f"/><polygon points="210,120 380,380 300,380" fill="#7a9680"/><polygon points="300,380 460,190 620,380" fill="#86a0c2"/><polygon points="460,190 620,380 540,380" fill="#7590b3"/><polygon points="-20,380 70,250 160,380" fill="#d7a64a"/></svg>
+            <img class="ico" src="assets/icons/forward-back.png" alt="">
+            <span class="stamp">Newest</span><span class="chip"><i></i>Playable</span>
+          </div>
+          <div class="body">
+            <p class="caps">Puzzle &nbsp;·&nbsp; Oct 1, 2026</p>
+            <h3>Forward / Back</h3>
+            <p>Step one cell and take out a chain of enemies: shove the line in front of you or yank the line behind you. Preview, undo, clear the board.</p>
+            <span class="go">Play &nbsp;→</span>
+          </div>
+        </a>
+        <div class="stack">
+          <a class="card paper g-small" href="#">
+            <div class="cover"><svg class="scene" viewBox="0 0 200 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="200" height="160" fill="#f0e2bd"/><polygon points="10,160 80,50 150,160" fill="#d7a64a"/><polygon points="90,160 150,80 210,160" fill="#ce7a68"/></svg><img class="ico" src="assets/icons/block-market.png" alt=""></div>
+            <div class="body"><p class="caps">Block</p><h3>Block Market</h3><span class="go">Play &nbsp;→</span></div>
+          </a>
+          <a class="card paper g-small" href="#">
+            <div class="cover"><svg class="scene" viewBox="0 0 200 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="200" height="160" fill="#e7d3c9"/><polygon points="0,160 70,60 140,160" fill="#ce7a68"/><polygon points="110,160 160,90 210,160" fill="#86a0c2"/></svg><img class="ico" src="assets/icons/the-gap.png" alt=""></div>
+            <div class="body"><p class="caps">Sort-slide</p><h3>The Gap</h3><span class="go">Play &nbsp;→</span></div>
+          </a>
+          <a class="more" href="#"><span>More<small>All games</small></span><b>→</b></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="blog">
+    <div class="wrap">
+      <div class="sec-head"><span class="no">02</span><h2>Blog</h2><hr><p>Progress, updates and things I learn while making small games.</p></div>
+      <div class="grid">
+        <a class="card paper p-big" href="#">
+          <div>
+            <p class="caps meta"><span>Sep 30, 2026</span><span>Process</span></p>
+            <h3>Trying to make The Gap actually work</h3>
+            <p>I changed the core idea again. Moving blocks felt too passive, so now I’m testing what happens when sorting and spatial decisions become the same move.</p>
+          </div>
+          <span class="go">Read &nbsp;→</span>
+        </a>
+        <div class="stack">
+          <a class="card paper p-small" href="#"><p class="caps">Sep 27, 2026 &nbsp;·&nbsp; Learning</p><h3>What I learned from building 10 prototypes</h3></a>
+          <a class="card paper p-small" href="#"><p class="caps">Sep 18, 2026 &nbsp;·&nbsp; Experiment</p><h3>Mixing Water Sort with sliding puzzles</h3></a>
+          <a class="more" href="#"><span>More<small>All posts</small></span><b>→</b></a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer" id="contacts">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div><p class="caps">03</p><h2>Contacts</h2><p class="lead">You can find me here.</p></div>
+      <div class="contacts">
+        <a class="contact" href="#"><span>GitHub</span><span>↗</span></a>
+        <a class="contact" href="#"><span>LinkedIn</span><span>↗</span></a>
+        <span class="contact"><span>Behance</span><em>soon</em></span>
+        <span class="contact"><span>Email</span><em>soon</em></span>
+      </div>
+    </div>
+    <div class="foot-bottom"><span>Stazzi — ideas, prototypes &amp; notes.</span><a href="#top">↑ Back to top</a></div>
+  </div>
+</footer>
+</body>
+</html>

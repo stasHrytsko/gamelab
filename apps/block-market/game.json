@@ -3,5 +3,8 @@
   "path": "block-market",
   "title": "Block Market",
   "genre": "Block",
-  "pitch": "A block puzzle where the game deals awkward pieces and comfort is for sale: pick any of three pieces and spend coins earned from cleared lines to rotate, mirror or swap it. Bigger clears pay disproportionately more, so you keep choosing between saving a move now and saving up."
+  "pitch": "A block puzzle where the game deals awkward pieces and comfort is for sale: pick any of three pieces and spend coins earned from cleared lines to rotate, mirror or swap it. Bigger clears pay disproportionately more, so you keep choosing between saving a move now and saving up.",
+  "added": "2026-09-29",
+  "status": "playable",
+  "pitchUk": "Блок-головоломка, де гра роздає незручні фігури, а зручність продається: оберіть одну з трьох фігур і витрачайте монети за зібрані лінії, щоб повернути, віддзеркалити чи замінити її. Великі збірки платять непропорційно більше, тож доводиться вибирати між виграшем ходу зараз і накопиченням."
 }

@@ -25,7 +25,7 @@
 
 ```
 apps/<slug>/
-  game.json                  карточка на витрине: idea, path, title, genre, pitch (§8)
+  game.json                  карточка на витрине: idea, path, title, genre, pitch, pitchUk, added, status (§8)
   index.html                 мета, og, manifest, <div id="app">
   package.json               те же скрипты, меняется только name и порт preview; зависимостей нет
   tsconfig.json vite.config.ts .gitignore     — копия без изменений
@@ -206,13 +206,19 @@ e2e обязательно проверяют:
     "path": "the-dig",
     "title": "The Dig",
     "genre": "Reveal",
-    "pitch": "pitch_en из спеки"
+    "pitch": "pitch_en из спеки",
+    "pitchUk": "то же по-украински",
+    "added": "2026-09-27",
+    "status": "playable"
   }
   ```
 
-  `idea` — номер идеи (порядок карточек), `path` — адрес игры (английское
-  название, строчными через дефис), `genre` — family из спеки одним словом
-  по-английски. Пуш в `main` → Vercel запускает `npm run build` в корне
+  `idea` — номер идеи, `path` — адрес игры (английское название, строчными
+  через дефис; `games`, `blog`, `uk` заняты сайтом), `genre` — family из спеки
+  одним словом по-английски (новое слово добавь в `genre` в `site/src/i18n.ts`),
+  `added` — дата появления игры (ГГГГ-ММ-ДД): по ней сайт выбирает «самую
+  новую» большой плашкой, `status` — `playable`, `prototype` или `exploring`.
+  Из игры на сайт ведёт ссылка «Все игры» (`/games/`) на главном экране. Пуш в `main` → Vercel запускает `npm run build` в корне
   (`tools/build-site.mjs`): собирает каждую игру в `dist/<path>/`, витрину — в
   `dist/`. Неизменённые игры берутся из кэша. Игра, которая не собралась,
   пропускается, а сайт выходит с остальными, поэтому **проверь локально**:

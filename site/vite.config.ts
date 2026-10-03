@@ -24,8 +24,12 @@ export default defineConfig({
     target: 'es2020',
     rollupOptions: {
       input: {
-        main: resolve(import.meta.dirname, 'index.html'),
+        home: resolve(import.meta.dirname, 'index.html'),
+        games: resolve(import.meta.dirname, 'games/index.html'),
         blog: resolve(import.meta.dirname, 'blog/index.html'),
+        homeUk: resolve(import.meta.dirname, 'uk/index.html'),
+        gamesUk: resolve(import.meta.dirname, 'uk/games/index.html'),
+        blogUk: resolve(import.meta.dirname, 'uk/blog/index.html'),
       },
     },
   },

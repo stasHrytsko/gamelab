@@ -1,25 +1,50 @@
-# Stazzi — personal portfolio
+# Stazzi — personal site
 
-The main page of the Stazzi repository: a personal archive of ideas, playable
-prototypes and blog posts.
+Ideas, playable prototypes and a blog. Two languages: English (`/`) and
+Ukrainian (`/uk/`).
+
+## Pages
+
+| English | Ukrainian | What |
+|---|---|---|
+| `/` | `/uk/` | Home: intro and hero, newest game + two more + "More", newest post + two more + "More", contacts |
+| `/games/` | `/uk/games/` | All games, newest first. A card opens the game itself |
+| `/blog/` | `/uk/blog/` | Post list and reader (a post opens inside the page at `#slug`) |
+
+"About" in the menu scrolls to the top of the home page, "Contacts" to the
+footer. Playable games keep their own paths (`/the-dig/`, `/arrow-flip/`…);
+their home screen has an "All games" link back to `/games/`.
 
 ## Structure
 
-- `src/main.ts` — content, sections and motion behaviour.
-- `blog/index.html` and `src/blog/` — the separate Blog page and article reader.
-- `content/posts/*.md` — one Markdown file per blog post.
-- `src/styles.css` — layout, visual system, responsive states and animation.
+- `index.html`, `games/index.html`, `blog/index.html` and the same under
+  `uk/` — one tiny HTML per page (`<html lang>` and `data-page` pick the
+  language and the page). All of them load `src/main.ts`.
+- `src/i18n.ts` — all interface text in EN and UK, URLs, date formats.
+- `src/data.ts` — games (from `apps/*/game.json`, newest by `added`) and posts.
+- `src/layout.ts`, `src/cards.ts` — header, footer, game and post cards.
+- `src/pages/` — `home.ts`, `games.ts`, `blog.ts`.
+- `src/styles.css` — the paper/origami look (palette from `UI Design/`).
+- `content/posts/<slug>.en.md` and `<slug>.uk.md` — blog posts per language.
+- `public/hero.svg` — placeholder for the hero picture, replace with the real
+  one (keep the name or change it in `src/pages/home.ts`).
 - `public/og.png` — social preview image.
-- `apps/*/game.json` — playable prototypes included in the root build.
-
-The portfolio is served at `/`. Playable games keep their own paths such as
-`/the-gap/`, `/arrow-flip/` and `/sprout/`. The journal is served at `/blog/`.
 
 ## Add a blog post
 
-Create a Markdown file in `content/posts/` and include `title`, `date`, `tag`
-and `excerpt` in its frontmatter. Full formatting examples are in
-`content/README.md`. Posts are sorted automatically, newest first.
+See `content/README.md`. One file per language; without a Ukrainian file the
+Ukrainian site shows the English post with an "English only" label.
+
+## Add a game
+
+Add `apps/<slug>/game.json` (see `apps/CLAUDE.md` §8). The game shows up on
+`/games/` and, if it is the newest by `added`, as the big card on the home page.
+Its card picture is `apps/<slug>/public/og.png`, the small thumbnail is
+`icon-192.png`.
+
+## Add a language string
+
+Edit `src/i18n.ts`; the English and Ukrainian entries must match.
 
 ## Local development
 
@@ -29,10 +54,7 @@ npm install
 npm run build
 npm run preview
 
-# portfolio only
+# site only
 cd site
 npm run dev
 ```
-
-The page follows `prefers-reduced-motion`, stays keyboard accessible and uses
-the existing game previews and visual studies as its project imagery.

@@ -3,5 +3,8 @@
   "path": "build-pack",
   "title": "Build & Pack",
   "genre": "Puzzle",
-  "pitch": "Pick a number, build your own piece from that many squares and fit it onto the board; the numbers are known up front and add up to the board exactly."
+  "pitch": "Pick a number, build your own piece from that many squares and fit it onto the board; the numbers are known up front and add up to the board exactly.",
+  "added": "2026-09-27",
+  "status": "playable",
+  "pitchUk": "Оберіть число, зберіть із такої кількості квадратів власну фігуру та вмістіть її на поле. Числа відомі наперед і в сумі дають поле точно."
 }

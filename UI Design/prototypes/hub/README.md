@@ -25,3 +25,9 @@ one is only a record of the agreed look.
   at `site/public/games/slide-out-banner.jpg`.
 - `preview.png` — snapshot, 1440×900 desktop viewport.
 - `render.mjs` — rebuilds `preview.png`.
+
+## Update 2026-10-03
+
+The site was redesigned in the paper/origami style of the UI kit (palette from
+`UI Design/design-tokens.css`, rounded warm cards). The "Not PuzzleKit" notes
+above describe the earlier look; the current structure is in `site/README.md`.

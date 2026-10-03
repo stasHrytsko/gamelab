@@ -1,7 +1,13 @@
 # Writing a new Stazzi blog post
 
-Create one Markdown file in `site/content/posts/`. The file name becomes the
-shareable URL fragment, so use lowercase words separated by hyphens.
+Create one Markdown file per language in `site/content/posts/`:
+
+- `my-post.en.md` for English;
+- `my-post.uk.md` for Ukrainian (optional; without it the Ukrainian site shows
+  the English post with an "English only" label).
+
+The part before `.en`/`.uk` is the shareable URL fragment (`/blog/#my-post`),
+so use lowercase words separated by hyphens and keep it the same in both files.
 
 ```md
 ---

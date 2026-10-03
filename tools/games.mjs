@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 export const REPO = fileURLToPath(new URL('..', import.meta.url));
 const APPS = join(REPO, 'apps');
-const FIELDS = ['idea', 'path', 'title', 'genre', 'pitch', 'pitchUk', 'added', 'status'];
+const FIELDS = ['idea', 'path', 'title', 'genre', 'pitch', 'pitchUk', 'tagline', 'taglineUk', 'added', 'status'];
 const STATUSES = new Set(['playable', 'prototype', 'exploring']);
 // Витрина сама занимает эти имена в корне сайта.
 const RESERVED = new Set(['assets', 'index.html', 'games', 'blog', 'uk', 'server', 'hero.svg', 'hero.webp', 'og.png']);
@@ -26,7 +26,7 @@ export function readGames() {
     if (!STATUSES.has(game.status)) throw new Error(`apps/${slug}/game.json: status "${game.status}" — playable, prototype или exploring`);
     const twin = games.find((g) => g.path === game.path);
     if (twin) throw new Error(`apps/${slug} и apps/${twin.slug}: одинаковый path "${game.path}"`);
-    games.push({ slug, idea: game.idea, path: game.path, title: game.title, genre: game.genre, pitch: game.pitch, pitchUk: game.pitchUk, added: game.added, status: game.status });
+    games.push({ slug, idea: game.idea, path: game.path, title: game.title, genre: game.genre, pitch: game.pitch, pitchUk: game.pitchUk, tagline: game.tagline, taglineUk: game.taglineUk, added: game.added, status: game.status });
   }
   return games.sort((a, b) => a.idea - b.idea);
 }

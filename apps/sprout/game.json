@@ -6,5 +6,7 @@
   "pitch": "Grow the root from A to B. Every step costs a move, water gives moves back, and the root never re-enters a cell it has grown through.",
   "added": "2026-09-27",
   "status": "playable",
-  "pitchUk": "Виростіть корінь з точки A в точку B. Кожен крок коштує хід, вода повертає ходи, а корінь ніколи не входить у клітинку, крізь яку вже виріс."
+  "pitchUk": "Виростіть корінь з точки A в точку B. Кожен крок коштує хід, вода повертає ходи, а корінь ніколи не входить у клітинку, крізь яку вже виріс.",
+  "tagline": "Grow the root from A to B, one move at a time.",
+  "taglineUk": "Виростіть корінь з A в B, хід за ходом."
 }

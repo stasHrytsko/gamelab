@@ -6,5 +6,7 @@
   "pitch": "Slide colored tiles around a 5×5 grid and bring each one to the matching goal on the edge before its countdown runs out; every tile that exits opens another empty cell.",
   "added": "2026-09-27",
   "status": "playable",
-  "pitchUk": "Рухайте кольорові плитки полем 5×5 і приводьте кожну до відповідної цілі на краю, поки не закінчився відлік. Кожна плитка, що вийшла, звільняє ще одну порожню клітинку."
+  "pitchUk": "Рухайте кольорові плитки полем 5×5 і приводьте кожну до відповідної цілі на краю, поки не закінчився відлік. Кожна плитка, що вийшла, звільняє ще одну порожню клітинку.",
+  "tagline": "Slide tiles to their goals before time runs out.",
+  "taglineUk": "Рухайте плитки до цілей, поки не вийшов час."
 }

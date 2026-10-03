@@ -6,5 +6,7 @@
   "pitch": "Tap a block and it slides where its arrow points. Every block it brushes past turns 90° clockwise, so clear the board within the move limit.",
   "added": "2026-09-27",
   "status": "playable",
-  "pitchUk": "Торкніться блока, і він поїде туди, куди дивиться стрілка. Кожен блок, повз який він проїде, повертається на 90° за годинниковою стрілкою. Очистіть поле за обмежену кількість ходів."
+  "pitchUk": "Торкніться блока, і він поїде туди, куди дивиться стрілка. Кожен блок, повз який він проїде, повертається на 90° за годинниковою стрілкою. Очистіть поле за обмежену кількість ходів.",
+  "tagline": "Tap a block and it slides where its arrow points.",
+  "taglineUk": "Торкніться блока, і він поїде за стрілкою."
 }

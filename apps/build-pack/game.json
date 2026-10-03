@@ -6,5 +6,7 @@
   "pitch": "Pick a number, build your own piece from that many squares and fit it onto the board; the numbers are known up front and add up to the board exactly.",
   "added": "2026-09-27",
   "status": "playable",
-  "pitchUk": "Оберіть число, зберіть із такої кількості квадратів власну фігуру та вмістіть її на поле. Числа відомі наперед і в сумі дають поле точно."
+  "pitchUk": "Оберіть число, зберіть із такої кількості квадратів власну фігуру та вмістіть її на поле. Числа відомі наперед і в сумі дають поле точно.",
+  "tagline": "Build a piece from numbers and fit it on the board.",
+  "taglineUk": "Зберіть фігуру з чисел і вмістіть її на поле."
 }

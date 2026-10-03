@@ -6,5 +6,7 @@
   "pitch": "Slide squares to four exits, each leading to its own flask. The flasks start mixed, so you have to pull squares back out, and that only works while the cell by the exit is free.",
   "added": "2026-09-29",
   "status": "playable",
-  "pitchUk": "Рухайте квадрати до чотирьох виходів, кожен веде до своєї колби. Колби спочатку перемішані, тож квадрати доводиться діставати назад, а це працює, поки вільна клітинка біля виходу."
+  "pitchUk": "Рухайте квадрати до чотирьох виходів, кожен веде до своєї колби. Колби спочатку перемішані, тож квадрати доводиться діставати назад, а це працює, поки вільна клітинка біля виходу.",
+  "tagline": "Slide squares to exits and sort them into flasks.",
+  "taglineUk": "Рухайте квадрати до виходів і сортуйте по колбах."
 }

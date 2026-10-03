@@ -78,12 +78,3 @@ export function sectionHead(title: string, lead: string, id: string): string {
       ${lead === '' ? '' : `<p>${escapeHtml(lead)}</p>`}
     </div>`;
 }
-
-export function moreCard(href: string, label: string, more: string): string {
-  return `
-    <a class="more-card" href="${href}">
-      <span class="more-label">${escapeHtml(more)}</span>
-      <span class="more-sub">${escapeHtml(label)}</span>
-      <b class="more-arrow" aria-hidden="true">→</b>
-    </a>`;
-}

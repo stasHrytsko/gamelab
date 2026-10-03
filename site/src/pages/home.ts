@@ -1,6 +1,6 @@
-import { gameBig, gameSmall, postBig, postSmall } from '../cards.ts';
+import { allCard, rowGame, rowPost } from '../cards.ts';
 import { newestGames, postsFor } from '../data.ts';
-import { footer, header, moreCard, sectionHead } from '../layout.ts';
+import { footer, header, sectionHead } from '../layout.ts';
 import { escapeHtml, pageUrl, t, type Lang } from '../i18n.ts';
 
 /** Две бумажные горы рядом с «Stas / Valencia» (синяя и оранжевая, как на макете). */
@@ -18,12 +18,10 @@ export function renderHome(lang: Lang): string {
       : `
       <section class="block" id="games" aria-labelledby="games-title">
         ${sectionHead(d.gamesTitle, '', 'games-title')}
-        <div class="feature-grid">
-          ${gameBig(newest, lang, d.latestGame)}
-          <div class="feature-stack">
-            ${rest.slice(0, 2).map((g) => gameSmall(g, lang)).join('')}
-            ${moreCard(pageUrl(lang, 'games'), d.moreGames, d.more)}
-          </div>
+        <div class="cards-row">
+          ${rowGame(newest, lang, true)}
+          ${rest.slice(0, 2).map((g) => rowGame(g, lang, false)).join('')}
+          ${allCard(pageUrl(lang, 'games'), d.moreGames)}
         </div>
       </section>`;
 
@@ -33,12 +31,10 @@ export function renderHome(lang: Lang): string {
       : `
       <section class="block" id="blog" aria-labelledby="blog-title">
         ${sectionHead(d.blogTitle, '', 'blog-title')}
-        <div class="feature-grid">
-          ${postBig(latestPost, lang)}
-          <div class="feature-stack">
-            ${olderPosts.slice(0, 2).map((p) => postSmall(p, lang)).join('')}
-            ${moreCard(pageUrl(lang, 'blog'), d.morePosts, d.more)}
-          </div>
+        <div class="cards-row is-notes">
+          ${rowPost(latestPost, lang, true, 0)}
+          ${olderPosts.slice(0, 2).map((p, i) => rowPost(p, lang, false, i + 1)).join('')}
+          ${allCard(pageUrl(lang, 'blog'), d.morePosts)}
         </div>
       </section>`;
 

@@ -6,5 +6,7 @@
   "pitch": "Step one cell and take out a chain of enemies: shove the line in front of you or yank the line behind you on a chain. Hold a finger to preview the move, undo anytime, clear the board within the move limit.",
   "added": "2026-10-01",
   "status": "playable",
-  "pitchUk": "Зробіть крок на одну клітинку і приберіть ланцюжок ворогів: штовхніть лінію перед собою або смикніть лінію позаду. Потримайте палець, щоб побачити хід заздалегідь, скасуйте будь-коли і очистіть поле за обмежену кількість ходів."
+  "pitchUk": "Зробіть крок на одну клітинку і приберіть ланцюжок ворогів: штовхніть лінію перед собою або смикніть лінію позаду. Потримайте палець, щоб побачити хід заздалегідь, скасуйте будь-коли і очистіть поле за обмежену кількість ходів.",
+  "tagline": "Push the line ahead or pull the one behind.",
+  "taglineUk": "Штовхніть лінію попереду або смикніть ту, що позаду."
 }

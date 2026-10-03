@@ -6,5 +6,7 @@
   "pitch": "Place coloured shapes on a 4×4 board where every cell accepts only its own colour or its own shape. Three in a row sharing a colour or a shape disappear, and the queue shows three pieces ahead.",
   "added": "2026-09-28",
   "status": "playable",
-  "pitchUk": "Розставляйте кольорові фігури на полі 4×4, де кожна клітинка приймає лише свій колір або свою форму. Три в ряд одного кольору чи форми зникають, а черга показує три фігури наперед."
+  "pitchUk": "Розставляйте кольорові фігури на полі 4×4, де кожна клітинка приймає лише свій колір або свою форму. Три в ряд одного кольору чи форми зникають, а черга показує три фігури наперед.",
+  "tagline": "Place shapes where colour or shape matches.",
+  "taglineUk": "Ставте фігури там, де збігається колір чи форма."
 }

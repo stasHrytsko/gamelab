@@ -208,6 +208,8 @@ e2e обязательно проверяют:
     "genre": "Reveal",
     "pitch": "pitch_en из спеки",
     "pitchUk": "то же по-украински",
+    "tagline": "short card line, up to ~60 chars",
+    "taglineUk": "то же по-украински",
     "added": "2026-09-27",
     "status": "playable"
   }

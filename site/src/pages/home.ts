@@ -32,8 +32,8 @@ export function renderHome(lang: Lang): string {
       <section class="block" id="blog" aria-labelledby="blog-title">
         ${sectionHead(d.blogTitle, '', 'blog-title')}
         <div class="cards-row is-notes">
-          ${rowPost(latestPost, lang, true, 0)}
-          ${olderPosts.slice(0, 2).map((p, i) => rowPost(p, lang, false, i + 1)).join('')}
+          ${rowPost(latestPost, lang, true)}
+          ${olderPosts.slice(0, 2).map((p) => rowPost(p, lang, false)).join('')}
           ${allCard(pageUrl(lang, 'blog'), d.morePosts)}
         </div>
       </section>`;

@@ -1,3 +1,7 @@
+@font-face { font-family: "Source Serif 4"; font-weight: 400; font-display: swap; src: url("/fonts/source-serif-4-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Source Serif 4"; font-weight: 400; font-display: swap; src: url("/fonts/source-serif-4-cyrillic-400-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Source Serif 4"; font-weight: 600; font-display: swap; src: url("/fonts/source-serif-4-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Source Serif 4"; font-weight: 600; font-display: swap; src: url("/fonts/source-serif-4-cyrillic-600-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
 @font-face { font-family: "Manrope"; font-weight: 300; font-display: swap; src: url("/fonts/manrope-latin-300-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: "Manrope"; font-weight: 300; font-display: swap; src: url("/fonts/manrope-cyrillic-300-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
 @font-face { font-family: "Manrope"; font-weight: 400; font-display: swap; src: url("/fonts/manrope-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
@@ -103,63 +107,6 @@ h1, h2, h3, p { margin: 0; }
 .section-head p { margin-top: 6px; color: var(--text-muted); font-weight: 300; letter-spacing: 0.02em; }
 
 
-/* ---------- карточки ---------- */
-.card { display: flex; transition: transform 0.2s ease; min-width: 0; }
-.card:hover { transform: translateY(-3px); }
-.card:active { transform: scale(0.99); }
-.card h3 { font-size: 22px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
-.card p { color: var(--text-muted); font-size: 16px; font-weight: 300; letter-spacing: 0.02em; }
-.card-body { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px; min-width: 0; }
-.card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
-.only-en { color: var(--coral-deep); }
-.card-go { margin-top: auto; align-self: flex-end; padding-top: 6px; font-size: 24px; line-height: 1; font-weight: 300; color: var(--text); display: inline-flex; }
-
-.chip { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 13px; border-radius: 999px; background: rgba(255,252,246,.94); box-shadow: 0 2px 6px rgba(92, 70, 48, 0.14); font-size: 12.5px; font-weight: 600; letter-spacing: 0.01em; color: var(--text); width: max-content; text-transform: none; }
-.chip i { width: 9px; height: 9px; border-radius: 50%; background: #5f9a73; }
-.chip-prototype i { background: #e5aa3a; }
-.chip-exploring i { background: #4f86c6; }
-
-.cover-wrap { position: relative; }
-.cover .shape { position: absolute; display: block; background: var(--shade); }
-.cover-wrap .chip { position: absolute; top: 14px; right: 14px; }
-.flag { position: absolute; top: 14px; left: 14px; height: 28px; padding: 0 13px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--coral); color: #fff; font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-
-
-
-
-/* ---------- строка карточек на главной (по макету) ---------- */
-.cards-row { display: grid; grid-template-columns: 1.95fr 1fr 1fr 1fr; gap: 17px; margin: 0 -40px; align-items: stretch; }
-.rcard { position: relative; display: flex; flex-direction: column; min-width: 0; transition: transform 0.2s ease; }
-.rcard:hover { transform: translateY(-3px); }
-.rcard .cover-wrap { position: relative; height: clamp(230px, 24.5vw, 352px); }
-.rbody { position: relative; display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 22px 28px 24px; }
-.rbody h3 { font-size: 25px; line-height: 1.15; font-weight: 700; letter-spacing: -0.012em; }
-.rbody p { font-size: 17px; font-weight: 300; line-height: 1.45; letter-spacing: 0.03em; color: #5f5851; padding-right: 36px; }
-.rcard .go { position: absolute; right: 26px; bottom: 20px; font-size: 26px; line-height: 1; font-weight: 300; color: var(--text); transition: transform 0.2s; }
-.rcard:hover .go { transform: translateX(4px); }
-.cover { position: absolute; inset: 0; overflow: hidden; }
-.cover .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
-.cover-icon { position: absolute; left: 50%; bottom: 15%; width: clamp(84px, 9vw, 132px); aspect-ratio: 1; height: auto; border-radius: 24%; object-fit: cover; transform: translateX(-50%) rotate(-3deg); box-shadow: 0 14px 26px rgba(92, 70, 48, 0.28); transition: transform 0.3s ease; }
-.rcard:hover .cover-icon, .card:hover .cover-icon { transform: translateX(-50%) rotate(1deg) scale(1.04); }
-.rcard.is-wide .cover-icon { width: clamp(100px, 11vw, 156px); }
-/* «Все игры →» вместо последней карточки */
-.all-card { justify-content: center; align-items: flex-start; gap: 18px; padding: 0 30px; }
-.all-card .all-decor { position: absolute; right: 0; bottom: 0; width: 70%; height: auto; opacity: 0.9; pointer-events: none; }
-.all-label { position: relative; font-size: 28px; font-weight: 700; line-height: 1.1; letter-spacing: -0.015em; }
-.all-arrow { position: relative; font-size: 34px; line-height: 1; font-weight: 300; color: var(--coral-deep); transition: transform 0.2s; }
-.all-card:hover .all-arrow { transform: translateX(6px); }
-/* заметки */
-.is-notes .rcard { min-height: 238px; }
-.rpost .rbody { padding-right: 28px; }
-.rpost .rdate { font-size: 12.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #5f5851; }
-.rpost h3 { font-size: 22px; max-width: 12em; }
-.rpost.is-wide h3 { max-width: 11em; font-size: 26px; }
-.rpost p { margin-top: 2px; font-size: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.rpost.is-wide .rbody { padding-right: 190px; }
-.note-art { position: absolute; right: 26px; bottom: 54px; width: 130px; pointer-events: none; opacity: 0.95; }
-.note-art svg { display: block; width: 100%; height: auto; }
-.rpost:not(.is-wide) .note-art { display: none; }
-
 /* ---------- внутренние страницы ---------- */
 .page-head { padding: 32px 0 28px; }
 .page-head h1 { font-size: clamp(36px, 5vw, 52px); font-weight: 800; letter-spacing: -0.015em; display: flex; align-items: center; gap: 18px; }
@@ -167,34 +114,8 @@ h1, h2, h3, p { margin: 0; }
 .page-head p { margin-top: 8px; color: var(--text-muted); font-size: 18px; }
 .count { margin-left: 8px; padding: 2px 10px; border-radius: 999px; background: var(--muted); font-size: 13px; font-weight: 700; }
 
-/* Большая плашка новейшей игры: обложка слева, описание справа. */
-.game-banner { display: grid; grid-template-columns: 1.1fr 1fr; margin-bottom: 28px; }
-.game-banner .cover-wrap { position: relative; min-height: 340px; }
-.game-banner .cover-icon { width: clamp(110px, 12vw, 170px); }
-.banner-body { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 14px; padding: 36px 40px; min-width: 0; }
-.banner-body .card-meta { gap: 10px 14px; }
-.banner-body h2 { font-size: clamp(30px, 3.6vw, 42px); line-height: 1.1; font-weight: 800; letter-spacing: -0.01em; }
-.banner-body p { font-size: 17px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; max-width: 34em; }
-.banner-body .btn { margin-top: 6px; }
-.card:hover .banner-body .btn b { transform: translateX(4px); }
-.banner-body .btn b { transition: transform 0.18s; }
-
-/* Сетка маленьких плашек: обложка, название, Play. */
-.games-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding-bottom: 48px; }
-.game-card { flex-direction: column; }
-.game-card .cover-wrap { position: relative; aspect-ratio: 4 / 3; }
-.game-card .cover-icon { width: min(36%, 100px); bottom: 14%; }
-.game-card .card-body { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 16px; }
-.game-card h3 { font-size: 18px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.btn-sm { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: var(--coral); color: #fff; font-size: 14px; font-weight: 800; box-shadow: inset 0 -3px 0 var(--coral-deep); }
-.btn-sm b { transition: transform 0.18s; }
-.card:hover .btn-sm b { transform: translateX(3px); }
-
 /* ---------- блог ---------- */
-.latest-post { margin-bottom: 40px; }
-.latest-post .card-body { padding: 30px; gap: 12px; }
-.latest-post h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.15; font-weight: 800; max-width: 22em; }
-.latest-post p { max-width: 40em; font-size: 17px; color: var(--text-muted); }
+.latest-post { margin-bottom: 40px; display: flex; }
 .flag-inline { padding: 3px 10px; border-radius: 999px; background: var(--coral); color: #fff; }
 .archive { padding-bottom: 56px; }
 .archive-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
@@ -203,8 +124,8 @@ h1, h2, h3, p { margin: 0; }
 .filters button { height: 44px; padding: 0 16px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-soft); font-weight: 700; font-size: 14px; }
 .filters button.is-active { background: var(--coral); color: #fff; }
 .archive-list { display: flex; flex-direction: column; gap: 12px; }
-.archive-row { display: grid; grid-template-columns: 40px 120px 1fr auto; gap: 20px; align-items: center; padding: 18px 22px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-soft); transition: transform 0.18s, box-shadow 0.18s; }
-.archive-row:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.archive-row { display: grid; grid-template-columns: 40px 120px 1fr auto; gap: 20px; align-items: center; padding: 18px 24px; transition: transform 0.2s; }
+.archive-row:hover { transform: translateY(-2px); }
 .archive-row[hidden] { display: none; }
 .archive-number { font-weight: 800; color: var(--coral-deep); }
 .archive-row time { font-size: 13px; font-weight: 700; color: var(--text-muted); }
@@ -217,7 +138,7 @@ h1, h2, h3, p { margin: 0; }
 .article-header h1 { margin-top: 14px; font-size: clamp(30px, 4.4vw, 44px); line-height: 1.12; font-weight: 800; letter-spacing: -0.01em; }
 .article-header p { margin-top: 14px; font-size: 19px; color: var(--text-muted); }
 .article-layout { margin-top: 32px; }
-.article-layout aside { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-soft); font-size: 14px; color: var(--text-muted); }
+.article-layout aside { position: relative; isolation: isolate; display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-size: 14px; color: var(--text-muted); }
 .article-layout aside span { font-weight: 800; color: var(--coral-deep); white-space: nowrap; }
 .article-body { margin-top: 28px; font-size: 18px; line-height: 1.7; }
 .article-body p { margin: 0 0 1.1em; }
@@ -229,8 +150,8 @@ h1, h2, h3, p { margin: 0; }
 .article-body blockquote { margin: 1.5em 0; padding: 18px 22px; border-left: 5px solid var(--coral); border-radius: 0 16px 16px 0; background: var(--surface); font-weight: 600; }
 .article-body code { padding: 2px 6px; border-radius: 6px; background: var(--muted); font-size: 0.9em; }
 .article-body a { color: var(--coral-deep); text-decoration: underline; text-underline-offset: 3px; }
-.next-post { max-width: 760px; margin: 24px auto 56px; display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 22px 26px; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-soft); transition: transform 0.18s, box-shadow 0.18s; }
-.next-post:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.next-post { max-width: 760px; margin: 24px auto 56px; display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 22px 28px; transition: transform 0.2s; }
+.next-post:hover { transform: translateY(-3px); }
 .next-post span { grid-column: 1; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
 .next-post strong { grid-column: 1; font-size: 20px; font-weight: 800; }
 .next-post b { grid-row: 1 / 3; grid-column: 2; align-self: center; color: var(--coral-deep); font-size: 22px; }
@@ -259,26 +180,120 @@ a.contact:hover { color: var(--coral-deep); }
 /* ---------- появление ---------- */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.18s ease; }
 .reveal.is-visible { opacity: 1; transform: none; }
-.card.reveal.is-visible:hover, .archive-row.reveal.is-visible:hover { transform: translateY(-3px); }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
-  .card, .card *, .more-card, .more-card *, .btn { transition: none !important; }
+  .rcard, .rcard *, .card, .btn { transition: none !important; }
 }
 
-/* ---------- планшет ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+
+
+
+/* ================= карточки: бумага на бумаге (по образцу плашек) =================
+   Лист лежит на странице почти в её тон (замер образца: лист ≈ страница), отличают его только тонкая
+   волокнистая кромка, зерно и слабая тень. Картинка — напечатанный отпечаток на отдельной подложке, под
+   которой виден ещё один лист. Метка приклеена косо, кнопка и ссылка как на образце. */
+:root { --serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif; --card: #f6efe3; --edge: #ddd0bb; --grain-soft: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36  0 0 0 0 .29  0 0 0 0 .2  0 0 0 .1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); --ink: #312925; --ink-soft: #5f574d; --terra: #b9745f; --terra-deep: #a15d49; }
+
+.rcard, .card, .mount, .archive-row, .next-post, .article-layout aside { position: relative; isolation: isolate; }
+.rcard::before, .card::before, .mount::before, .archive-row::before, .next-post::before, .article-layout aside::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 7px; background: var(--grain-soft), linear-gradient(165deg, #f9f3e8 0%, var(--card) 100%); background-size: 260px 260px, auto; filter: url(#paper-rough); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 0 16px rgba(255, 255, 255, 0.4); }
+.rcard::after, .card::after, .mount::after, .archive-row::after, .next-post::after, .article-layout aside::after { content: ''; position: absolute; inset: -1px; z-index: -2; border-radius: 8px; background: var(--edge); filter: url(#paper-rough); box-shadow: 0 1px 2px rgba(70, 50, 30, 0.2), 0 8px 18px rgba(70, 50, 30, 0.08); }
+.mount::after { box-shadow: 0 2px 3px rgba(70, 50, 30, 0.2), 0 7px 12px rgba(70, 50, 30, 0.1); }
+.mount .under { position: absolute; inset: 0; z-index: -3; border-radius: 8px; background: var(--grain-soft), #f1e8d8; background-size: 260px 260px, auto; border: 1px solid var(--edge); transform: translate(6px, 8px) rotate(1deg); filter: url(#paper-rough); box-shadow: 0 5px 10px rgba(70, 50, 30, 0.12); }
+.rcard:nth-child(even) .mount .under { transform: translate(-5px, 8px) rotate(-0.9deg); }
+.all-card::before { background: var(--grain-soft), linear-gradient(165deg, #f4ecdd 0%, #efe5d3 100%); background-size: 260px 260px, auto; }
+
+.rcard { display: flex; flex-direction: column; min-width: 0; transition: transform 0.2s ease; }
+.rcard:hover, .rcard.reveal.is-visible:hover { transform: translateY(-3px); }
+.card { display: flex; min-width: 0; }
+.card-body { display: flex; flex-direction: column; gap: 10px; padding: 30px 32px; min-width: 0; }
+.card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font: 400 13px var(--serif); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.card h2 { font: 600 clamp(28px, 3.4vw, 38px)/1.12 var(--serif); letter-spacing: -0.005em; color: var(--ink); max-width: 22em; }
+.card p { font: 400 17px/1.55 var(--serif); letter-spacing: 0.04em; color: var(--ink-soft); max-width: 40em; }
+.card-go { margin-top: 6px; align-self: flex-start; font: 400 16px var(--serif); letter-spacing: 0.03em; color: var(--ink); border-bottom: 1.5px solid var(--ink); padding-bottom: 3px; display: inline-flex; gap: 8px; }
+.flag-inline { padding: 3px 11px 4px; border-radius: 3px; background: var(--terra); color: #fbeee4; }
+.only-en { font: 400 13px var(--serif); font-style: italic; color: var(--terra-deep); }
+
+/* отпечаток на подложке */
+.mount { margin: 16px 16px 0; padding: 16px 10px 10px 16px; flex: none; }
+.print { position: relative; overflow: hidden; aspect-ratio: 1 / 1; clip-path: polygon(0.0% 0.6%, 6.1% 0.7%, 12.9% 0.7%, 19.6% 0.0%, 24.8% 0.8%, 30.5% 0.8%, 34.4% 0.4%, 38.8% 0.5%, 44.3% 0.0%, 48.6% 0.3%, 55.3% 0.7%, 59.3% 0.7%, 63.3% 0.6%, 67.2% 0.0%, 73.8% 0.2%, 78.0% 0.9%, 84.6% 0.3%, 91.5% 0.5%, 97.3% 0.2%, 100.0% 0.6%, 99.2% 6.9%, 99.7% 11.4%, 99.9% 15.5%, 99.7% 19.2%, 100.0% 24.8%, 99.7% 30.7%, 99.3% 35.3%, 99.7% 40.5%, 99.4% 45.7%, 99.1% 49.4%, 99.3% 53.0%, 100.0% 59.4%, 99.7% 65.7%, 100.0% 71.2%, 99.8% 74.9%, 99.8% 81.7%, 99.2% 87.8%, 99.7% 94.6%, 99.5% 99.4%, 99.9% 100.0%, 93.9% 99.3%, 87.4% 100.0%, 80.6% 99.9%, 75.9% 99.5%, 69.2% 99.7%, 62.4% 99.5%, 57.8% 99.7%, 53.7% 99.9%, 49.7% 99.4%, 42.7% 99.9%, 39.0% 99.1%, 33.7% 99.6%, 29.3% 99.5%, 22.9% 99.6%, 18.0% 99.9%, 11.3% 100.0%, 6.0% 99.2%, 2.1% 99.3%, 0.0% 99.4%, 0.1% 93.7%, 0.1% 88.7%, 0.3% 82.3%, 0.9% 77.2%, 0.9% 70.7%, 0.4% 65.6%, 0.4% 59.6%, 0.4% 55.0%, 0.3% 51.0%, 0.9% 44.1%, 0.4% 38.4%, 0.1% 33.7%, 0.7% 29.2%, 0.3% 22.7%, 0.7% 16.4%, 0.6% 10.5%, 0.3% 4.4%, 0.3% 0.0%); }
+.rcard:nth-child(even) .print { clip-path: polygon(0.0% 0.5%, 6.3% 0.9%, 10.8% 0.7%, 16.8% 0.6%, 20.7% 0.0%, 25.5% 0.7%, 29.9% 0.5%, 34.5% 0.8%, 41.3% 0.4%, 48.3% 0.1%, 54.7% 0.8%, 58.7% 0.6%, 64.2% 0.9%, 68.4% 0.5%, 75.0% 0.6%, 79.6% 0.1%, 86.4% 0.4%, 93.3% 0.1%, 99.7% 0.7%, 100.0% 0.0%, 100.0% 4.8%, 99.7% 10.9%, 99.7% 17.8%, 99.2% 24.0%, 99.5% 28.3%, 99.5% 35.2%, 99.8% 39.9%, 99.8% 46.2%, 99.5% 51.8%, 99.9% 57.3%, 99.2% 63.1%, 99.7% 67.7%, 99.5% 74.4%, 100.0% 78.8%, 99.7% 84.9%, 99.8% 90.1%, 99.3% 95.8%, 99.9% 100.0%, 93.0% 99.2%, 89.5% 99.5%, 83.6% 99.6%, 77.5% 99.1%, 71.9% 99.6%, 67.8% 99.8%, 63.7% 99.9%, 59.5% 99.2%, 54.1% 99.3%, 47.4% 99.3%, 43.7% 99.2%, 39.9% 99.3%, 33.5% 99.4%, 28.5% 99.9%, 24.7% 99.4%, 20.4% 99.5%, 16.0% 99.9%, 11.4% 99.3%, 6.2% 99.6%, 1.0% 99.5%, 0.0% 99.6%, 0.7% 93.1%, 0.3% 88.8%, 0.3% 84.7%, 0.7% 81.1%, 0.4% 75.6%, 0.3% 68.9%, 0.8% 63.4%, 0.6% 58.0%, 0.9% 53.2%, 0.3% 47.0%, 0.5% 42.3%, 0.5% 37.0%, 0.5% 32.8%, 0.7% 26.8%, 0.4% 21.8%, 0.5% 16.5%, 0.0% 11.3%, 0.9% 6.9%, 0.4% 0.5%, 0.2% 0.0%); }
+.rcard.is-wide .print, .game-banner .print { aspect-ratio: 16 / 10; }
+.print::after { content: ''; position: absolute; inset: 0; background: var(--grain); opacity: 0.9; mix-blend-mode: multiply; pointer-events: none; }
+.print .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cover-icon { position: absolute; left: 50%; top: 53%; width: 36%; aspect-ratio: 1; height: auto; border-radius: 24%; object-fit: cover; transform: translate(-50%, -50%) rotate(-3deg); box-shadow: 0 12px 22px rgba(70, 50, 30, 0.3); transition: transform 0.3s ease; }
+.rcard.is-wide .cover-icon, .game-banner .cover-icon { width: 27%; }
+.rcard:hover .cover-icon { transform: translate(-50%, -50%) rotate(1deg) scale(1.04); }
+.mount .chip { position: absolute; z-index: 2; top: 24px; right: 24px; display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 11px; border-radius: 4px; background: #f8f2e6; border: 1px solid rgba(150, 125, 85, 0.28); box-shadow: 0 1px 2px rgba(70, 50, 30, 0.22); font: 400 13px var(--serif); letter-spacing: 0.02em; color: var(--ink); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: #6f9a72; }
+.chip-prototype i { background: #d7ac72; }
+.chip-exploring i { background: #718c9e; }
+
+/* приклеенная рваная метка */
+.tape { position: absolute; z-index: 3; left: -12px; top: -8px; transform: rotate(-5deg); filter: drop-shadow(0 2px 2px rgba(70, 40, 25, 0.3)); }
+.tape span { display: block; padding: 8px 22px 9px; font: 400 19px var(--serif); letter-spacing: 0.07em; color: #fbe9de; background: var(--grain), var(--terra); background-size: 260px 260px, auto; clip-path: polygon(0 9%, 3% 0, 8% 6%, 14% 1%, 22% 5%, 32% 0, 43% 4%, 54% 0, 65% 5%, 76% 1%, 87% 5%, 94% 0, 100% 8%, 98% 30%, 100% 52%, 97% 74%, 100% 100%, 91% 96%, 79% 100%, 67% 95%, 55% 100%, 43% 96%, 31% 100%, 19% 95%, 8% 100%, 0 93%, 2% 70%, 0 48%, 3% 26%); }
+
+/* текст, кнопка, ссылка */
+.rbody { position: relative; display: flex; flex-direction: column; flex: 1; min-width: 0; padding: 18px 24px 24px; gap: 6px; }
+.rbody h3, .rbody h2 { font: 600 27px/1.1 var(--serif); letter-spacing: -0.005em; color: var(--ink); padding-right: 58px; }
+.rcard:not(.is-wide) .rbody h3 { font-size: 24px; }
+.rbody p { font: 400 16px/1.5 var(--serif); letter-spacing: 0.045em; color: var(--ink-soft); }
+.acts { margin-top: auto; padding-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.acts-left { justify-content: flex-start; gap: 34px; }
+.btn-paper { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 10px; height: 42px; padding: 0 20px 0 17px; font: 400 17px var(--serif); letter-spacing: 0.08em; color: #fceee4; white-space: nowrap; transition: transform 0.15s; }
+.btn-paper::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 9px; background: var(--grain), var(--terra); background-size: 260px 260px, auto; filter: url(#paper-rough-s); box-shadow: 0 5px 7px -2px rgba(90, 45, 30, 0.38), inset 0 1px 0 rgba(255, 225, 210, 0.22); }
+.btn-paper i { width: 0; height: 0; border-left: 11px solid #fceee4; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+.rcard:hover .btn-paper { transform: translateY(-1px); }
+.more { display: inline-flex; gap: 8px; font: 400 16px var(--serif); letter-spacing: 0.03em; color: var(--ink); border-bottom: 1.5px solid var(--ink); padding-bottom: 3px; white-space: nowrap; }
+.more svg { width: 24px; height: 11px; align-self: center; transition: transform 0.2s; }
+.rcard:hover .more svg { transform: translateX(4px); }
+.deco { position: absolute; top: 8px; right: 14px; width: 46px; height: auto; pointer-events: none; }
+.rcard.is-wide .deco, .game-banner .deco { width: 62px; top: 14px; right: 22px; }
+.deco.sprig { width: 30px; right: 34px; top: 16px; }
+.torn { position: absolute; z-index: 1; top: 0; right: 0; width: 54px; height: 50px; background: var(--grain), #d9cbb6; background-size: 260px 260px, auto; border-radius: 0 7px 0 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 88% 84%, 74% 70%, 61% 55%, 46% 40%, 30% 20%); filter: drop-shadow(-1px 1px 1px rgba(70, 50, 30, 0.18)); }
+
+/* «Все игры →» вместо последней карточки */
+.all-card { justify-content: center; align-items: flex-start; padding: 0 30px; }
+.all-card .more { font-size: 24px; font-weight: 600; padding-bottom: 5px; position: relative; z-index: 1; }
+.all-card .all-decor { position: absolute; right: 0; bottom: 0; width: 72%; height: auto; opacity: 0.9; pointer-events: none; border-radius: 0 0 7px 0; }
+.is-notes .rcard:not(.all-card) { min-height: 250px; }
+.rpost .rbody { padding: 24px 28px 24px; }
+.rdate { font: 400 12.5px var(--serif); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+.rpost h3 { padding-right: 56px; }
+.rpost:not(.is-wide) h3 { font-size: 21px; padding-right: 30px; }
+.rpost.is-wide p { padding-right: 70px; }
+.rpost p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cards-row { display: grid; grid-template-columns: 1.95fr 1fr 1fr 1fr; gap: 20px; margin: 0 -40px; align-items: stretch; }
+
+/* страница игр: баннер как на образце (отпечаток слева, текст и кнопки справа) и сетка */
+.game-banner { display: grid; grid-template-columns: 42% 1fr; margin-bottom: 30px; }
+.game-banner .mount { margin: 24px; }
+.banner-body { justify-content: center; padding: 30px 48px 30px 18px; gap: 12px; }
+.banner-body h2 { font-size: clamp(32px, 3.4vw, 46px); }
+.banner-body p { font-size: 18px; max-width: 32em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.banner-body .acts { margin-top: 12px; }
+.banner-body .btn-paper { height: 48px; font-size: 19px; padding: 0 26px 0 22px; }
+.banner-body .more { font-size: 18px; }
+.games-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; padding-bottom: 48px; }
+
+/* появление и наведение */
+.rcard.reveal { transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* ================= планшет ================= */
 @media (max-width: 980px) {
-  .games-grid { grid-template-columns: repeat(3, 1fr); }
-  .game-banner { grid-template-columns: 1fr; }
-  .game-banner .cover-wrap { min-height: 0; aspect-ratio: 16 / 9; }
   .cards-row { grid-template-columns: repeat(2, 1fr); margin: 0; }
-  .rcard.is-wide { grid-column: 1 / -1; }
-  .rcard .cover-wrap { height: 280px; }
-  .rcard.is-wide .cover-wrap { height: 340px; }
-  .is-notes .rcard { min-height: 220px; }
+  .rcard.is-wide { grid-column: 1 / -1; flex-direction: row; }
+  .rcard.is-wide .mount { width: 46%; align-self: flex-start; }
+  .rcard.is-wide .rbody { justify-content: center; }
+  .games-grid { grid-template-columns: repeat(3, 1fr); }
+  .game-banner { grid-template-columns: 46% 1fr; }
+  .is-notes .rcard:not(.all-card) { min-height: 0; }
 }
 
-/* ---------- телефон ---------- */
+/* ================= телефон ================= */
 @media (max-width: 760px) {
   :root { --header-h: 76px; }
   .wrap { padding: 0 20px; }
@@ -289,9 +304,8 @@ a.contact:hover { color: var(--coral-deep); }
   .topbar-in { gap: 12px; }
   .topbar-tools { margin-left: auto; margin-top: 4px; }
   .burger { display: flex; }
-  .nav { position: absolute; top: var(--header-h); left: 0; right: 0; margin: 0; flex-direction: column; gap: 0; padding: 8px 16px 16px; background: var(--paper); border-bottom: 1px solid var(--line); box-shadow: var(--shadow-card); display: none; }
+  .nav { position: absolute; top: 100%; left: 0; right: 0; margin: 0; flex-direction: column; gap: 0; padding: 8px 20px 16px; background: var(--paper); border-bottom: 1px solid var(--line); box-shadow: var(--shadow-card); display: none; }
   .menu-open .nav { display: flex; }
-  .nav { top: 100%; margin: 0; padding: 8px 20px 16px; }
   .nav a { padding: 16px 4px; font-size: 18px; border-bottom: 1px solid var(--line); opacity: 1; }
   .nav a:last-child { border-bottom: 0; }
   .nav a.is-active::after { display: none; }
@@ -309,30 +323,40 @@ a.contact:hover { color: var(--coral-deep); }
 
   .block { padding: 28px 0 8px; }
   .section-head h2 { font-size: 26px; }
-  .games-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .cards-row { gap: 12px; }
-  .rcard.is-wide, .all-card { grid-column: 1 / -1; }
-  .rcard .cover-wrap { height: 190px; }
-  .rcard.is-wide .cover-wrap { height: 250px; }
-  .rbody { padding: 16px 16px 46px; }
-  .rbody h3 { font-size: 20px; }
-  .rbody p { font-size: 15px; padding-right: 0; }
-  .rcard .go { right: 18px; bottom: 14px; font-size: 22px; }
-  .rcard.is-wide .rbody { padding: 20px 22px 48px; }
-  .rcard.is-wide .rbody h3 { font-size: 24px; }
-  .all-card { min-height: 96px; flex-direction: row; align-items: center; justify-content: space-between; padding: 0 24px; }
-  .all-card .all-decor { width: 46%; opacity: 0.8; }
-  .all-label { font-size: 22px; }
-  .is-notes .rcard { min-height: 0; }
-  .is-notes .all-card { min-height: 96px; }
-  .rpost.is-wide .rbody { padding-right: 22px; }
-  .note-art { display: none !important; }
-  .banner-body { padding: 22px; gap: 12px; }
-  .banner-body .btn { width: 100%; justify-content: center; }
-  .game-card .card-body { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px 14px; }
-  .game-card .btn-sm { justify-content: center; height: 40px; }
-  .game-card h3 { font-size: 16px; }
-  .archive-row { grid-template-columns: 1fr; gap: 6px; padding: 16px 18px; }
+
+  /* на телефоне карточка горизонтальная, как на образце */
+  .cards-row, .games-grid { grid-template-columns: 1fr; gap: 18px; }
+  .rcard, .rcard.is-wide { flex-direction: row; align-items: stretch; }
+  .rcard .mount, .rcard.is-wide .mount { width: 41%; margin: 12px 0 12px 12px; padding: 8px; align-self: flex-start; }
+  .rcard .print, .rcard.is-wide .print { aspect-ratio: 1 / 1; }
+  .cover-icon, .rcard.is-wide .cover-icon { width: 46%; }
+  .mount .chip { display: none; }
+  .tape { left: -8px; top: -6px; }
+  .tape span { padding: 5px 13px 6px; font-size: 14px; }
+  .rbody { padding: 14px 14px 14px 14px; gap: 4px; }
+  .rbody h3, .rcard:not(.is-wide) .rbody h3, .rbody h2 { font-size: 22px; padding-right: 0; }
+  .rbody p { font-size: 14px; letter-spacing: 0.03em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .acts { padding-top: 10px; gap: 8px; }
+  .btn-paper { height: 38px; padding: 0 14px 0 12px; font-size: 15px; gap: 8px; }
+  .btn-paper i { border-left-width: 9px; border-top-width: 6px; border-bottom-width: 6px; }
+  .more { font-size: 14px; }
+  .deco { display: none; }
+  .rpost, .rpost.is-wide { flex-direction: column; }
+  .rpost .rbody { padding: 18px 20px 18px; }
+  .rpost h3 { padding-right: 42px; }
+  .torn { width: 40px; height: 38px; }
+  .all-card, .all-card.is-wide { min-height: 84px; flex-direction: row; align-items: center; justify-content: flex-start; padding: 0 22px; }
+  .all-card .more { font-size: 20px; }
+  .all-card .all-decor { width: 40%; }
+  .game-banner { grid-template-columns: 41% 1fr; }
+  .game-banner .mount { margin: 12px 0 12px 12px; }
+  .banner-body { padding: 14px; gap: 4px; }
+  .banner-body p { font-size: 14px; }
+  .banner-body .acts { margin-top: 0; }
+  .banner-body .btn-paper { height: 38px; font-size: 15px; padding: 0 14px 0 12px; }
+  .banner-body .more { font-size: 14px; }
+  .acts-left { gap: 14px; }
+  .archive-row { grid-template-columns: 1fr; gap: 6px; padding: 16px 20px; }
   .archive-number { display: none; }
   .archive-tag { justify-self: start; }
   .article-body { font-size: 17px; }
@@ -343,29 +367,49 @@ a.contact:hover { color: var(--coral-deep); }
   .contact { min-height: 48px; font-size: 17px; }
 }
 
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* меню сворачивается в бургер уже на планшете: четыре пункта + язык не помещаются в 768 */
+@media (max-width: 900px) {
+  .burger { display: flex; }
+  .topbar-tools { margin-left: auto; margin-top: 4px; }
+  .nav { position: absolute; top: 100%; left: 0; right: 0; margin: 0; flex-direction: column; gap: 0; padding: 8px 40px 16px; background: var(--paper); border-bottom: 1px solid var(--line); box-shadow: var(--shadow-card); display: none; z-index: 40; }
+  .menu-open .nav { display: flex; }
+  .nav a { padding: 16px 4px; font-size: 18px; border-bottom: 1px solid var(--line); }
+  .nav a:last-child { border-bottom: 0; }
+  .nav a.is-active::after { display: none; }
+  .nav a.is-active { color: var(--coral-deep); }
+}
+@media (max-width: 380px) {
+  .wrap { padding: 0 16px; }
+  .brand-name { font-size: 30px; }
+  .brand-mark { width: 38px; height: 33px; }
+  .topbar-in { gap: 8px; }
+  .lang-switch { font-size: 13px; }
+  .rbody { padding: 12px 12px 12px 10px; }
+  .acts { gap: 6px; }
+  .btn-paper { padding: 0 11px 0 10px; font-size: 14px; letter-spacing: 0.05em; }
+  .more { font-size: 13px; gap: 6px; }
+  .more svg { width: 20px; }
+}
 
-.latest-post .card-go { font-size: 16px; font-weight: 700; color: var(--coral-deep); align-self: flex-start; gap: 8px; }
+/* страница блога в том же бумажном стиле, что карточки */
+.card-go svg { width: 24px; height: 11px; align-self: center; }
+.archive-head h2 { font: 600 28px var(--serif); }
+.filters button { height: 40px; padding: 0 16px; border-radius: 6px; background: var(--card); border: 1px solid var(--edge); box-shadow: 0 1px 2px rgba(70, 50, 30, 0.16); font: 400 15px var(--serif); letter-spacing: 0.04em; color: var(--ink); }
+.filters button.is-active { background: var(--grain), var(--terra); background-size: 260px 260px, auto; border-color: var(--terra-deep); color: #fceee4; }
+.archive-row h2 { font: 600 20px/1.25 var(--serif); letter-spacing: -0.005em; color: var(--ink); }
+.archive-row p { font: 400 15px/1.5 var(--serif); letter-spacing: 0.03em; color: var(--ink-soft); }
+.archive-row time { font: 400 12.5px var(--serif); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.archive-number { font: 600 16px var(--serif); color: var(--terra-deep); }
+.archive-tag { font: 400 13px var(--serif); letter-spacing: 0.04em; padding: 4px 11px; border-radius: 4px; background: #efe5d3; border: 1px solid var(--edge); color: var(--ink); }
+.article-back { font: 400 16px var(--serif); color: var(--ink); border-bottom: 1.5px solid var(--ink); padding-bottom: 2px; }
+.article-header h1 { font-family: var(--serif); font-weight: 600; }
+.article-header p { font-family: var(--serif); letter-spacing: 0.03em; }
+.next-post span { font: 400 12.5px var(--serif); letter-spacing: 0.1em; }
+.next-post strong { font: 600 22px var(--serif); }
+.next-post b { color: var(--terra-deep); }
+.count { font: 400 13px var(--serif); background: #efe5d3; border: 1px solid var(--edge); border-radius: 4px; padding: 2px 9px; }
 
-/* ---------- бумага на бумаге ----------
-   Карточка — лист, лежащий на странице: почти тот же тон, чуть светлее, волокнистый неровный край
-   (SVG-фильтр только на фоне), светлая кромка и очень мягкая тень, почти без подъёма. Картинка вклеена
-   внутрь как отпечаток в бумажной рамке, новейшая игра с косой приклеенной меткой. */
-.rcard, .card { position: relative; isolation: isolate; }
-.rcard::before, .card::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 6px; background: var(--grain), linear-gradient(162deg, #fdfaf3 0%, #f9f4e9 100%); background-size: 260px 260px, auto; filter: url(#paper-rough); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65), inset 0 0 20px rgba(255, 255, 255, 0.45), 0 1px 1px rgba(80, 60, 35, 0.3), 0 6px 14px rgba(80, 60, 35, 0.1); }
-.rcard::after, .card::after { content: ''; position: absolute; inset: -1.5px; z-index: -2; border-radius: 7px; background: #d8cbb2; filter: url(#paper-rough); }
-.all-card::before { background: var(--grain), linear-gradient(162deg, #f8f1e0 0%, #f1e8d3 100%); background-size: 260px 260px, auto; }
-/* картинка-отпечаток в рамке */
-.rcard .cover-wrap, .game-card .cover-wrap { margin: 14px 14px 0; border: 6px solid #fbf7ee; border-radius: 10px; box-shadow: 0 2px 4px rgba(80, 60, 35, 0.3), 0 0 0 1px rgba(150, 125, 85, 0.18); height: clamp(220px, 23vw, 338px); }
-.game-card .cover-wrap { height: auto; aspect-ratio: 4 / 3; }
-.rcard .cover, .game-card .cover { border-radius: 4px; }
-.cover::after { content: ''; position: absolute; inset: 0; background: var(--grain); opacity: 0.9; mix-blend-mode: multiply; pointer-events: none; }
-.game-banner .cover-wrap { margin: 14px; border: 6px solid #fbf7ee; border-radius: 10px; box-shadow: 0 2px 4px rgba(80, 60, 35, 0.3); min-height: 0; }
-.game-banner .cover { border-radius: 4px; }
-.rbody { padding: 18px 28px 24px; }
-/* косая приклеенная метка */
-.tape { position: absolute; z-index: 3; left: -4px; top: 8px; transform: rotate(-7deg); padding: 7px 18px 6px; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff8ee; isolation: isolate; }
-.tape::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--grain), var(--coral); background-size: 260px 260px, auto; filter: url(#paper-rough); box-shadow: 0 2px 4px rgba(80, 60, 35, 0.3); }
-.rcard .chip { top: 18px; right: 18px; }
-@media (max-width: 980px) { .rcard .cover-wrap { height: 270px; } }
-@media (max-width: 760px) { .rcard .cover-wrap { margin: 10px 10px 0; border-width: 5px; height: 180px; } .rcard.is-wide .cover-wrap { height: 240px; } .rbody { padding: 14px 16px 46px; } .tape { font-size: 12px; padding: 6px 14px 5px; } }
+html[lang="uk"] .hero-note { font-size: 29px; line-height: 0.95; }
+html[lang="uk"] .hero-note::after { margin-left: 30px; }
+.hero-note { white-space: nowrap; }
+@media (max-width: 760px) { html[lang="uk"] .hero-note { font-size: 22px; } }

@@ -12,33 +12,56 @@ function chip(game: Game, lang: Lang): string {
 
 const ACCENTS = ['coral', 'mustard', 'teal', 'blue'] as const;
 
+/** Приглушённые цвета бумаги с образца плашек: терракот, охра, шалфей, пыльно-синий. */
 type Scheme = { bg: string; m1: [string, string]; m2: [string, string]; m3: [string, string]; sun: string };
 const SCHEMES: Record<(typeof ACCENTS)[number], Scheme> = {
-  coral: { bg: '#ecd3c4', m1: ['#d98c6b', '#c4724f'], m2: ['#8aa38a', '#6f8c72'], m3: ['#e6c27a', '#d0a653'], sun: '#d9734f' },
-  mustard: { bg: '#efe0bb', m1: ['#e0b050', '#c99a3a'], m2: ['#d98c6b', '#c4724f'], m3: ['#8aa38a', '#6f8c72'], sun: '#d9734f' },
-  teal: { bg: '#d8e0d2', m1: ['#7fa58f', '#648b75'], m2: ['#8fa7c7', '#7790b3'], m3: ['#e0b050', '#c99a3a'], sun: '#d9734f' },
-  blue: { bg: '#d6dee9', m1: ['#8fa7c7', '#7790b3'], m2: ['#7fa58f', '#648b75'], m3: ['#d98c6b', '#c4724f'], sun: '#e0b050' },
+  coral: { bg: '#eadbcf', m1: ['#ba7a64', '#a2644f'], m2: ['#878e80', '#737b6c'], m3: ['#d7ac72', '#c2975a'], sun: '#d7ac72' },
+  mustard: { bg: '#eee2c9', m1: ['#d7ac72', '#c2975a'], m2: ['#ba7a64', '#a2644f'], m3: ['#878e80', '#737b6c'], sun: '#ba7a64' },
+  teal: { bg: '#dde1d4', m1: ['#878e80', '#737b6c'], m2: ['#718c9e', '#617b8c'], m3: ['#d7ac72', '#c2975a'], sun: '#ba7a64' },
+  blue: { bg: '#dce2e4', m1: ['#718c9e', '#617b8c'], m2: ['#878e80', '#737b6c'], m3: ['#ba7a64', '#a2644f'], sun: '#d7ac72' },
 };
 
-/** Обложка-заглушка: бумажные горы с гранями и иконка игры. Цвет зависит от номера идеи. */
-function cover(game: Game): string {
+/** Отпечаток: бумажные горы с гранями и иконка игры. Цвет зависит от номера идеи. */
+function print(game: Game): string {
   const accent = ACCENTS[game.idea % ACCENTS.length] ?? 'coral';
   const c = SCHEMES[accent];
   const sunX = game.idea % 2 === 0 ? 190 : 84;
-  return `<div class="cover"><svg class="scene" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="400" fill="${c.bg}"/><circle cx="${sunX}" cy="84" r="34" fill="${c.sun}"/><polygon points="-30,400 120,112 270,400" fill="${c.m1[0]}"/><polygon points="120,112 270,400 184,400" fill="${c.m1[1]}"/><polygon points="196,400 312,204 430,400" fill="${c.m2[0]}"/><polygon points="312,204 430,400 362,400" fill="${c.m2[1]}"/><polygon points="-40,400 42,272 124,400" fill="${c.m3[0]}"/><polygon points="42,272 124,400 84,400" fill="${c.m3[1]}"/></svg><img class="cover-icon" src="/${game.path}/icon-512.png" alt="" width="512" height="512" loading="lazy"></div>`;
+  return `<div class="print"><svg class="scene" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="400" fill="${c.bg}"/><circle cx="${sunX}" cy="84" r="32" fill="${c.sun}"/><polygon points="-30,400 120,112 270,400" fill="${c.m1[0]}"/><polygon points="120,112 270,400 184,400" fill="${c.m1[1]}"/><polygon points="196,400 312,204 430,400" fill="${c.m2[0]}"/><polygon points="312,204 430,400 362,400" fill="${c.m2[1]}"/><polygon points="-40,400 42,272 124,400" fill="${c.m3[0]}"/><polygon points="42,272 124,400 84,400" fill="${c.m3[1]}"/></svg><img class="cover-icon" src="/${game.path}/icon-512.png" alt="" width="512" height="512" loading="lazy"></div>`;
 }
 
-/** Карточка игры в строке главной: картинка сверху, название, строка описания, стрелка справа внизу. */
+/** Подложка с отпечатком: лист бумаги, под ним ещё один со сдвигом, сверху приклеенная метка. */
+function mount(game: Game, lang: Lang, tape: string | null): string {
+  return `<div class="mount"><i class="under"></i>${print(game)}${chip(game, lang)}${tape === null ? '' : `<span class="tape"><span>${escapeHtml(tape)}</span></span>`}</div>`;
+}
+
+const DECO_GAME =
+  '<svg class="deco" viewBox="0 0 64 50" aria-hidden="true"><circle cx="46" cy="14" r="11" fill="#d7ac72"/><polygon points="34,50 56,28 74,50" fill="#e4d9c6"/><polygon points="2,50 26,12 50,50" fill="#718c9e"/><polygon points="26,12 50,50 38,50" fill="#617b8c"/></svg>';
+const DECO_SPRIG =
+  '<svg class="deco sprig" viewBox="0 0 40 78" aria-hidden="true" fill="none" stroke="#9f8766" stroke-width="1.3" stroke-linecap="round"><path d="M22 76 C20 58 24 36 31 8"/><path d="M22 58 C16 52 13 46 11 38"/><path d="M25 44 C31 40 33 34 34 28"/><g fill="#c9a35e" stroke="none"><circle cx="10" cy="36" r="2.6"/><circle cx="34" cy="26" r="2.8"/><circle cx="31" cy="7" r="2.6"/><circle cx="12" cy="42" r="2"/><circle cx="35" cy="33" r="2"/></g></svg>';
+
+function playButton(label: string): string {
+  return `<span class="btn-paper"><i aria-hidden="true"></i>${escapeHtml(label)}</span>`;
+}
+
+export const ARROW =
+  '<svg viewBox="0 0 26 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6h23M19 1l5 5-5 5"/></svg>';
+
+function moreLink(label: string): string {
+  return `<span class="more">${escapeHtml(label)}${ARROW}</span>`;
+}
+
+/** Карточка игры: отпечаток на подложке, название, строка описания, Play и More. */
 export function rowGame(game: Game, lang: Lang, wide: boolean): string {
   const d = t(lang);
   const line = lang === 'uk' ? game.taglineUk : game.tagline;
   return `
     <a class="rcard ${wide ? 'is-wide' : ''} reveal" href="/${game.path}/">
-      <div class="cover-wrap">${cover(game)}${chip(game, lang)}</div>${wide ? `<span class="tape">${escapeHtml(d.newLabel)}</span>` : ''}
+      ${mount(game, lang, wide ? d.newLabel : null)}
       <div class="rbody">
         <h3>${escapeHtml(game.title)}</h3>
         <p>${escapeHtml(line)}</p>
-        <span class="go"><span class="sr-only">${d.play}</span><b aria-hidden="true">→</b></span>
+        <div class="acts">${playButton(d.play)}${moreLink(d.more)}</div>
+        ${DECO_GAME}
       </div>
     </a>`;
 }
@@ -47,70 +70,49 @@ export function rowGame(game: Game, lang: Lang, wide: boolean): string {
 export function allCard(href: string, label: string): string {
   return `
     <a class="rcard all-card reveal" href="${href}">
-      <svg class="all-decor" viewBox="0 0 220 120" aria-hidden="true"><polygon points="0,120 70,26 140,120" fill="#cdb995"/><polygon points="70,26 140,120 100,120" fill="#bba67f"/><polygon points="90,120 150,50 220,120" fill="#7fa58f"/><polygon points="150,50 220,120 182,120" fill="#648b75"/></svg>
-      <span class="all-label">${escapeHtml(label)}</span>
-      <b class="all-arrow" aria-hidden="true">→</b>
+      <svg class="all-decor" viewBox="0 0 220 120" aria-hidden="true"><polygon points="0,120 70,26 140,120" fill="#d9ccb6"/><polygon points="70,26 140,120 100,120" fill="#c8baa2"/><polygon points="90,120 150,50 220,120" fill="#878e80"/><polygon points="150,50 220,120 182,120" fill="#737b6c"/></svg>
+      ${moreLink(label)}
     </a>`;
 }
 
-const NOTE_ART = [
-  '<svg viewBox="0 0 150 100" aria-hidden="true"><polygon points="4,96 40,30 76,96" fill="#6e93ad"/><polygon points="40,30 76,96 56,96" fill="#58798f"/><polygon points="52,96 92,18 132,96" fill="#d8c19a"/><polygon points="92,18 132,96 108,96" fill="#c4a97c"/></svg>',
-  '<svg viewBox="0 0 150 100" aria-hidden="true"><polygon points="20,40 62,22 104,40 62,58" fill="#d8bf98"/><polygon points="20,40 62,58 62,98 20,80" fill="#c9a97e"/><polygon points="62,58 104,40 104,80 62,98" fill="#b89368"/><polygon points="68,50 100,36 132,50 100,64" fill="#8a8a82"/><polygon points="68,50 100,64 100,98 68,84" fill="#d98c6b"/><polygon points="100,64 132,50 132,84 100,98" fill="#5f5f5a"/></svg>',
-  '<svg viewBox="0 0 150 100" aria-hidden="true"><polygon points="10,96 38,36 66,96" fill="#6f9a86"/><polygon points="38,36 66,96 50,96" fill="#5a8571"/><polygon points="48,96 98,8 148,96" fill="#d8bd8f"/><polygon points="98,8 148,96 118,96" fill="#c4a374"/><polygon points="30,96 70,56 110,96" fill="#e0aa6a"/></svg>',
-] as const;
-
-/** Заметка в строке блога: дата, название, строка текста, маленькая оригами-иллюстрация, стрелка. */
-export function rowPost(post: Post, lang: Lang, wide: boolean, index: number): string {
+/** Заметка: дата, название, строка текста, More; в углу ветка и оторванный уголок. */
+export function rowPost(post: Post, lang: Lang, wide: boolean): string {
   const d = t(lang);
   return `
     <a class="rcard rpost ${wide ? 'is-wide' : ''} reveal" href="${postHref(post, lang)}">
+      <i class="torn" aria-hidden="true"></i>
       <div class="rbody">
         <time class="rdate" datetime="${post.date}">${formatDate(post.date, lang)}</time>
         <h3>${escapeHtml(post.title)}</h3>
         <p>${escapeHtml(post.excerpt)}</p>
         ${post.fallback ? `<span class="only-en">${escapeHtml(d.onlyEnglish)}</span>` : ''}
-        <span class="go"><span class="sr-only">${d.readMore}</span><b aria-hidden="true">→</b></span>
+        <div class="acts"><span></span>${moreLink(d.more)}</div>
+        ${DECO_SPRIG}
       </div>
-      <div class="note-art" aria-hidden="true">${NOTE_ART[index % NOTE_ART.length] ?? ''}</div>
     </a>`;
 }
 
-/** Страница игр: большая плашка новейшей игры — обложка слева, описание и Play справа. */
+/** Страница игр: большая плашка новейшей игры как на образце: отпечаток слева, название, текст, Play и More справа. */
 export function gameBanner(game: Game, lang: Lang, label: string): string {
   const d = t(lang);
   return `
-    <a class="card game-banner reveal" href="/${game.path}/">
-      <div class="cover-wrap">
-        ${cover(game)}
-        <span class="flag">${escapeHtml(label)}</span>
-      </div>
-      <div class="banner-body">
-        <div class="card-meta">${chip(game, lang)}<span>${escapeHtml(d.genre[game.genre] ?? game.genre)}</span><time datetime="${game.added}">${formatDate(game.added, lang)}</time></div>
+    <a class="rcard game-banner reveal" href="/${game.path}/">
+      ${mount(game, lang, d.newLabel)}
+      <div class="rbody banner-body">
         <h2>${escapeHtml(game.title)}</h2>
         <p>${escapeHtml(pitch(game, lang))}</p>
-        <span class="btn btn-primary">${d.play} <b>→</b></span>
+        <div class="acts acts-left">${playButton(d.play)}${moreLink(d.more)}</div>
+        ${DECO_GAME}
       </div>
+      <span class="sr-only">${escapeHtml(label)}</span>
     </a>`;
 }
 
-/** Маленькая плашка: обложка, название и Play. */
+/** Маленькая плашка на странице игр: то же, что карточка в строке главной. */
 export function gameCard(game: Game, lang: Lang): string {
-  const d = t(lang);
-  return `
-    <a class="card game-card reveal" href="/${game.path}/">
-      <div class="cover-wrap">${cover(game)}</div>
-      <div class="card-body">
-        <h3>${escapeHtml(game.title)}</h3>
-        <span class="btn-sm">${d.play} <b>→</b></span>
-      </div>
-    </a>`;
+  return rowGame(game, lang, false);
 }
 
 function postHref(post: Post, lang: Lang): string {
   return `${pageUrl(lang, 'blog')}#${post.slug}`;
-}
-
-function postMeta(post: Post, lang: Lang): string {
-  const d = t(lang);
-  return `<div class="card-meta"><time datetime="${post.date}">${formatDate(post.date, lang)}</time><span>${escapeHtml(post.tag)}</span>${post.fallback ? `<span class="only-en">${escapeHtml(d.onlyEnglish)}</span>` : ''}</div>`;
 }

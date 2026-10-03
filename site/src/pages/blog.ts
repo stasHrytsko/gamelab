@@ -1,3 +1,4 @@
+import { ARROW } from '../cards.ts';
 import { postsFor, type Post } from '../data.ts';
 import { footer, header } from '../layout.ts';
 import { renderMarkdown } from '../markdown.ts';
@@ -34,7 +35,7 @@ function renderIndex(lang: Lang, posts: Post[]): string {
             <div class="card-meta"><span class="flag-inline">${escapeHtml(d.latestPost)}</span><time datetime="${latest.date}">${formatDate(latest.date, lang)}</time><span>${escapeHtml(latest.tag)}</span><span>${escapeHtml(d.minRead(latest.readingTime))}</span></div>
             <h2>${escapeHtml(latest.title)}</h2>
             <p>${escapeHtml(latest.excerpt)}</p>
-            <span class="card-go">${escapeHtml(d.readPost)} <b>→</b></span>
+            <span class="card-go">${escapeHtml(d.readPost)}${ARROW}</span>
           </div>
         </a>
         <section class="archive" aria-labelledby="archive-title">

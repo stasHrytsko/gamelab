@@ -3,6 +3,9 @@ import { newestGames, postsFor } from '../data.ts';
 import { footer, header, moreCard, sectionHead } from '../layout.ts';
 import { escapeHtml, pageUrl, t, type Lang } from '../i18n.ts';
 
+/** Две бумажные горы рядом с «Stas / Valencia» (синяя и оранжевая, как на макете). */
+const WHERE_MARK = '<svg class="where-mark" viewBox="0 0 74 38" aria-hidden="true"><polygon points="2,36 24,4 46,36" fill="#7ea0b0"/><polygon points="24,4 46,36 34,36" fill="#628798"/><polygon points="36,36 52,12 70,36" fill="#e08a4d"/><polygon points="52,12 70,36 60,36" fill="#c9692f"/></svg>';
+
 export function renderHome(lang: Lang): string {
   const d = t(lang);
   const [newest, ...rest] = newestGames;
@@ -14,7 +17,7 @@ export function renderHome(lang: Lang): string {
       ? ''
       : `
       <section class="block" id="games" aria-labelledby="games-title">
-        ${sectionHead(d.gamesTitle, d.gamesLead, 'games-title')}
+        ${sectionHead(d.gamesTitle, '', 'games-title')}
         <div class="feature-grid">
           ${gameBig(newest, lang, d.latestGame)}
           <div class="feature-stack">
@@ -29,7 +32,7 @@ export function renderHome(lang: Lang): string {
       ? ''
       : `
       <section class="block" id="blog" aria-labelledby="blog-title">
-        ${sectionHead(d.blogTitle, d.blogLead, 'blog-title')}
+        ${sectionHead(d.blogTitle, '', 'blog-title')}
         <div class="feature-grid">
           ${postBig(latestPost, lang)}
           <div class="feature-stack">
@@ -43,18 +46,15 @@ export function renderHome(lang: Lang): string {
     ${header(lang, 'home')}
     <main id="top">
       <section class="hero">
-        <div class="wrap hero-grid">
-          <div class="hero-art">
-            <img src="/hero.webp" alt="${escapeHtml(d.heroArt)}" width="1149" height="1369" fetchpriority="high">
-          </div>
+        <div class="hero-art">
+          <img src="/hero.webp" alt="${escapeHtml(d.heroArt)}" width="1149" height="1369" fetchpriority="high">
+        </div>
+        <p class="hero-note" aria-hidden="true">${d.heroNote}</p>
+        <div class="wrap">
           <div class="hero-copy">
-            <h1>${escapeHtml(d.heroTitle)}</h1>
+            <h1>${escapeHtml(d.heroTitle).replace('|', '<br>')}</h1>
             <p class="hero-lead">${escapeHtml(d.heroLead)}</p>
-            <p class="hero-where"><span></span>${escapeHtml(d.heroWhere)}</p>
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="${pageUrl(lang, 'games')}">${escapeHtml(d.heroPlay)} <b>→</b></a>
-              <a class="btn btn-ghost" href="${pageUrl(lang, 'blog')}">${escapeHtml(d.heroBlog)}</a>
-            </div>
+            <p class="hero-where"><span>${escapeHtml(d.heroWhere)}${WHERE_MARK}</span></p>
           </div>
         </div>
       </section>

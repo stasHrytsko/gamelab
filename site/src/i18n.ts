@@ -4,12 +4,13 @@ export const LANGS: readonly Lang[] = ['en', 'uk'];
 
 const dict = {
   en: {
-    tagline: 'ideas · prototypes · notes',
+    tagline: 'ideas prototypes notes',
     nav: { about: 'About', games: 'Games', blog: 'Blog', contacts: 'Contacts' },
     menu: 'Menu',
     close: 'Close',
-    heroTitle: 'Ideas, prototypes & small experiments.',
-    heroLead: 'I make small game prototypes, mix mechanics and write down what I learn.',
+    heroTitle: 'Ideas, prototypes|& small experiments.',
+    heroLead: 'I make small game prototypes, mix mechanics, sketch things and write down what I learn.',
+    heroNote: 'Small<br>Games<br>Big Joy',
     heroWhere: 'Stas / Valencia',
     heroPlay: 'Play the games',
     heroBlog: 'Read the blog',
@@ -53,12 +54,13 @@ const dict = {
     switchLabel: 'Switch language to Ukrainian',
   },
   uk: {
-    tagline: 'ідеї · прототипи · нотатки',
+    tagline: 'ідеї прототипи нотатки',
     nav: { about: 'Про мене', games: 'Ігри', blog: 'Блог', contacts: 'Контакти' },
     menu: 'Меню',
     close: 'Закрити',
-    heroTitle: 'Ідеї, прототипи та малі експерименти.',
-    heroLead: 'Я роблю невеликі ігрові прототипи, змішую механіки й записую, чого навчаюся.',
+    heroTitle: 'Ідеї, прототипи|та малі експерименти.',
+    heroLead: 'Я роблю невеликі ігрові прототипи, змішую механіки, малюю ескізи й записую, чого навчаюся.',
+    heroNote: 'Малі<br>ігри<br>велика радість',
     heroWhere: 'Стас / Валенсія',
     heroPlay: 'Грати',
     heroBlog: 'Читати блог',

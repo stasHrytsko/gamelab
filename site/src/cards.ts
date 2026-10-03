@@ -31,7 +31,7 @@ export function gameBig(game: Game, lang: Lang, label?: string): string {
         <div class="card-meta"><span>${escapeHtml(d.genre[game.genre] ?? game.genre)}</span><time datetime="${game.added}">${formatDate(game.added, lang)}</time></div>
         <h3>${escapeHtml(game.title)}</h3>
         <p>${escapeHtml(pitch(game, lang))}</p>
-        <span class="card-go">${d.play} <b>→</b></span>
+        <span class="card-go"><span class="sr-only">${d.play}</span><b aria-hidden="true">→</b></span>
       </div>
     </a>`;
 }
@@ -98,7 +98,7 @@ export function postBig(post: Post, lang: Lang): string {
         ${postMeta(post, lang)}
         <h3>${escapeHtml(post.title)}</h3>
         <p>${escapeHtml(post.excerpt)}</p>
-        <span class="card-go">${d.readMore} <b>→</b></span>
+        <span class="card-go"><span class="sr-only">${d.readMore}</span><b aria-hidden="true">→</b></span>
       </div>
       <div class="post-shapes" aria-hidden="true"><i></i><i></i><i></i></div>
     </a>`;

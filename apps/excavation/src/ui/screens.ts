@@ -17,9 +17,9 @@ export function homeScreen(go: Go): HTMLElement {
   el.innerHTML = `
     <div class="home-bg" aria-hidden="true"></div>
     <img class="home-art" src="${art}" alt="" width="941" height="1258">
-    <a class="site-link" href="/games/" data-testid="to-site" aria-label="Все игры">${icon.back}<span>Все игры</span></a>
+    <a class="site-link" href="/games/" data-testid="to-site" aria-label="All games">${icon.back}<span>All games</span></a>
     <h1 class="sr-only">The Dig</h1>
-    <button class="play-btn" data-testid="play">Играть</button>`;
+    <button class="play-btn" data-testid="play">Play</button>`;
   el.querySelector('[data-testid="play"]')?.addEventListener('click', () => go('#/levels'));
   return el;
 }
@@ -44,17 +44,17 @@ export function levelsScreen(go: Go): HTMLElement {
       : state === 'current'
         ? `<div class="play-mini">${icon.play}</div>`
         : '';
-    const sub = `${String(level.rows)}×${String(level.cols)} · ${String(level.traps)} ${plural(level.traps, 'ловушка', 'ловушки', 'ловушек')}`;
+    const sub = `${String(level.rows)}×${String(level.cols)} · ${String(level.traps)} ${plural(level.traps, 'trap', 'trap', 'traps')}`;
     return `<button class="level-card ${state === 'open' ? '' : state}" data-level="${String(n)}" data-testid="level-${String(n)}" style="animation-delay:${String(n * 50)}ms">
         ${tile}
-        <div><h3>Уровень ${String(n)}</h3><p>${glyph.spikes}${sub}</p></div>
+        <div><h3>Level ${String(n)}</h3><p>${glyph.spikes}${sub}</p></div>
         <div class="state">${badge}</div>
       </button>`;
   });
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-home" aria-label="На главный">${icon.back}</button>
-      <h2>Уровни</h2><div class="spacer"></div>
+      <button class="icon-btn" data-testid="to-home" aria-label="Home">${icon.back}</button>
+      <h2>Levels</h2><div class="spacer"></div>
     </div>
     <div class="levels">${cards.join('')}</div>`;
   el.querySelector('[data-testid="to-home"]')?.addEventListener('click', () => go('#/'));
@@ -74,4 +74,4 @@ export function levelsScreen(go: Go): HTMLElement {
 }
 
 export const plural = (n: number, one: string, few: string, many: string): string =>
-  n % 10 === 1 && n % 100 !== 11 ? one : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? few : many;
+  n === 1 ? one : many;

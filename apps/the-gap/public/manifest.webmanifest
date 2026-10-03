@@ -1,7 +1,7 @@
 {
   "name": "The Gap",
   "short_name": "The Gap",
-  "description": "Тапни блок — он поедет по стрелке и повернёт всех, кого заденет.",
+  "description": "Slide squares to the exits and collect colours into flasks.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

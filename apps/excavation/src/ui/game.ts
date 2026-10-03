@@ -36,7 +36,7 @@ const CELL_MIN = 36;
 const CELL_MAX = 60;
 
 const HOW_TO_PLAY = `
-  <h2>Как играть?</h2>
+  <h2>How to play</h2>
   <div class="demo" aria-hidden="true">
     <div class="demo-cell ring"><div class="stone">${glyph.spikes}</div></div>
     <div class="demo-cell open"><b style="color:var(--ui-clue-2)">2</b>${pips(2)}</div>
@@ -44,10 +44,10 @@ const HOW_TO_PLAY = `
     <span class="demo-plus">+2</span>
   </div>
   <ol class="rules">
-    <li><b>1</b><span>Тапни любую закрытую плиту. Цифра — сколько ловушек среди 8 соседних плит.</span></li>
-    <li><b>2</b><span>Монетки под цифрой — золото с плиты, их столько же. Пустая плита — 0.</span></li>
-    <li><b>3</b><span>Найди выход — он спрятан у края. С выходом и первой звездой можно «Забрать» и пройти уровень. За второй и третьей звездой — копай дальше.</span></li>
-    <li><b>4</b><span>Ловушка сжигает всё золото попытки. Следующая попытка — новая комната.</span></li>
+    <li><b>1</b><span>Tap any closed tile. The number is how many traps are among its 8 neighbouring tiles.</span></li>
+    <li><b>2</b><span>The coins under the number are the gold from that tile, the same amount. An empty tile is 0.</span></li>
+    <li><b>3</b><span>Find the exit, hidden at the edge. With the exit and the first star you can "Take" the gold and clear the level. For the second and third stars, keep digging.</span></li>
+    <li><b>4</b><span>A trap burns all the gold of the attempt. The next attempt is a new room.</span></li>
   </ol>`;
 
 export function gameScreen(levelNumber: number, go: Go): Screen {
@@ -69,21 +69,21 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   const max = level.stars[2];
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-levels" aria-label="К уровням">${icon.levels}</button>
-      <h2>Уровень ${String(levelNumber)}</h2>
+      <button class="icon-btn" data-testid="to-levels" aria-label="Levels">${icon.levels}</button>
+      <h2>Level ${String(levelNumber)}</h2>
       <div class="right">
-        <button class="icon-btn q" data-testid="help" aria-label="Как играть">?</button>
-        <button class="icon-btn" data-testid="restart" aria-label="Заново">${icon.replay}</button>
+        <button class="icon-btn q" data-testid="help" aria-label="How to play">?</button>
+        <button class="icon-btn" data-testid="restart" aria-label="Restart">${icon.replay}</button>
       </div>
     </div>
     <section class="hud">
       <div class="card gold-card" data-testid="gold">
-        <div class="gold-row"><span class="coin">${glyph.coin}</span><b>0</b><small>золото попытки</small></div>
+        <div class="gold-row"><span class="coin">${glyph.coin}</span><b>0</b><small>gold this attempt</small></div>
         <div class="bar"><div class="fill"></div>${level.stars
           .map((s, k) => `<div class="mark" data-testid="star-${String(k + 1)}" style="left:${String((s / max) * 100)}%">${glyph.star}<b>${String(s)}</b></div>`)
           .join('')}</div>
       </div>
-      <div class="card traps" data-testid="traps"><small>${plural(level.traps, 'Ловушка', 'Ловушки', 'Ловушек')}</small><div>${glyph.spikes}<b>${String(level.traps)}</b></div></div>
+      <div class="card traps" data-testid="traps"><small>${plural(level.traps, 'Trap', 'Trap', 'Traps')}</small><div>${glyph.spikes}<b>${String(level.traps)}</b></div></div>
     </section>
     <div class="stage"><div class="board" data-testid="board"></div><div class="clue-tip" data-testid="clue-tip" hidden></div></div>
     <section class="actions">
@@ -205,16 +205,16 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     takeBtn.classList.toggle('on', block === null && state.status === 'playing');
     takeBtn.dataset['block'] = block ?? '';
     takeLabel.textContent =
-      block === 'no_exit' ? 'Найди выход' : block === 'no_gold' ? `Выход с ${String(level.stars[0])}` : `Забрать ${String(state.gold)}`;
+      block === 'no_exit' ? 'Find the exit' : block === 'no_gold' ? `Exit at ${String(level.stars[0])}` : `Take ${String(state.gold)}`;
     // Строка подсказки (§7): по порядку проверки; от безопасных плит не зависит.
     hintEl.textContent =
       block === 'no_exit'
-        ? 'Найди выход — он где-то у края'
+        ? 'Find the exit, it is somewhere near the edge'
         : block === 'no_gold'
-          ? `Набери ${String(level.stars[0])} золота, чтобы выйти`
+          ? `Collect ${String(level.stars[0])} gold to exit`
           : stars >= 3
-            ? 'Все звёзды! Забирай'
-            : 'Выйти сейчас — или копать ради следующей звезды';
+            ? 'All stars! Take it'
+            : 'Leave now, or dig for the next star';
   }
 
   // ---------- анимации ----------
@@ -283,7 +283,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   function showClueTip(i: number, n: number): void {
     const closed = [...neighboursOf(i)].filter((j) => !state.open[j]);
     closed.forEach((j) => cellEl(j).classList.add('tip-ring'));
-    tipEl.innerHTML = `<b>${String(n)} ${plural(n, 'ловушка', 'ловушки', 'ловушек')}</b> среди этих плит · <span>+${String(n)} ${plural(n, 'золото', 'золота', 'золота')}</span>`;
+    tipEl.innerHTML = `<b>${String(n)} ${plural(n, 'trap', 'trap', 'traps')}</b> among these tiles · <span>+${String(n)} gold</span>`;
     tipEl.hidden = false;
     markClueTipSeen();
     log({ type: 'clue_tip', level: levelNumber });
@@ -349,7 +349,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
         box.dataset['heat'] = heat.toFixed(2);
       }
       cellEl(i).classList.add('peek-source');
-      tipEl.innerHTML = `<b>${String(n)} ${plural(n, 'ловушка', 'ловушки', 'ловушек')}</b> · чем ярче плита, тем вероятнее`;
+      tipEl.innerHTML = `<b>${String(n)} ${plural(n, 'trap', 'trap', 'traps')}</b> · the brighter the tile, the likelier`;
       tipEl.hidden = false;
       vibrate(10);
       log({ type: 'peek', level: levelNumber, row: Math.floor(i / level.cols), col: i % level.cols });
@@ -479,24 +479,24 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     `<div class="stars-big" data-stars="${String(n)}">${[1, 2, 3].map((k) => `<span class="${k <= n ? 'got' : ''}" style="animation-delay:${String(120 + k * 150)}ms">${glyph.star}</span>`).join('')}</div>`;
 
   function showWin(stars: number, gold: number, left: number): void {
-    const body = `${starsRow(stars)}<div class="loot"><span>Вынесено <b>${String(gold)}</b></span><span>Осталось в комнате <b>${String(left)}</b></span></div>`;
+    const body = `${starsRow(stars)}<div class="loot"><span>Carried out <b>${String(gold)}</b></span><span>Left in the room <b>${String(left)}</b></span></div>`;
     if (levelNumber === LEVEL_COUNT) {
       popup(
-        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2>${body}`,
+        `<div class="badge-big badge-cup">${icon.cup}</div><h2>All levels complete!</h2>${body}`,
         [
-          { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-          { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+          { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+          { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
         ],
         'popup-final',
       );
       return;
     }
     popup(
-      `<h2>Уровень пройден!</h2>${body}`,
+      `<h2>Level complete!</h2>${body}`,
       [
-        { id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'next', html: `Next level ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-win',
     );
@@ -504,17 +504,17 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   function showLose(lost: number): void {
     popup(
-      `<div class="badge-big badge-lose">${icon.cross}</div><h2>Ловушка!</h2><p class="sub">Сгорело ${String(lost)} ${plural(lost, 'золото', 'золота', 'золота')}</p>`,
+      `<div class="badge-big badge-lose">${icon.cross}</div><h2>Trap!</h2><p class="sub">${String(lost)} gold burned</p>`,
       [
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-primary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',
     );
   }
 
   function showHowToPlay(): void {
-    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
+    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Got it!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
   }
 
   boardEl.addEventListener('pointerdown', (event) => {

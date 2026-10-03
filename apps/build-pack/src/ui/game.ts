@@ -14,17 +14,17 @@ export interface Screen {
 }
 
 const HOW_TO_PLAY = `
-  <h2>Как играть?</h2>
+  <h2>How to play</h2>
   <div class="demo" aria-hidden="true">
     <div class="chip demo-chip c5">5</div>
     ${icon.arrow.replace('class=""', 'class="arrow"')}
     <div class="demo-shape">${sq(5)}${sq(5)}${sq(5)}<div></div>${sq(5)}${sq(5)}</div>
   </div>
   <ol class="rules">
-    <li><b>1</b><span>Выбери число — столько клеток будет в фигуре.</span></li>
-    <li><b>2</b><span>Собери фигуру: тапай по сетке 4×4 внизу. Клетки должны касаться сторонами.</span></li>
-    <li><b>3</b><span>Потяни готовую фигуру вверх, на пустые клетки поля.</span></li>
-    <li><b>4</b><span>Используй все числа и заполни поле целиком. Если оставшиеся числа больше никуда не помещаются — попытка проиграна.</span></li>
+    <li><b>1</b><span>Pick a number: that many cells go into your piece.</span></li>
+    <li><b>2</b><span>Build the piece: tap the 4×4 grid below. Cells must touch along their sides.</span></li>
+    <li><b>3</b><span>Drag the finished piece up onto empty cells of the board.</span></li>
+    <li><b>4</b><span>Use every number and fill the whole board. If a remaining number no longer fits anywhere, the attempt is lost.</span></li>
   </ol>`;
 
 const key = (r: number, c: number): string => `${String(r)},${String(c)}`;
@@ -48,11 +48,11 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   el.dataset['level'] = String(levelNumber);
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-levels" aria-label="К уровням">${icon.levels}</button>
-      <h2>Уровень ${String(levelNumber)}</h2>
+      <button class="icon-btn" data-testid="to-levels" aria-label="Levels">${icon.levels}</button>
+      <h2>Level ${String(levelNumber)}</h2>
       <div class="right">
-        <button class="icon-btn q" data-testid="help" aria-label="Как играть">?</button>
-        <button class="icon-btn" data-testid="restart" aria-label="Заново">${icon.replay}</button>
+        <button class="icon-btn q" data-testid="help" aria-label="How to play">?</button>
+        <button class="icon-btn" data-testid="restart" aria-label="Restart">${icon.replay}</button>
       </div>
     </div>
     <div class="stage"><div class="board" data-testid="board"></div></div>
@@ -62,7 +62,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
         <div class="builder" data-testid="builder"></div>
         <div class="tray-side">
           <div class="chips" data-testid="numbers"></div>
-          <button class="clear-btn" data-testid="clear" disabled>${icon.clear}Очистить</button>
+          <button class="clear-btn" data-testid="clear" disabled>${icon.clear}Clear</button>
         </div>
       </div>
     </div>`;
@@ -118,7 +118,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     chipsEl.innerHTML = state.numbers
       .map((n, i) => {
         const cls = ['chip', `c${String(n)}`, state.used[i] === true ? 'used' : '', selected === i ? 'sel' : ''].join(' ');
-        return `<button class="${cls}" data-i="${String(i)}" data-testid="num-${String(i)}" ${state.used[i] === true ? 'disabled' : ''} aria-label="Число ${String(n)}">${String(n)}</button>`;
+        return `<button class="${cls}" data-i="${String(i)}" data-testid="num-${String(i)}" ${state.used[i] === true ? 'disabled' : ''} aria-label="Number ${String(n)}">${String(n)}</button>`;
       })
       .join('');
     const n = need();
@@ -135,10 +135,10 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     // Счётчик клеток — прямо в подсказке (§7).
     const count = `<span class="count${built.length === n ? ' full' : ''}" data-testid="count">${String(built.length)}/${String(n)}</span>`;
     if (state.status !== 'playing') hintEl.innerHTML = '';
-    else if (selected === null) hintEl.innerHTML = 'Выбери число справа';
-    else if (isReady) hintEl.innerHTML = `<b>Тяни фигуру на поле</b>${count}`;
-    else if (built.length === n) hintEl.innerHTML = `Клетки должны касаться сторонами${count}`;
-    else hintEl.innerHTML = `Собери фигуру из <b>${String(n)}</b> клеток${count}`;
+    else if (selected === null) hintEl.innerHTML = 'Pick a number on the right';
+    else if (isReady) hintEl.innerHTML = `<b>Drag the piece onto the board</b>${count}`;
+    else if (built.length === n) hintEl.innerHTML = `Cells must touch along their sides${count}`;
+    else hintEl.innerHTML = `Build a piece from <b>${String(n)}</b> cells${count}`;
     el.dataset['status'] = state.status;
     el.dataset['used'] = String(state.used.filter(Boolean).length);
     el.toggleAttribute('data-busy', locked());
@@ -263,7 +263,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     d.ghost.remove();
     clearAim();
     if (cancelled || d.target === null) {
-      hintEl.innerHTML = 'Сюда не встаёт: нужны пустые клетки';
+      hintEl.innerHTML = 'It doesn’t fit here: it needs empty cells';
       vibrate(20);
       return;
     }
@@ -355,21 +355,21 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   function showWin(): void {
     if (levelNumber === LEVEL_COUNT) {
       popup(
-        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2><p class="sub">Поле заполнено целиком</p>`,
+        `<div class="badge-big badge-cup">${icon.cup}</div><h2>All levels complete!</h2><p class="sub">The board is completely filled</p>`,
         [
-          { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-          { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+          { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+          { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
         ],
         'popup-final',
       );
       return;
     }
     popup(
-      `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень пройден!</h2><p class="sub">Поле заполнено целиком</p>`,
+      `<div class="badge-big badge-win">${icon.check}</div><h2>Level complete!</h2><p class="sub">The board is completely filled</p>`,
       [
-        { id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'next', html: `Next level ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-win',
     );
@@ -377,17 +377,17 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   function showLose(): void {
     popup(
-      `<div class="badge-big badge-lose">${icon.cross}</div><h2>Ходов нет</h2><p class="sub">Оставшиеся числа больше никуда не помещаются</p>`,
+      `<div class="badge-big badge-lose">${icon.cross}</div><h2>No moves left</h2><p class="sub">The remaining numbers no longer fit anywhere</p>`,
       [
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-primary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',
     );
   }
 
   function showHowToPlay(): void {
-    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
+    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Got it!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
   }
 
   q('[data-testid="to-levels"]').addEventListener('click', toLevels);

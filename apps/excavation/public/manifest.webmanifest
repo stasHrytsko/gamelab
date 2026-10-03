@@ -1,7 +1,7 @@
 {
   "name": "The Dig",
   "short_name": "The Dig",
-  "description": "Число на плите — и ловушки рядом, и золото. Найди выход и реши, когда уйти.",
+  "description": "A number is both the traps nearby and the gold. Find the exit and decide when to leave.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

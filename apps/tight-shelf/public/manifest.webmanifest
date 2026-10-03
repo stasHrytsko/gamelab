@@ -1,7 +1,7 @@
 {
   "name": "Tight Shelf",
   "short_name": "Tight Shelf",
-  "description": "Цвет или форма — три в ряд исчезают.",
+  "description": "Colour or shape: three in a row disappear.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

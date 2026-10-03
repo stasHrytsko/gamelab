@@ -37,10 +37,10 @@ const dur = (ms: number): number => (reducedMotion() ? 1 : ms);
 const COSTS: Record<Exclude<Purchase, 'swap'>, number> = { rotate: CFG.ROTATE_COST, mirror: CFG.MIRROR_COST };
 const cheapestSwap = Math.min(...TYPES.map(swapPrice));
 
-const coinAcc = (n: number): string => (n % 10 === 1 && n % 100 !== 11 ? 'монету' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'монеты' : 'монет');
-const burnText = (n: number): string => (n === 1 ? 'Фигура сгорела: некуда встать, а монет нет' : `Сгорело фигур: ${String(n)}. Некуда встать, а монет нет`);
+const coinAcc = (n: number): string => (n === 1 ? 'coin' : 'coins');
+const burnText = (n: number): string => (n === 1 ? 'A piece burned: nowhere to place it and no coins' : `${String(n)} pieces burned: nowhere to place them and no coins`);
 
-const coinWord = (n: number): string => (n % 10 === 1 && n % 100 !== 11 ? 'монета' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'монеты' : 'монет');
+const coinWord = (n: number): string => (n === 1 ? 'coin' : 'coins');
 
 export function gameScreen(go: Go, params: GameParams): Screen {
   const def = levelDef(params.level);
@@ -57,26 +57,26 @@ export function gameScreen(go: Go, params: GameParams): Screen {
   el.dataset['testid'] = 'game';
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-home" aria-label="В меню">${icon.back}</button>
-      <h2 data-testid="title">Уровень 1</h2>
+      <button class="icon-btn" data-testid="to-home" aria-label="Menu">${icon.back}</button>
+      <h2 data-testid="title">Level 1</h2>
       <div class="right">
-        <button class="icon-btn q" data-testid="help" aria-label="Как играть">${icon.help}</button>
-        <button class="icon-btn" data-testid="restart" aria-label="Заново">${icon.replay}</button>
+        <button class="icon-btn q" data-testid="help" aria-label="How to play">${icon.help}</button>
+        <button class="icon-btn" data-testid="restart" aria-label="Restart">${icon.replay}</button>
       </div>
     </div>
     <div class="stats">
-      <div class="stat" data-testid="stat-pieces" title="Фигур показано из ${String(CFG.PIECES)}"><span class="ic" style="--c:var(--ui-blue)">${icon.pieces}</span><span class="t"><b></b><small></small></span></div>
-      <div class="stat" data-testid="stat-lines" title="Линий собрано"><span class="ic" style="--c:var(--ui-green)">${icon.lines}</span><span class="t"><b></b><small></small></span></div>
-      <div class="stat" data-testid="stat-coins" title="Монет в кошельке"><span class="ic coin-ic">${icon.coin}</span><span class="t"><b></b><small></small></span></div>
+      <div class="stat" data-testid="stat-pieces" title="Pieces shown out of ${String(CFG.PIECES)}"><span class="ic" style="--c:var(--ui-blue)">${icon.pieces}</span><span class="t"><b></b><small></small></span></div>
+      <div class="stat" data-testid="stat-lines" title="Lines cleared"><span class="ic" style="--c:var(--ui-green)">${icon.lines}</span><span class="t"><b></b><small></small></span></div>
+      <div class="stat" data-testid="stat-coins" title="Coins in the wallet"><span class="ic coin-ic">${icon.coin}</span><span class="t"><b></b><small></small></span></div>
     </div>
     <div class="stage"><div class="board" data-testid="board"></div></div>
     <div class="tray" data-testid="tray">
       ${[0, 1, 2].map((i) => `<div class="slot" data-slot="${String(i)}" data-testid="slot-${String(i)}"><div class="slot-piece"></div></div>`).join('')}
     </div>
     <div class="shop">
-      ${shopButton('rotate', icon.rotate, 'Поворот 90°')}
-      ${shopButton('mirror', icon.mirror, 'Зеркало')}
-      ${shopButton('swap', icon.swap, 'Замена')}
+      ${shopButton('rotate', icon.rotate, 'Rotate 90°')}
+      ${shopButton('mirror', icon.mirror, 'Mirror')}
+      ${shopButton('swap', icon.swap, 'Swap')}
     </div>
     <div class="hint" data-testid="hint"></div>`;
 
@@ -115,9 +115,9 @@ export function gameScreen(go: Go, params: GameParams): Screen {
 
   function defaultHint(): string {
     if (state.status !== 'playing') return '';
-    if (stuck(state)) return 'Ни одной фигуре некуда встать: <b>поверни, отзеркаль или замени</b>';
-    if (state.lines >= state.goal) return '<b>Цель выполнена.</b> Доигрывай уровень и копи монеты';
-    return 'Выбери любую фигуру и перетащи на поле';
+    if (stuck(state)) return 'No piece has a place to go: <b>rotate, mirror or swap</b>';
+    if (state.lines >= state.goal) return '<b>Goal reached.</b> Finish the level and save up coins';
+    return 'Pick any piece and drag it onto the board';
   }
 
   function render(): void {
@@ -134,17 +134,17 @@ export function gameScreen(go: Go, params: GameParams): Screen {
     el.dataset['sel'] = String(sel);
     el.dataset['hand'] = s.hand.map((p) => p.type).join(',');
     el.dataset['stuck'] = stuck(s) ? '1' : '0';
-    $('[data-testid="title"]').textContent = `Уровень ${String(s.level)}`;
+    $('[data-testid="title"]').textContent = `Level ${String(s.level)}`;
     const left = Math.max(0, CFG.PIECES - s.dealIdx);
     el.dataset['shown'] = String(s.dealIdx);
     $('[data-testid="stat-pieces"] b').innerHTML = `${String(s.dealIdx)}<i>/${String(CFG.PIECES)}</i>`;
-    $('[data-testid="stat-pieces"] small').textContent = left === 0 ? 'все показаны' : `осталось ${String(left)}`;
+    $('[data-testid="stat-pieces"] small').textContent = left === 0 ? 'all shown' : `${String(left)} left`;
     const linesLeft = Math.max(0, s.goal - s.lines);
     $('[data-testid="stat-lines"] b').innerHTML = `${String(s.lines)}<i>/${String(s.goal)}</i>`;
-    $('[data-testid="stat-lines"] small').textContent = linesLeft === 0 ? 'цель набрана' : `ещё ${String(linesLeft)}`;
+    $('[data-testid="stat-lines"] small').textContent = linesLeft === 0 ? 'goal reached' : `${String(linesLeft)} to go`;
     $('[data-testid="stat-lines"]').classList.toggle('done', s.lines >= s.goal);
     $('[data-testid="stat-coins"] b').innerHTML = `${String(s.coins)}<i>/${String(CFG.CAP)}</i>`;
-    $('[data-testid="stat-coins"] small').textContent = s.coins >= CFG.CAP ? 'кошелёк полон' : 'монеты';
+    $('[data-testid="stat-coins"] small').textContent = s.coins >= CFG.CAP ? 'wallet full' : 'coins';
     $('[data-testid="stat-coins"]').classList.toggle('full', s.coins >= CFG.CAP);
 
     s.board.forEach((v, i) => {
@@ -194,10 +194,10 @@ export function gameScreen(go: Go, params: GameParams): Screen {
     for (const i of pv.placed) cellEls[i]?.classList.add('ghost');
     for (const r of pv.rows) for (let c = 0; c < N; c += 1) cellEls[r * N + c]?.classList.add('hot');
     for (const c of pv.cols) for (let r = 0; r < N; r += 1) cellEls[r * N + c]?.classList.add('hot');
-    setHint(pv.lines > 0 ? `Закроет <b>${String(pv.lines)} ${lineWord(pv.lines)}</b> и вернёт <b>${String(pv.income)} ${coinAcc(pv.income)}</b>` : defaultHint());
+    setHint(pv.lines > 0 ? `Clears <b>${String(pv.lines)} ${lineWord(pv.lines)}</b> and pays <b>${String(pv.income)} ${coinAcc(pv.income)}</b>` : defaultHint());
   }
 
-  const lineWord = (n: number): string => (n === 1 ? 'линию' : n < 5 ? 'линии' : 'линий');
+  const lineWord = (n: number): string => (n === 1 ? 'line' : 'lines');
 
   // ---------- перетаскивание фигуры ----------
   let drag: HTMLElement | null = null;
@@ -350,7 +350,7 @@ export function gameScreen(go: Go, params: GameParams): Screen {
           { duration: dur(300), delay: dur(d * 28), easing: 'ease-in', fill: 'forwards' },
         );
       }
-      const capNote = ev.gained < ev.income ? ` <small>(в кошельке лимит ${String(CFG.CAP)})</small>` : '';
+      const capNote = ev.gained < ev.income ? ` <small>(wallet limit ${String(CFG.CAP)})</small>` : '';
       floatText(`${icon.coin}<b>+${String(ev.income)}</b> <small>${String(ev.lines)} ${lineWord(ev.lines)}</small>${capNote}`);
       vibrate(ev.lines > 1 ? [18, 30, 18] : 14);
       await wait(360);
@@ -364,7 +364,7 @@ export function gameScreen(go: Go, params: GameParams): Screen {
     afterChange();
   }
 
-  const labelFor = (k: Purchase): string => ({ rotate: 'Поворот', mirror: 'Зеркало', swap: 'Замена' })[k];
+  const labelFor = (k: Purchase): string => ({ rotate: 'Rotate', mirror: 'Mirror', swap: 'Swap' })[k];
 
   async function buy(kind: Purchase, type?: PieceType): Promise<void> {
     if (busy || sheetOpen || popupOpen || state.status !== 'playing') return;
@@ -379,7 +379,7 @@ export function gameScreen(go: Go, params: GameParams): Screen {
       log({ type: 'buy_refused', level: state.level, purchase: kind, reason });
       shake(button);
       vibrate(30);
-      toast(reason === 'no_coins' ? `Не хватает монет: ${labelFor(kind).toLowerCase()} стоит ${kind === 'swap' ? 'от ' : ''}${String(cost)}` : 'У этой фигуры ничего не изменится');
+      toast(reason === 'no_coins' ? `Not enough coins: ${labelFor(kind).toLowerCase()} costs ${kind === 'swap' ? 'from ' : ''}${String(cost)}` : 'This piece would not change');
       return;
     }
     const ev = out.event as Extract<GameEvent, { kind: 'buy' }>;
@@ -420,14 +420,14 @@ export function gameScreen(go: Go, params: GameParams): Screen {
     scrim.className = 'scrim sheet-scrim';
     scrim.dataset['testid'] = 'swap-sheet';
     scrim.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">
-        <div class="sheet-head"><h3>Заменить фигуру</h3><button class="icon-btn small" data-testid="swap-close" aria-label="Закрыть">${icon.close}</button></div>
-        <p class="sheet-sub">Выбери фигуру. Что не по карману — приглушено. В кошельке <b>${String(state.coins)}</b>.</p>
+        <div class="sheet-head"><h3>Swap a piece</h3><button class="icon-btn small" data-testid="swap-close" aria-label="Close">${icon.close}</button></div>
+        <p class="sheet-sub">Pick a piece. What you can't afford is dimmed. Wallet: <b>${String(state.coins)}</b>.</p>
         <div class="opts">${types.map((t) => {
           const price = swapPrice(t);
           const off = price > state.coins || (cur !== undefined && cur.type === t && cur.cells.length > 0 && countSame(cur, t));
           return `<button class="opt${off ? ' off' : ''}" data-type="${t}" data-testid="swap-option-${t}" aria-disabled="${off ? 'true' : 'false'}">${pieceHtml(baseCells(t), colorOf(t))}<span class="price">${icon.coin}${String(price)}</span></button>`;
         }).join('')}</div>
-        <button class="btn btn-primary" data-testid="swap-confirm" disabled>Выбери фигуру</button>
+        <button class="btn btn-primary" data-testid="swap-confirm" disabled>Pick a piece</button>
       </div>`;
     el.append(scrim);
     let chosen: PieceType | null = null;
@@ -447,7 +447,7 @@ export function gameScreen(go: Go, params: GameParams): Screen {
         chosen = t;
         scrim.querySelectorAll('.opt').forEach((o) => o.classList.toggle('sel', o === opt));
         confirm.disabled = false;
-        confirm.innerHTML = `Взять за ${String(swapPrice(t))} ${icon.coin}`;
+        confirm.innerHTML = `Take for ${String(swapPrice(t))} ${icon.coin}`;
         return;
       }
       if (target.closest('[data-testid="swap-confirm"]') !== null && chosen !== null) {
@@ -480,40 +480,40 @@ export function gameScreen(go: Go, params: GameParams): Screen {
   function showEnd(): void {
     popupOpen = true;
     const done = (fn: () => void) => (): void => { popupOpen = false; fn(); };
-    const menu: PopupAction = { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: done(() => go('#/levels')) };
-    const again: PopupAction = { id: 'again', html: `${icon.replay} Переиграть`, className: 'btn-secondary', run: done(restart) };
+    const menu: PopupAction = { id: 'levels', html: 'Levels', className: 'btn-ghost', run: done(() => go('#/levels')) };
+    const again: PopupAction = { id: 'again', html: `${icon.replay} Retry`, className: 'btn-secondary', run: done(restart) };
     if (state.status === 'won') {
       markPassed(state.level);
       log({ type: 'level_win', level: state.level, lines: state.lines, goal: state.goal, coins: state.coins });
       if (state.level >= LEVEL_COUNT) {
-        openPopup(el, `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2><p class="sub">Пять из пяти. Линий на последнем: ${String(state.lines)} из ${String(state.goal)}.</p>`, [{ ...again, className: 'btn-primary' }, menu], 'popup-final');
+        openPopup(el, `<div class="badge-big badge-cup">${icon.cup}</div><h2>All levels complete!</h2><p class="sub">Five out of five. Lines on the last one: ${String(state.lines)} of ${String(state.goal)}.</p>`, [{ ...again, className: 'btn-primary' }, menu], 'popup-final');
       } else {
         const nextId = state.level + 1;
-        openPopup(el, `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень ${String(state.level)} пройден</h2><p class="sub">Линий: ${String(state.lines)} из ${String(state.goal)}. В кошельке осталось ${String(state.coins)} ${coinWord(state.coins)}.</p>`, [
-          { id: 'next', html: `Следующий уровень ${icon.play}`, className: 'btn-success', run: done(() => go(`#/level/${String(nextId)}`)) },
+        openPopup(el, `<div class="badge-big badge-win">${icon.check}</div><h2>Level ${String(state.level)} complete</h2><p class="sub">Lines: ${String(state.lines)} of ${String(state.goal)}. ${String(state.coins)} ${coinWord(state.coins)} left in the wallet.</p>`, [
+          { id: 'next', html: `Next level ${icon.play}`, className: 'btn-success', run: done(() => go(`#/level/${String(nextId)}`)) },
           again,
           menu,
         ], 'popup-win');
       }
     } else {
       log({ type: 'level_fail', level: state.level, reason: 'goal_missed', lines: state.lines, goal: state.goal });
-      openPopup(el, `<div class="badge-big badge-lose">${icon.cross}</div><h2>Цель не набрана</h2><p class="sub">Линий: ${String(state.lines)} из ${String(state.goal)}.</p>`, [{ ...again, className: 'btn-primary' }, menu], 'popup-lose');
+      openPopup(el, `<div class="badge-big badge-lose">${icon.cross}</div><h2>Goal not reached</h2><p class="sub">Lines: ${String(state.lines)} of ${String(state.goal)}.</p>`, [{ ...again, className: 'btn-primary' }, menu], 'popup-lose');
     }
   }
 
-  // ---------- «Как играть» ----------
+  // ---------- «How to play» ----------
   function openHelp(): void {
     if (popupOpen || sheetOpen) return;
     popupOpen = true;
     markHowToPlaySeen();
     log({ type: 'help_open', level: state.level });
-    openPopup(el, `<h2>Как играть?</h2>
+    openPopup(el, `<h2>How to play</h2>
       <ol class="rules">
-        <li><b>1</b><span>Выбери любую из трёх фигур и перетащи на поле. Полная строка или столбец исчезает и платит монеты: <b>1, 4, 9</b> за 1, 2, 3 линии сразу.</span></li>
-        <li><b>2</b><span>Фигура неудобная? За монеты можно <b>повернуть</b>, <b>отзеркалить</b> или <b>заменить</b> выбранную. В кошельке до ${String(CFG.CAP)}.</span></li>
-        <li><b>3</b><span>На уровне ${String(CFG.PIECES)} фигур. Сверху видно, сколько уже показано и сколько линий ещё нужно.</span></li>
-        <li><b>4</b><span>Если ни одной из трёх некуда встать и никакая покупка не поможет, одна фигура сгорает.</span></li>
-      </ol>`, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => { popupOpen = false; } }], 'popup-help');
+        <li><b>1</b><span>Pick any of the three pieces and drag it onto the board. A full row or column disappears and pays coins: <b>1, 4, 9</b> for 1, 2, 3 lines at once.</span></li>
+        <li><b>2</b><span>Awkward piece? Spend coins to <b>rotate</b>, <b>mirror</b> or <b>swap</b> the selected one. The wallet holds up to ${String(CFG.CAP)}.</span></li>
+        <li><b>3</b><span>A level has ${String(CFG.PIECES)} pieces. The top shows how many were shown and how many lines are still needed.</span></li>
+        <li><b>4</b><span>If none of the three fits anywhere and no purchase helps, one piece burns.</span></li>
+      </ol>`, [{ id: 'ok', html: 'Got it!', className: 'btn-primary', run: () => { popupOpen = false; } }], 'popup-help');
   }
 
   $('[data-testid="to-home"]').addEventListener('click', () => go('#/'));
@@ -539,6 +539,6 @@ const countSame = (cur: { cells: readonly (readonly [number, number])[] }, t: Pi
   JSON.stringify(cur.cells) === JSON.stringify(baseCells(t));
 
 function shopButton(kind: Purchase, ic: string, label: string): string {
-  const cost = kind === 'swap' ? `от ${String(cheapestSwap)}` : String(COSTS[kind]);
+  const cost = kind === 'swap' ? `from ${String(cheapestSwap)}` : String(COSTS[kind]);
   return `<button class="buy" data-buy="${kind}" data-testid="buy-${kind}"><span class="bi">${ic}</span><span class="n">${label}</span><span class="price">${icon.coin}${cost}</span></button>`;
 }

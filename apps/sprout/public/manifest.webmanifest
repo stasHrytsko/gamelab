@@ -1,7 +1,7 @@
 {
   "name": "Sprout",
   "short_name": "Sprout",
-  "description": "Веди корень к ростку: каждый шаг стоит ход, вода даёт ходы.",
+  "description": "Grow the root to the sprout: every step costs a move, water gives moves back.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

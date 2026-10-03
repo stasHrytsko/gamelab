@@ -10,12 +10,20 @@ function chip(game: Game, lang: Lang): string {
   return `<span class="chip chip-${game.status}"><i></i>${escapeHtml(t(lang).status[game.status])}</span>`;
 }
 
+const ACCENTS = ['coral', 'mustard', 'teal', 'blue'] as const;
+
+/** Обложка без текста: иконка игры на бумажном фоне. Цвет акцента зависит от номера идеи. */
+function cover(game: Game): string {
+  const accent = ACCENTS[game.idea % ACCENTS.length] ?? 'coral';
+  return `<div class="cover cover-${accent}"><i class="shape s1"></i><i class="shape s2"></i><i class="shape s3"></i><img class="cover-icon" src="/${game.path}/icon-512.png" alt="" width="512" height="512" loading="lazy"></div>`;
+}
+
 export function gameBig(game: Game, lang: Lang, label?: string, variant: 'game-big' | 'game-tile' = 'game-big'): string {
   const d = t(lang);
   return `
     <a class="card ${variant} reveal" href="/${game.path}/">
-      <div class="cover">
-        <img src="/${game.path}/og.png" alt="" loading="lazy">
+      <div class="cover-wrap">
+        ${cover(game)}
         ${chip(game, lang)}
         ${label === undefined ? '' : `<span class="flag">${escapeHtml(label)}</span>`}
       </div>

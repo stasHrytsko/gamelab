@@ -37,17 +37,17 @@ const T = {
 } as const;
 
 const HOW_TO_PLAY = `
-  <h2>Как играть?</h2>
+  <h2>How to play</h2>
   <div class="demo" aria-hidden="true">
     <div class="demo-block" style="--c:${DIR_COLOR['>']}"><svg viewBox="0 0 24 24" style="transform:rotate(90deg)">${blockArrow}</svg></div>
     ${icon.arrow.replace('class=""', 'class="arrow-hint"')}
     <div class="demo-block" style="--c:${DIR_COLOR.v}"><svg viewBox="0 0 24 24" style="transform:rotate(180deg)">${blockArrow}</svg></div>
   </div>
   <ol class="rules">
-    <li><b>1</b><span>Тапни блок — он поедет туда, куда смотрит стрелка.</span></li>
-    <li><b>2</b><span>Блок едет до другого блока или уходит за край поля.</span></li>
-    <li><b>3</b><span>Каждый блок, которого он коснётся по пути, повернётся на 90° по часовой.</span></li>
-    <li><b>4</b><span>Выведи все блоки за край, пока не кончились ходы.</span></li>
+    <li><b>1</b><span>Tap a block and it slides where its arrow points.</span></li>
+    <li><b>2</b><span>It travels until it hits another block or leaves the board.</span></li>
+    <li><b>3</b><span>Every block it brushes past turns 90° clockwise.</span></li>
+    <li><b>4</b><span>Clear every block off the board before you run out of moves.</span></li>
   </ol>`;
 
 interface Sprite {
@@ -73,16 +73,16 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   el.dataset['level'] = String(levelNumber);
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-levels" aria-label="К уровням">${icon.levels}</button>
-      <h2>Уровень ${String(levelNumber)}</h2>
+      <button class="icon-btn" data-testid="to-levels" aria-label="Levels">${icon.levels}</button>
+      <h2>Level ${String(levelNumber)}</h2>
       <div class="right">
-        <button class="icon-btn q" data-testid="help" aria-label="Как играть">?</button>
-        <button class="icon-btn" data-testid="restart" aria-label="Заново">${icon.replay}</button>
+        <button class="icon-btn q" data-testid="help" aria-label="How to play">?</button>
+        <button class="icon-btn" data-testid="restart" aria-label="Restart">${icon.replay}</button>
       </div>
     </div>
-    <div class="moves-pill" data-testid="moves">Ходы <b>0</b><span>/ ${String(level.moveLimit)}</span></div>
+    <div class="moves-pill" data-testid="moves">Moves <b>0</b><span>/ ${String(level.moveLimit)}</span></div>
     <div class="stage"><div class="board" data-testid="board"></div></div>
-    ${level.tutorial ? '<div class="hint-card" data-testid="hint">Тапни блок — он поедет по стрелке.<br><b>Кого заденет по пути — повернёт на 90°.</b></div>' : ''}`;
+    ${level.tutorial ? '<div class="hint-card" data-testid="hint">Tap a block and it slides along its arrow.<br><b>Anything it brushes past turns 90°.</b></div>' : ''}`;
 
   const q = <T extends HTMLElement>(sel: string): T => {
     const found = el.querySelector<T>(sel);
@@ -139,7 +139,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   function renderMoves(): void {
     const left = level.moveLimit - state.moves;
-    movesEl.innerHTML = `Ходы <b>${String(state.moves)}</b><span>/ ${String(level.moveLimit)}</span>`;
+    movesEl.innerHTML = `Moves <b>${String(state.moves)}</b><span>/ ${String(level.moveLimit)}</span>`;
     movesEl.classList.toggle('last', state.status === 'playing' && left === 1);
     el.dataset['status'] = state.status;
     el.dataset['moves'] = String(state.moves);
@@ -352,41 +352,41 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   function showWin(): void {
     if (levelNumber === LEVEL_COUNT) {
       popup(
-        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2><p class="sub">Все блоки за краем поля</p>`,
+        `<div class="badge-big badge-cup">${icon.cup}</div><h2>All levels complete!</h2><p class="sub">Every block is off the board</p>`,
         [
-          { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-          { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+          { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+          { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
         ],
         'popup-final',
       );
       return;
     }
     popup(
-      `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень пройден!</h2><p class="sub">Все блоки за краем поля</p>`,
+      `<div class="badge-big badge-win">${icon.check}</div><h2>Level complete!</h2><p class="sub">Every block is off the board</p>`,
       [
-        { id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'next', html: `Next level ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-win',
     );
   }
 
   function showLose(reason: 'moves_exhausted' | 'no_moves'): void {
-    const title = reason === 'moves_exhausted' ? 'Ходы закончились' : 'Ходов нет';
-    const sub = reason === 'moves_exhausted' ? 'Лимит ходов исчерпан, блоки остались на поле' : 'Все оставшиеся блоки упёрлись друг в друга';
+    const title = reason === 'moves_exhausted' ? 'Out of moves' : 'No moves left';
+    const sub = reason === 'moves_exhausted' ? 'Move limit reached, blocks are still on the board' : 'Every remaining block is stuck against another';
     popup(
       `<div class="badge-big badge-lose">${icon.cross}</div><h2>${title}</h2><p class="sub">${sub}</p>`,
       [
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-primary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',
     );
   }
 
   function showHowToPlay(): void {
-    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
+    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Got it!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
   }
 
   q('[data-testid="to-levels"]').addEventListener('click', toLevels);

@@ -1,7 +1,7 @@
 {
   "name": "Build & Pack",
   "short_name": "Build & Pack",
-  "description": "Собери фигуру и уложи её на поле.",
+  "description": "Build a piece and fit it onto the board.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

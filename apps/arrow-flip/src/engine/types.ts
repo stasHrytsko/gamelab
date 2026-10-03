@@ -15,7 +15,7 @@ export interface Level {
   readonly name: string;
   readonly moveLimit: number;
   readonly blocks: readonly Block[];
-  /** Уровень не содержит ловушки: жадная стратегия решает, проиграть нельзя (§6). */
+  /** Level не содержит ловушки: жадная стратегия решает, проиграть нельзя (§6). */
   readonly tutorial: boolean;
 }
 

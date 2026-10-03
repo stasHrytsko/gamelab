@@ -1,7 +1,7 @@
 {
   "name": "Slide Out",
   "short_name": "Slide Out",
-  "description": "Сдвигай плитки и подводи их к целям своего цвета.",
+  "description": "Slide tiles to goals of their own colour.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

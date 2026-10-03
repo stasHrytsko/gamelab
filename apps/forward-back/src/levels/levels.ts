@@ -12,7 +12,7 @@ export const LEVELS: readonly Level[] = [
     name: 'FB-T1',
     tutorial: true,
     moveLimit: 4,
-    tip: 'Прижми палец к врагу — увидишь ход. Отпусти — герой шагнёт и <b>толкнёт</b> его.',
+    tip: 'Press and hold an enemy to preview the move. Release and the hero steps and <b>pushes</b> it.',
     hand: { row: 2, col: 3 },
     hero: { row: 2, col: 1 },
     enemies: [
@@ -26,7 +26,7 @@ export const LEVELS: readonly Level[] = [
     name: 'FB-T2',
     tutorial: true,
     moveLimit: 4,
-    tip: 'Враг сзади? Шагни <b>от него</b> — цепь <b>утянет</b> его за тобой.',
+    tip: 'Enemy behind you? Step <b>away</b> and the chain <b>pulls</b> it after you.',
     hand: { row: 3, col: 2 },
     hero: { row: 2, col: 2 },
     enemies: [
@@ -41,7 +41,7 @@ export const LEVELS: readonly Level[] = [
     name: 'FB-T3',
     tutorial: true,
     moveLimit: 4,
-    tip: 'Один шаг — два варианта: <b>толкнуть</b> того, кто впереди, или <b>утянуть</b> тех, кто сзади. Выбери, кого убрать.',
+    tip: 'One step, two options: <b>push</b> the line in front or <b>pull</b> the line behind. Choose who to remove.',
     hero: { row: 2, col: 2 },
     enemies: [
       { id: '0', row: 2, col: 0 },

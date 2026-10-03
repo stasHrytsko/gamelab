@@ -36,7 +36,7 @@ const pill = (mode: 'forward' | 'back', dir: Dir, count: number): string =>
     : `<span class="pill back"><svg viewBox="0 0 24 24">${hookGlyph}</svg>${String(count)}</span>`;
 
 const HOW_TO_PLAY = `
-  <h2>Как играть?</h2>
+  <h2>How to play</h2>
   <div class="demo" aria-hidden="true">
     <div class="piece enemy"><svg viewBox="0 0 24 24">${enemyGlyph}</svg></div>
     <div class="piece enemy"><svg viewBox="0 0 24 24">${enemyGlyph}</svg></div>
@@ -46,10 +46,10 @@ const HOW_TO_PLAY = `
   </div>
   <div class="demo-pills" aria-hidden="true">${pill('back', '>', 2)}${pill('forward', '>', 1)}</div>
   <ol class="rules">
-    <li><b>1</b><span>Герой ходит на соседнюю клетку. Каждый шаг — один ход.</span></li>
-    <li><b>2</b><span><em class="k-fwd">Толчок:</em> шагнул к врагу — сбил цепочку перед собой.</span></li>
-    <li><b>3</b><span><em class="k-back">Рывок:</em> шагнул от врага — цепь утянула цепочку сзади.</span></li>
-    <li><b>4</b><span>Тапни врага, которого хочешь убрать. Держи палец — увидишь ход заранее. Ошибся — отмени.</span></li>
+    <li><b>1</b><span>The hero steps to a neighbouring cell. Every step costs one move.</span></li>
+    <li><b>2</b><span><em class="k-fwd">Push:</em> step toward an enemy and knock out the line in front.</span></li>
+    <li><b>3</b><span><em class="k-back">Pull:</em> step away from an enemy and the chain yanks the line behind.</span></li>
+    <li><b>4</b><span>Tap the enemy you want to remove. Hold your finger to preview the move. Made a mistake? Undo.</span></li>
   </ol>`;
 
 interface Sprite {
@@ -79,20 +79,20 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   el.dataset['level'] = String(levelNumber);
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-levels" aria-label="К уровням">${icon.levels}</button>
-      <h2>Уровень ${String(levelNumber)}</h2>
+      <button class="icon-btn" data-testid="to-levels" aria-label="Levels">${icon.levels}</button>
+      <h2>Level ${String(levelNumber)}</h2>
       <div class="right">
-        <button class="icon-btn q" data-testid="help" aria-label="Как играть">?</button>
-        <button class="icon-btn" data-testid="restart" aria-label="Заново">${icon.replay}</button>
+        <button class="icon-btn q" data-testid="help" aria-label="How to play">?</button>
+        <button class="icon-btn" data-testid="restart" aria-label="Restart">${icon.replay}</button>
       </div>
     </div>
     <div class="status-row">
-      <div class="moves-pill" data-testid="moves">Ходы <b>0</b><span>/ ${String(level.moveLimit)}</span></div>
+      <div class="moves-pill" data-testid="moves">Moves <b>0</b><span>/ ${String(level.moveLimit)}</span></div>
       <div class="left-pill" data-testid="left"></div>
     </div>
     <div class="stage"><div class="board" data-testid="board"><div class="dests"></div><div class="fx"></div></div></div>
     <div class="bottom-bar">
-      <button class="undo-btn" data-testid="undo" aria-label="Отменить ход">${icon.undo}<span>Отменить</span></button>
+      <button class="undo-btn" data-testid="undo" aria-label="Undo move">${icon.undo}<span>Undo</span></button>
       <p class="hint" data-testid="hint"></p>
     </div>`;
 
@@ -263,7 +263,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   // ---------- нижняя панель: отмена + подсказка ----------
   function defaultTip(): string {
-    return level.tip ?? 'Прижми палец к врагу — увидишь ход заранее. Отпусти — сделаешь. Ошибся — отмени.';
+    return level.tip ?? 'Press and hold an enemy to preview the move. Release to make it. Made a mistake? Undo.';
   }
   function renderBar(text = defaultTip()): void {
     hintEl.innerHTML = `<span>${text}</span>`;
@@ -280,9 +280,9 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   }
 
   function renderStatus(): void {
-    movesEl.innerHTML = `Ходы <b>${String(state.moves)}</b><span>/ ${String(level.moveLimit)}</span>`;
+    movesEl.innerHTML = `Moves <b>${String(state.moves)}</b><span>/ ${String(level.moveLimit)}</span>`;
     movesEl.classList.toggle('last', state.status === 'playing' && level.moveLimit - state.moves === 1);
-    leftEl.innerHTML = `${enemyMini}Врагов <b>${String(state.enemies.length)}</b>`;
+    leftEl.innerHTML = `${enemyMini}Enemies <b>${String(state.enemies.length)}</b>`;
     el.dataset['status'] = state.status;
     el.dataset['moves'] = String(state.moves);
     el.dataset['enemies'] = String(state.enemies.length);
@@ -496,7 +496,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     }
     clearPreview();
     if (chosen?.kind === 'ambiguous') {
-      flashTip('Отсюда можно и <b>толкнуть</b>, и <b>утянуть</b>. Тапни врага, которого хочешь убрать.');
+      flashTip('From here you can both <b>push</b> and <b>pull</b>. Tap the enemy you want to remove.');
       return;
     }
     if (c === null) return;
@@ -537,42 +537,42 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   function showWin(): void {
     if (levelNumber === LEVEL_COUNT) {
       popup(
-        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2><p class="sub">Все враги убраны</p>`,
+        `<div class="badge-big badge-cup">${icon.cup}</div><h2>All levels complete!</h2><p class="sub">Every enemy is removed</p>`,
         [
-          { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-          { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+          { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+          { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
         ],
         'popup-final',
       );
       return;
     }
     popup(
-      `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень пройден!</h2><p class="sub">Все враги убраны</p>`,
+      `<div class="badge-big badge-win">${icon.check}</div><h2>Level complete!</h2><p class="sub">Every enemy is removed</p>`,
       [
-        { id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'next', html: `Next level ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-win',
     );
   }
 
   function showLose(reason: 'moves_exhausted' | 'no_moves'): void {
-    const title = reason === 'moves_exhausted' ? 'Ходы закончились' : 'Ходов нет';
-    const sub = reason === 'moves_exhausted' ? 'Лимит исчерпан, а враги остались на поле' : 'Герой зажат: свободных клеток рядом нет';
+    const title = reason === 'moves_exhausted' ? 'Out of moves' : 'No moves left';
+    const sub = reason === 'moves_exhausted' ? 'Move limit reached and enemies are still on the board' : 'The hero is boxed in: no free cells nearby';
     popup(
       `<div class="badge-big badge-lose">${icon.cross}</div><h2>${title}</h2><p class="sub">${sub}</p>`,
       [
-        { id: 'undo', html: `${icon.undo}Отменить ход`, className: 'btn-primary', run: undo },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'undo', html: `${icon.undo}Undo move`, className: 'btn-primary', run: undo },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',
     );
   }
 
   function showHowToPlay(): void {
-    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
+    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Got it!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
   }
 
   q('[data-testid="to-levels"]').addEventListener('click', toLevels);

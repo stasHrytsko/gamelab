@@ -9,7 +9,7 @@ export interface Cell {
 export type Kind = 'soil' | 'stone' | 'water' | 'start' | 'goal';
 
 /**
- * Уровень в формате солвера (§6): строки сверху вниз, `.` земля, `#` камень,
+ * Level в формате солвера (§6): строки сверху вниз, `.` земля, `#` камень,
  * `A` старт, `B` цель, цифра — вода с этим `+X`.
  */
 export interface Level {

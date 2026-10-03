@@ -1,7 +1,7 @@
 {
   "name": "Block Market",
   "short_name": "Block Market",
-  "description": "Собирай линии, плати монетами за удобство.",
+  "description": "Clear lines, pay coins for comfort.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

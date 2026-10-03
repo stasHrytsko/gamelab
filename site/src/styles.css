@@ -5,9 +5,9 @@
   --muted: #e4d9cb;
   --line: #d9ccbb;
   --text: #3b3b3b;
-  --text-muted: #7a7167;
+  --text-muted: #6b6258;
   --coral: #e56b5d;
-  --coral-deep: #d4584a;
+  --coral-deep: #c2493c;
   --mustard: #e0b44c;
   --teal: #7db5a7;
   --blue: #8fa7c7;
@@ -50,7 +50,7 @@ h1, h2, h3, p { margin: 0; }
 .nav a:hover, .nav a.is-active { opacity: 1; }
 .nav a.is-active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px; border-radius: 3px; background: var(--coral); }
 .topbar-tools { display: flex; align-items: center; gap: 10px; }
-.lang-switch { height: 40px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-soft); font-size: 14px; font-weight: 700; transition: transform 0.12s; }
+.lang-switch { height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-soft); font-size: 14px; font-weight: 700; transition: transform 0.12s; }
 .lang-switch:active { transform: scale(0.96); }
 .burger { display: none; width: 44px; height: 44px; border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-soft); flex-direction: column; justify-content: center; align-items: center; gap: 5px; }
 .burger i { display: block; width: 20px; height: 2.5px; border-radius: 2px; background: var(--text); transition: transform 0.2s, opacity 0.2s; }
@@ -106,10 +106,18 @@ h1, h2, h3, p { margin: 0; }
 .chip-exploring i { background: var(--blue); }
 
 .game-big, .game-tile { flex-direction: column; }
-.cover { position: relative; aspect-ratio: 16 / 10; background: var(--muted); overflow: hidden; }
-.cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
-.card:hover .cover img { transform: scale(1.03); }
-.cover .chip { position: absolute; top: 14px; right: 14px; }
+.cover-wrap { position: relative; }
+.cover { position: relative; aspect-ratio: 16 / 10; overflow: hidden; display: grid; place-items: center; background: var(--tint); --tint: color-mix(in srgb, var(--coral) 20%, var(--surface)); --shade: color-mix(in srgb, var(--coral) 45%, var(--surface)); }
+.cover-mustard { --tint: color-mix(in srgb, var(--mustard) 26%, var(--surface)); --shade: color-mix(in srgb, var(--mustard) 55%, var(--surface)); }
+.cover-teal { --tint: color-mix(in srgb, var(--teal) 28%, var(--surface)); --shade: color-mix(in srgb, var(--teal) 60%, var(--surface)); }
+.cover-blue { --tint: color-mix(in srgb, var(--blue) 28%, var(--surface)); --shade: color-mix(in srgb, var(--blue) 60%, var(--surface)); }
+.cover .shape { position: absolute; display: block; background: var(--shade); }
+.cover .s1 { left: -6%; bottom: -26%; width: 46%; aspect-ratio: 1; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.cover .s2 { right: -4%; bottom: -10%; width: 34%; aspect-ratio: 1; clip-path: polygon(50% 0, 100% 100%, 0 100%); opacity: 0.7; }
+.cover .s3 { right: 30%; bottom: 9%; width: 8%; aspect-ratio: 1; border-radius: 22%; transform: rotate(18deg); opacity: 0.8; }
+.cover-icon { position: relative; width: min(34%, 150px); aspect-ratio: 1; height: auto; object-fit: cover; border-radius: 26%; box-shadow: 0 14px 28px rgba(92, 70, 48, 0.22); transition: transform 0.3s ease; }
+.card:hover .cover-icon { transform: scale(1.05) rotate(-2deg); }
+.cover-wrap .chip { position: absolute; top: 14px; right: 14px; }
 .flag { position: absolute; top: 14px; left: 14px; height: 28px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--coral); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 .game-big .card-body { flex: 1; }
 .game-big h3 { font-size: 26px; }
@@ -125,11 +133,11 @@ h1, h2, h3, p { margin: 0; }
 .post-big .card-body { flex: 1; padding: 28px; gap: 12px; z-index: 1; }
 .post-big h3 { font-size: 28px; }
 .post-big p { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; max-width: 34em; }
-.post-shapes { position: absolute; right: -30px; bottom: -34px; width: 190px; height: 190px; opacity: 0.85; pointer-events: none; }
+.post-shapes { position: absolute; right: 28px; bottom: 26px; width: 150px; height: 120px; opacity: 0.9; pointer-events: none; }
 .post-shapes i { position: absolute; display: block; }
-.post-shapes i:nth-child(1) { right: 40px; bottom: 30px; width: 0; height: 0; border-left: 60px solid transparent; border-right: 60px solid transparent; border-bottom: 100px solid var(--teal); }
-.post-shapes i:nth-child(2) { right: 8px; bottom: 30px; width: 52px; height: 52px; background: var(--mustard); border-radius: 8px; transform: rotate(14deg); }
-.post-shapes i:nth-child(3) { right: 100px; bottom: 6px; width: 36px; height: 36px; background: var(--coral); border-radius: 6px; transform: rotate(-12deg); }
+.post-shapes i:nth-child(1) { right: 26px; bottom: 0; width: 0; height: 0; border-left: 48px solid transparent; border-right: 48px solid transparent; border-bottom: 82px solid var(--teal); }
+.post-shapes i:nth-child(2) { right: 0; bottom: 0; width: 38px; height: 38px; background: var(--mustard); border-radius: 8px; transform: rotate(14deg); }
+.post-shapes i:nth-child(3) { right: 86px; bottom: 0; width: 30px; height: 30px; background: var(--coral); border-radius: 6px; transform: rotate(-12deg); }
 .post-small .card-body { justify-content: center; padding: 14px 8px 14px 20px; }
 .post-small h3 { font-size: 17px; }
 
@@ -161,7 +169,7 @@ h1, h2, h3, p { margin: 0; }
 .archive-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .archive-head h2 { font-size: 26px; font-weight: 800; }
 .filters { display: flex; flex-wrap: wrap; gap: 8px; }
-.filters button { height: 38px; padding: 0 16px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-soft); font-weight: 700; font-size: 14px; }
+.filters button { height: 44px; padding: 0 16px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-soft); font-weight: 700; font-size: 14px; }
 .filters button.is-active { background: var(--coral); color: #fff; }
 .archive-list { display: flex; flex-direction: column; gap: 12px; }
 .archive-row { display: grid; grid-template-columns: 40px 120px 1fr auto; gap: 20px; align-items: center; padding: 18px 22px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-soft); transition: transform 0.18s, box-shadow 0.18s; }

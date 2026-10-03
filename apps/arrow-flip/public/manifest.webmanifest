@@ -1,7 +1,7 @@
 {
   "name": "Arrow Flip",
   "short_name": "Arrow Flip",
-  "description": "Тапни блок — он поедет по стрелке и повернёт всех, кого заденет.",
+  "description": "Tap a block and it slides along its arrow, turning everything it brushes past.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

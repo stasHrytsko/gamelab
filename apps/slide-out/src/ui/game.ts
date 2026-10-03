@@ -21,16 +21,16 @@ function mostUrgent(goals: readonly GoalState[]): GoalState | undefined {
 }
 
 const HOW_TO_PLAY = `
-  <h2>Как играть?</h2>
+  <h2>How to play</h2>
   <div class="demo" aria-hidden="true">
     ${colorTile('blue', 'slide')}${arrowIcon('arrow')}<div class="hole"></div>${arrowIcon('arrow')}
     <div class="goal" style="--c:var(--ui-blue)"><span class="num">3</span><span class="mark">${glyph('blue', '')}</span></div>
   </div>
   <ol class="rules">
-    <li><b>1</b><span>Сдвигай плитку пальцем в соседнюю пустую клетку.</span></li>
-    <li><b>2</b><span>Подведи плитку того же цвета и знака к кружку-цели, пока его число не стало нулём.</span></li>
-    <li><b>3</b><span>Каждый сдвиг отнимает у всех ждущих целей по одному.</span></li>
-    <li><b>4</b><span>Плитка у своей цели сразу выезжает с поля и оставляет пустую клетку.</span></li>
+    <li><b>1</b><span>Slide a tile with your finger into a neighbouring empty cell.</span></li>
+    <li><b>2</b><span>Bring a tile of the same colour and shape to its goal circle before the goal's number hits zero.</span></li>
+    <li><b>3</b><span>Every slide takes one off every waiting goal.</span></li>
+    <li><b>4</b><span>A tile that reaches its goal leaves the board at once and frees a cell.</span></li>
   </ol>`;
 
 export function gameScreen(levelNumber: number, go: Go): Screen {
@@ -44,12 +44,12 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   el.dataset['moves'] = '0';
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-levels" aria-label="К уровням">${icon.levels}</button>
-      <h2>Уровень ${String(levelNumber)}</h2><div class="spacer"></div>
+      <button class="icon-btn" data-testid="to-levels" aria-label="Levels">${icon.levels}</button>
+      <h2>Level ${String(levelNumber)}</h2><div class="spacer"></div>
     </div>
     <div class="queue" data-testid="queue"></div>
     <div class="stage"></div>
-    <button class="help-fab" data-testid="help" aria-label="Как играть">?</button>`;
+    <button class="help-fab" data-testid="help" aria-label="How to play">?</button>`;
   const queueEl = el.querySelector<HTMLElement>('.queue');
   const stage = el.querySelector<HTMLElement>('.stage');
   if (queueEl === null || stage === null) throw new Error('game screen markup');
@@ -168,21 +168,21 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   function showWin(): void {
     if (levelNumber === LEVEL_COUNT) {
       popup(
-        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2><p class="sub">Все цели закрыты</p>`,
+        `<div class="badge-big badge-cup">${icon.cup}</div><h2>All levels complete!</h2><p class="sub">Every goal is cleared</p>`,
         [
-          { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-          { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+          { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+          { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
         ],
         'popup-final',
       );
       return;
     }
     popup(
-      `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень пройден!</h2><p class="sub">Все цели закрыты</p>`,
+      `<div class="badge-big badge-win">${icon.check}</div><h2>Level complete!</h2><p class="sub">Every goal is cleared</p>`,
       [
-        { id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'next', html: `Next level ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-win',
     );
@@ -190,10 +190,10 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   function showLose(): void {
     popup(
-      `<div class="badge-big badge-lose">${icon.cross}</div><h2>Неудача</h2><p class="sub">Счётчик цели дошёл до нуля</p>`,
+      `<div class="badge-big badge-lose">${icon.cross}</div><h2>Failed</h2><p class="sub">A goal's counter hit zero</p>`,
       [
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-primary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',
     );
@@ -202,7 +202,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   function showHowToPlay(): void {
     popup(
       HOW_TO_PLAY,
-      [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => undefined }],
+      [{ id: 'ok', html: 'Got it!', className: 'btn-primary', run: () => undefined }],
       'popup-help',
       () => {
         markHowToPlaySeen();

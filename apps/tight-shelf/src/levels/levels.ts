@@ -3,7 +3,7 @@ import data from './levels.json';
 
 /**
  * §6. Копия tools/tight-shelf-levels.json: поле (цвет B/Y/C, форма o/s/t,
- * `.` — любая фигура) и очередь. Уровни подобраны солвером
+ * `.` — любая фигура) и очередь. Levels подобраны солвером
  * tools/tight-shelf-solver.mjs; tests/levels.test.ts проверяет, что копия
  * совпадает с оригиналом.
  */

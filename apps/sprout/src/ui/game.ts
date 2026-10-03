@@ -36,7 +36,7 @@ const CELL_MIN = 44;
 const CELL_MAX = 64;
 
 const HOW_TO_PLAY = `
-  <h2>Как играть?</h2>
+  <h2>How to play</h2>
   <div class="demo" aria-hidden="true">
     <div class="demo-cell root">${glyph.seed}</div>
     <div class="demo-stem"></div>
@@ -45,10 +45,10 @@ const HOW_TO_PLAY = `
     <div class="demo-cell"><div class="tile goal">${glyph.rays}${glyph.sprout}</div></div>
   </div>
   <ol class="rules">
-    <li><b>1</b><span>Тапни клетку рядом с кончиком корня — корень вырастет туда.</span></li>
-    <li><b>2</b><span>Каждый шаг стоит 1 ход. Капля воды даёт столько ходов, сколько на ней написано.</span></li>
-    <li><b>3</b><span>В камень и туда, где корень уже вырос, расти нельзя.</span></li>
-    <li><b>4</b><span>Доведи корень до жёлтой клетки с ростком, пока не кончились ходы.</span></li>
+    <li><b>1</b><span>Tap a cell next to the root tip and the root grows there.</span></li>
+    <li><b>2</b><span>Every step costs 1 move. A water drop gives back as many moves as it says.</span></li>
+    <li><b>3</b><span>The root can't grow into stone or into cells it has already grown through.</span></li>
+    <li><b>4</b><span>Grow the root to the yellow sprout cell before you run out of moves.</span></li>
   </ol>`;
 
 const key = (c: Cell): string => `${String(c.row)}-${String(c.col)}`;
@@ -68,16 +68,16 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   el.dataset['level'] = String(levelNumber);
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-levels" aria-label="К уровням">${icon.levels}</button>
-      <h2>Уровень ${String(levelNumber)}</h2>
+      <button class="icon-btn" data-testid="to-levels" aria-label="Levels">${icon.levels}</button>
+      <h2>Level ${String(levelNumber)}</h2>
       <div class="right">
-        <button class="icon-btn q" data-testid="help" aria-label="Как играть">?</button>
-        <button class="icon-btn" data-testid="restart" aria-label="Заново">${icon.replay}</button>
+        <button class="icon-btn q" data-testid="help" aria-label="How to play">?</button>
+        <button class="icon-btn" data-testid="restart" aria-label="Restart">${icon.replay}</button>
       </div>
     </div>
-    <div class="moves-card" data-testid="moves"><small>Ходы</small><b>${String(state.moves)}</b></div>
+    <div class="moves-card" data-testid="moves"><small>Moves</small><b>${String(state.moves)}</b></div>
     <div class="stage"><div class="board" data-testid="board"><div class="stems"></div></div></div>
-    ${levelNumber === 1 ? `<div class="hint-card" data-testid="hint">${glyph.finger}<span>Нажми на соседнюю клетку,<br>чтобы вырастить корень</span></div>` : ''}`;
+    ${levelNumber === 1 ? `<div class="hint-card" data-testid="hint">${glyph.finger}<span>Tap a neighbouring cell<br>to grow the root</span></div>` : ''}`;
 
   const q = <E extends HTMLElement>(sel: string): E => {
     const found = el.querySelector<E>(sel);
@@ -366,41 +366,41 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   function showWin(): void {
     if (levelNumber === LEVEL_COUNT) {
       popup(
-        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2><p class="sub">Росток пробился к свету</p>`,
+        `<div class="badge-big badge-cup">${icon.cup}</div><h2>All levels complete!</h2><p class="sub">The sprout reached the light</p>`,
         [
-          { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-          { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+          { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+          { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
         ],
         'popup-final',
       );
       return;
     }
     popup(
-      `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень пройден!</h2><p class="sub">Росток пробился к свету</p>`,
+      `<div class="badge-big badge-win">${icon.check}</div><h2>Level complete!</h2><p class="sub">The sprout reached the light</p>`,
       [
-        { id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'next', html: `Next level ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-win',
     );
   }
 
   function showLose(reason: FailReason): void {
-    const title = reason === 'moves_exhausted' ? 'Ходы закончились' : 'Корню некуда расти';
-    const sub = reason === 'moves_exhausted' ? 'Корень не успел дорасти до ростка' : 'Вокруг кончика камни и сам корень';
+    const title = reason === 'moves_exhausted' ? 'Out of moves' : 'The root has nowhere to grow';
+    const sub = reason === 'moves_exhausted' ? 'The root didn’t reach the sprout in time' : 'The tip is surrounded by stone and the root itself';
     popup(
       `<div class="badge-big badge-lose">${icon.cross}</div><h2>${title}</h2><p class="sub">${sub}</p>`,
       [
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-primary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',
     );
   }
 
   function showHowToPlay(): void {
-    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
+    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Got it!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
   }
 
   boardEl.addEventListener('pointerdown', (event) => {

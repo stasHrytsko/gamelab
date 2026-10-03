@@ -21,18 +21,18 @@ const POP_MS = 260;
 const SHIFT_MS = 200;
 
 const HOW_TO_PLAY = `
-  <h2>Как играть?</h2>
+  <h2>How to play</h2>
   <div class="demo" aria-hidden="true">
     <div class="demo-row">${pieceSvg('Bo')}${pieceSvg('Bs')}${pieceSvg('Bt')}<i class="demo-bar"></i></div>
   </div>
   <ol class="rules">
-    <li><b>1</b><span>Ставь фигуру в клетку, где совпадает цвет или форма. Клетка с точкой примет любую фигуру.</span></li>
-    <li><b>2</b><span>Три в ряд — по горизонтали, вертикали или диагонали — с одним цветом или одной формой исчезают.</span></li>
-    <li><b>3</b><span>Вверху видно текущую фигуру и три следующих. Береги клетки для них.</span></li>
-    <li><b>4</b><span>Поставь все фигуры. Если фигуре некуда встать — попытка проиграна.</span></li>
+    <li><b>1</b><span>Place a piece on a cell that matches its colour or its shape. A cell with a dot takes any piece.</span></li>
+    <li><b>2</b><span>Three in a row (horizontal, vertical or diagonal) sharing a colour or a shape disappear.</span></li>
+    <li><b>3</b><span>The current piece and the next three are shown on top. Save cells for them.</span></li>
+    <li><b>4</b><span>Place every piece. If a piece has nowhere to go, the attempt is lost.</span></li>
   </ol>`;
 
-const piecesLeft = (n: number): string => (n % 10 === 1 && n % 100 !== 11 ? 'фигура' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'фигуры' : 'фигур');
+const piecesLeft = (n: number): string => (n === 1 ? 'piece' : 'pieces');
 
 export function gameScreen(levelNumber: number, go: Go): Screen {
   ensureDefs();
@@ -47,20 +47,20 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   el.dataset['level'] = String(levelNumber);
   el.innerHTML = `
     <div class="topbar">
-      <button class="icon-btn" data-testid="to-levels" aria-label="К уровням">${icon.levels}</button>
-      <h2>Уровень ${String(levelNumber)}</h2>
+      <button class="icon-btn" data-testid="to-levels" aria-label="Levels">${icon.levels}</button>
+      <h2>Level ${String(levelNumber)}</h2>
       <div class="right">
-        <button class="icon-btn q" data-testid="help" aria-label="Как играть">?</button>
-        <button class="icon-btn" data-testid="restart" aria-label="Заново">${icon.replay}</button>
+        <button class="icon-btn q" data-testid="help" aria-label="How to play">?</button>
+        <button class="icon-btn" data-testid="restart" aria-label="Restart">${icon.replay}</button>
       </div>
     </div>
     <div class="queue" data-testid="queue">
-      <div class="now"><div class="slot now-slot" data-testid="now"></div><div class="label">Сейчас</div></div>
+      <div class="now"><div class="slot now-slot" data-testid="now"></div><div class="label">Now</div></div>
       <div class="sep"></div>
       <div class="next"><div class="row" data-testid="next"></div><div class="label" data-testid="left"></div></div>
     </div>
     <div class="stage"><div class="board" data-testid="board"></div></div>
-    <div class="hint">Три в ряд с общим <b>цветом</b> или общей <b>формой</b> исчезают</div>`;
+    <div class="hint">Three in a row sharing a <b>colour</b> or a <b>shape</b> disappear</div>`;
   const q = <T extends HTMLElement>(sel: string): T => {
     const found = el.querySelector<T>(sel);
     if (found === null) throw new Error(`game markup: ${sel}`);
@@ -94,7 +94,7 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
     const next = state.queue.slice(state.turn + 1, state.turn + 1 + PREVIEW);
     nextEl.innerHTML = Array.from({ length: PREVIEW }, (_, k) => `<div class="slot">${next[k] === undefined ? '' : pieceSvg(next[k])}</div>`).join('');
     const left = Math.max(0, state.queue.length - state.turn);
-    leftEl.textContent = left === 0 ? 'Все фигуры на поле' : `Дальше · ещё ${String(left)} ${piecesLeft(left)}`;
+    leftEl.textContent = left === 0 ? 'All pieces placed' : `Next · ${String(left)} more ${piecesLeft(left)}`;
   }
 
   function render(): void {
@@ -292,21 +292,21 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
   function showWin(): void {
     if (levelNumber === LEVEL_COUNT) {
       popup(
-        `<div class="badge-big badge-cup">${icon.cup}</div><h2>Все уровни пройдены!</h2><p class="sub">Все фигуры на поле</p>`,
+        `<div class="badge-big badge-cup">${icon.cup}</div><h2>All levels complete!</h2><p class="sub">All pieces placed</p>`,
         [
-          { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-          { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+          { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+          { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
         ],
         'popup-final',
       );
       return;
     }
     popup(
-      `<div class="badge-big badge-win">${icon.check}</div><h2>Уровень пройден!</h2><p class="sub">Все фигуры на поле</p>`,
+      `<div class="badge-big badge-win">${icon.check}</div><h2>Level complete!</h2><p class="sub">All pieces placed</p>`,
       [
-        { id: 'next', html: `Следующий уровень ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-secondary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'next', html: `Next level ${icon.arrow}`, className: 'btn-success', run: () => go(`#/level/${String(levelNumber + 1)}`) },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-secondary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-win',
     );
@@ -314,17 +314,17 @@ export function gameScreen(levelNumber: number, go: Go): Screen {
 
   function showLose(): void {
     popup(
-      `<div class="badge-big badge-lose">${icon.cross}</div><h2>Фигуре некуда встать</h2><p class="sub">Для этой фигуры не осталось подходящей клетки</p>`,
+      `<div class="badge-big badge-lose">${icon.cross}</div><h2>A piece has nowhere to go</h2><p class="sub">No suitable cell is left for this piece</p>`,
       [
-        { id: 'replay', html: `${icon.replay}Переиграть`, className: 'btn-primary', run: replay },
-        { id: 'levels', html: 'К уровням', className: 'btn-ghost', run: toLevels },
+        { id: 'replay', html: `${icon.replay}Retry`, className: 'btn-primary', run: replay },
+        { id: 'levels', html: 'Levels', className: 'btn-ghost', run: toLevels },
       ],
       'popup-lose',
     );
   }
 
   function showHowToPlay(): void {
-    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Понятно!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
+    popup(HOW_TO_PLAY, [{ id: 'ok', html: 'Got it!', className: 'btn-primary', run: () => undefined }], 'popup-help', () => markHowToPlaySeen());
   }
 
   q('[data-testid="to-levels"]').addEventListener('click', toLevels);

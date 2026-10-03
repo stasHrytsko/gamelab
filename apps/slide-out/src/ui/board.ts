@@ -282,7 +282,7 @@ export class Board {
     if (goal.countdown === 1) vibrate(15);
   }
 
-  /** Счётчик цели дошёл до нуля: цель сереет и уходит, её клетка краснеет. */
+  /** A goal's counter hit zero: цель сереет и уходит, её клетка краснеет. */
   async goalLeaves(goal: GoalState): Promise<void> {
     const el = this.goals.get(goal.id);
     const away = SIDE_VECTOR[goal.target.side];

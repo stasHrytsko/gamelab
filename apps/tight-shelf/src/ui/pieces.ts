@@ -10,8 +10,8 @@ const SHAPE: Record<Shape, (attrs: string) => string> = {
 };
 const HIGHLIGHT: Record<Shape, readonly [number, number, number, number]> = { o: [34, 30, 13, 8], s: [32, 28, 14, 7], t: [46, 40, 8, 5] };
 const TOKEN: Record<Color, string> = { B: 'blue', Y: 'yellow', C: 'coral' };
-export const COLOR_NAME: Record<Color, string> = { B: 'синий', Y: 'жёлтый', C: 'коралловый' };
-export const SHAPE_NAME: Record<Shape, string> = { o: 'круг', s: 'квадрат', t: 'треугольник' };
+export const COLOR_NAME: Record<Color, string> = { B: 'blue', Y: 'yellow', C: 'coral' };
+export const SHAPE_NAME: Record<Shape, string> = { o: 'circle', s: 'square', t: 'triangle' };
 
 /** Градиенты фигур — один раз на документ. */
 export function ensureDefs(): void {

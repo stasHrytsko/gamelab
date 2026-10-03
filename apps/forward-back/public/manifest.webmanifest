@@ -1,7 +1,7 @@
 {
   "name": "Forward / Back",
   "short_name": "Forward / Back",
-  "description": "Шаг на клетку — и убираешь цепочку врагов впереди или позади.",
+  "description": "Step one cell and take out a chain of enemies in front or behind.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

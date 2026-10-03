@@ -104,8 +104,8 @@ h1, h2, h3, p { margin: 0; }
 
 
 /* ---------- карточки ---------- */
-.card { display: flex; background: #f4ecdd; border-radius: var(--radius); box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 8px 20px rgba(92, 70, 48, 0.12), 0 1px 3px rgba(92, 70, 48, 0.14); overflow: hidden; transition: transform 0.18s ease, box-shadow 0.18s ease; min-width: 0; }
-.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.card { display: flex; transition: transform 0.2s ease; min-width: 0; }
+.card:hover { transform: translateY(-3px); }
 .card:active { transform: scale(0.99); }
 .card h3 { font-size: 22px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
 .card p { color: var(--text-muted); font-size: 16px; font-weight: 300; letter-spacing: 0.02em; }
@@ -129,8 +129,8 @@ h1, h2, h3, p { margin: 0; }
 
 /* ---------- строка карточек на главной (по макету) ---------- */
 .cards-row { display: grid; grid-template-columns: 1.95fr 1fr 1fr 1fr; gap: 17px; margin: 0 -40px; align-items: stretch; }
-.rcard { position: relative; display: flex; flex-direction: column; min-width: 0; background: #f4ecdd; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 8px 22px rgba(92, 70, 48, 0.13), 0 1px 3px rgba(92, 70, 48, 0.14); transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.rcard:hover { transform: translateY(-3px); box-shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 14px 28px rgba(92, 70, 48, 0.18), 0 1px 3px rgba(92, 70, 48, 0.14); }
+.rcard { position: relative; display: flex; flex-direction: column; min-width: 0; transition: transform 0.2s ease; }
+.rcard:hover { transform: translateY(-3px); }
 .rcard .cover-wrap { position: relative; height: clamp(230px, 24.5vw, 352px); }
 .rbody { position: relative; display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 22px 28px 24px; }
 .rbody h3 { font-size: 25px; line-height: 1.15; font-weight: 700; letter-spacing: -0.012em; }
@@ -143,7 +143,7 @@ h1, h2, h3, p { margin: 0; }
 .rcard:hover .cover-icon, .card:hover .cover-icon { transform: translateX(-50%) rotate(1deg) scale(1.04); }
 .rcard.is-wide .cover-icon { width: clamp(100px, 11vw, 156px); }
 /* «Все игры →» вместо последней карточки */
-.all-card { justify-content: center; align-items: flex-start; gap: 18px; padding: 0 30px; background: #efe5d3; }
+.all-card { justify-content: center; align-items: flex-start; gap: 18px; padding: 0 30px; }
 .all-card .all-decor { position: absolute; right: 0; bottom: 0; width: 70%; height: auto; opacity: 0.9; pointer-events: none; }
 .all-label { position: relative; font-size: 28px; font-weight: 700; line-height: 1.1; letter-spacing: -0.015em; }
 .all-arrow { position: relative; font-size: 34px; line-height: 1; font-weight: 300; color: var(--coral-deep); transition: transform 0.2s; }
@@ -346,3 +346,21 @@ a.contact:hover { color: var(--coral-deep); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .latest-post .card-go { font-size: 16px; font-weight: 700; color: var(--coral-deep); align-self: flex-start; gap: 8px; }
+
+/* ---------- бумажность карточек ----------
+   Каждая карточка — лист бумаги: зерно и лёгкий градиент, чуть неровный край (SVG-фильтр только на
+   фоне, текст остаётся ровным), светлая кромка, а под ней виден второй лист, слегка повёрнутый. */
+.rcard, .card { position: relative; isolation: isolate; }
+.rcard::before, .card::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 14px; background: var(--grain), linear-gradient(158deg, #fcf7ee 0%, #f7efe0 55%, #f1e7d3 100%); background-size: 260px 260px, auto; filter: url(#paper-rough); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -2px 3px rgba(140, 110, 70, 0.14), 0 1px 1px rgba(80, 60, 35, 0.28), 0 12px 24px rgba(80, 60, 35, 0.16); }
+.rcard::after, .card::after { content: ''; position: absolute; inset: 0; z-index: -2; border-radius: 14px; background: #e9dcc3; transform: translate(5px, 7px) rotate(0.9deg); filter: url(#paper-rough); box-shadow: 0 8px 16px rgba(80, 60, 35, 0.15); }
+.rcard:nth-child(even)::after, .card:nth-child(even)::after { transform: translate(-4px, 7px) rotate(-0.8deg); }
+.all-card::before { background: var(--grain), linear-gradient(158deg, #f5ecd9 0%, #eee2c9 100%); background-size: 260px 260px, auto; }
+/* картинка в строке — как наклеенный отпечаток с рваным нижним краем */
+.rcard .cover-wrap, .game-card .cover-wrap { border-radius: 14px 14px 0 0; filter: drop-shadow(0 3px 2px rgba(80, 60, 35, 0.26)); }
+.rcard .cover, .game-card .cover { border-radius: 14px 14px 0 0; clip-path: polygon(0 0, 100% 0, 100% 96.2%, 96.1% 97.1%, 92.5% 96.3%, 88.6% 95.7%, 84.8% 96.6%, 80.2% 95.5%, 77.1% 95.5%, 72.5% 96.7%, 70.2% 97.3%, 65.1% 96.6%, 61.0% 95.6%, 58.8% 96.4%, 56.4% 95.7%, 53.5% 95.4%, 49.9% 96.2%, 45.2% 96.3%, 41.1% 96.3%, 36.9% 96.2%, 33.8% 97.3%, 28.6% 97.0%, 24.3% 95.9%, 21.4% 95.9%, 19.0% 96.8%, 15.6% 97.0%, 12.3% 97.2%, 7.5% 95.3%, 4.7% 97.1%, 1.1% 97.3%, 0 95.5%); }
+.rcard:nth-child(even) .cover, .game-card:nth-child(even) .cover { clip-path: polygon(0 0, 100% 0, 100% 97.1%, 95.0% 97.1%, 92.5% 96.5%, 89.0% 96.4%, 86.4% 95.7%, 82.9% 95.7%, 79.3% 95.3%, 76.9% 96.7%, 73.4% 96.3%, 69.0% 96.0%, 66.6% 96.9%, 62.7% 96.6%, 58.6% 97.2%, 55.3% 96.8%, 52.0% 96.4%, 47.8% 95.9%, 45.4% 96.2%, 41.0% 96.5%, 37.5% 96.6%, 34.7% 95.7%, 31.6% 96.9%, 28.8% 95.5%, 26.3% 95.4%, 23.3% 96.4%, 18.6% 96.0%, 15.3% 95.9%, 12.2% 96.9%, 8.3% 95.8%, 5.8% 96.9%, 1.5% 97.0%, 0 96.3%); }
+.cover::after { content: ''; position: absolute; inset: 0; background: var(--grain); opacity: 0.9; mix-blend-mode: multiply; pointer-events: none; }
+.game-banner .cover-wrap { border-radius: 14px 0 0 14px; }
+.game-banner .cover { border-radius: 14px 0 0 14px; }
+.latest-post.card::before { border-radius: 14px; }
+@media (max-width: 980px) { .game-banner .cover-wrap, .game-banner .cover { border-radius: 14px 14px 0 0; } }
